@@ -25,4 +25,9 @@ public class Card extends BaseTimeEntity {
     @Column(nullable = false)
     private String cardCompany;
 
+    @Column
+    private String billingKey;
+
+
+
 }

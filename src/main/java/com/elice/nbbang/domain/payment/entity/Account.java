@@ -24,8 +24,4 @@ public class Account extends BaseTimeEntity {
     @Column(nullable = false)
     private String bankName;
 
-    @Column(nullable = false)
-
-
-
 }
