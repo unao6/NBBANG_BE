@@ -37,6 +37,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5' /* Jasypt 의존성 추가 (암호화) */
+	implementation 'io.github.bootpay:backend:+' /* 부트페이 라이브러리 추가 */
 }
 
 tasks.named('test') {

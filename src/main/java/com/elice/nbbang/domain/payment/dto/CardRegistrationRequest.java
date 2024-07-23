@@ -3,7 +3,7 @@ package com.elice.nbbang.domain.payment.dto;
 import lombok.Data;
 
 @Data
-public class CardRegistrationDTO {
+public class CardRegistrationRequest {
 
     private String cardNumber;
 

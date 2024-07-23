@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.payment.controller;
 
-import com.elice.nbbang.domain.payment.dto.CardRegistrationDTO;
+import com.elice.nbbang.domain.payment.dto.CardRegistrationRequest;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.service.CardService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
@@ -35,14 +35,14 @@ public class PaymentController {
 
     //카드 등록 API
     @PostMapping("card")
-    public ResponseEntity<Card> createCard(@RequestBody CardRegistrationDTO cardRegistrationDTO) {
+    public ResponseEntity<Card> createCard(@RequestBody CardRegistrationRequest cardRegistrationDTO) {
         Card registeredCard = cardService.registerCard(cardRegistrationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(registeredCard);
     }
 
     //카드 변경 API
     @PutMapping("card/{cardId}")
-    public ResponseEntity<Card> updateCard(@PathVariable("cardId") Long cardId, @RequestBody CardRegistrationDTO cardRegistrationDTO) {
+    public ResponseEntity<Card> updateCard(@PathVariable("cardId") Long cardId, @RequestBody CardRegistrationRequest cardRegistrationDTO) {
         Card updatedCard = cardService.changeCard(cardId, cardRegistrationDTO);
         return ResponseEntity.status(HttpStatus.OK).body(updatedCard);
     }

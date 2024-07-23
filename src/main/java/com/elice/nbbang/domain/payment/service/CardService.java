@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.payment.service;
 
-import com.elice.nbbang.domain.payment.dto.CardRegistrationDTO;
+import com.elice.nbbang.domain.payment.dto.CardRegistrationRequest;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.exception.ResourceNotFoundException;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
@@ -15,7 +15,7 @@ public class CardService {
     private final CardRepository cardRepository;
 
     //카드 등록
-    public Card registerCard(CardRegistrationDTO cardRegistrationDTO) {
+    public Card registerCard(CardRegistrationRequest cardRegistrationDTO) {
         Card card = new Card();
         card.setCardNumber(cardRegistrationDTO.getCardNumber());
         card.setCardHolder(cardRegistrationDTO.getCardHolder());
@@ -26,7 +26,7 @@ public class CardService {
     }
 
     //카드 변경
-    public Card changeCard(Long cardId, CardRegistrationDTO cardRegistrationDTO) {
+    public Card changeCard(Long cardId, CardRegistrationRequest cardRegistrationDTO) {
         Card selectedCard = cardRepository.findById(cardId)
             .orElseThrow(() -> new ResourceNotFoundException("해당하는 ID의 카드가 없습니다."));
 
