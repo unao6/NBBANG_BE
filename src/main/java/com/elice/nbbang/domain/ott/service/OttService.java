@@ -28,7 +28,8 @@ public class OttService {
         validateOttName(ottCreateRequest.name());
         validateOttCapacity(ottCreateRequest.capacity());
 
-        final Ott ott = Ott.of(ottCreateRequest.name(), ottCreateRequest.perMonthPrice(), ottCreateRequest.capacity());
+        final Ott ott = Ott.of(ottCreateRequest.name(), ottCreateRequest.price(), ottCreateRequest.capacity());
+        ottRepository.save(ott);
 
         return ott.getId();
     }
@@ -38,7 +39,7 @@ public class OttService {
         final List<Ott> results = ottRepository.findAll();
 
         return results.stream()
-                .map(ott -> new OttResponse(ott.getName(), ott.getPerMonthPrice(), ott.getCapacity()))
+                .map(ott -> new OttResponse(ott.getName(), ott.getPrice(), ott.getCapacity()))
                 .toList();
     }
 
@@ -47,14 +48,14 @@ public class OttService {
         final Ott ott = ottRepository.findById(ottId)
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
-        return new OttResponse(ott.getName(), ott.getPerMonthPrice(), ott.getCapacity());
+        return new OttResponse(ott.getName(), ott.getPrice(), ott.getCapacity());
     }
 
     public void updateOtt(final OttUpdateRequest ottUpdateRequest) {
         final Ott ott = ottRepository.findById(ottUpdateRequest.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
-        ott.updateOtt(ottUpdateRequest.name(), ottUpdateRequest.perMonthPrice(), ottUpdateRequest.capacity());
+        ott.updateOtt(ottUpdateRequest.name(), ottUpdateRequest.price(), ottUpdateRequest.capacity());
 
         ottRepository.save(ott);
     }
@@ -80,6 +81,4 @@ public class OttService {
             throw new InvalidOttCapacity(ErrorCode.INVALID_CAPACITY);
         }
     }
-
-
 }
