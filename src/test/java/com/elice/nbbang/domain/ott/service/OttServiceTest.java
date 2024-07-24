@@ -14,6 +14,7 @@ import com.elice.nbbang.domain.ott.exception.DuplicateOttName;
 import com.elice.nbbang.domain.ott.exception.InvalidOttCapacity;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,11 @@ class OttServiceTest {
     private OttRepository ottRepository;
     @Autowired
     private OttService ottService;
+
+    @AfterEach
+    void tearDown() {
+        ottRepository.deleteAllInBatch();
+    }
 
     @DisplayName("OTT 정보를 받아 OTT를 생성한다.")
     @Test
@@ -94,7 +100,7 @@ class OttServiceTest {
         //then
         assertThat(allOtt).hasSize(2);
         assertThat(allOtt)
-                .extracting("name", "perMonthPrice", "capacity")
+                .extracting("name", "price", "capacity")
                 .containsExactlyInAnyOrder(
                         tuple("Netflix", 20000, 4),
                         tuple("TVING", 10000, 3)
@@ -115,7 +121,7 @@ class OttServiceTest {
 
         //then
         assertThat(ottById)
-                .extracting("name", "perMonthPrice", "capacity")
+                .extracting("name", "price", "capacity")
                 .contains("Netflix", 20000, 4);
     }
     @DisplayName("OTT 정보를 수정할 수 있다.")
@@ -128,11 +134,11 @@ class OttServiceTest {
         OttUpdateRequest request = new OttUpdateRequest(ott1.getId(), "Netflix", 30000, 4);
 
         //when
-        ott1.updateOtt(request.name(), request.perMonthPrice(), request.capacity());
+        ott1.updateOtt(request.name(), request.price(), request.capacity());
 
         //then
         assertThat(ott1)
-                .extracting("name", "perMonthPrice", "capacity")
+                .extracting("name", "price", "capacity")
                 .contains("Netflix", 30000, 4);
     }
 
