@@ -12,13 +12,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.Nullable;
 
 @Entity
+@Builder
 @Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Payment extends BaseTimeEntity {
 
     @Id
