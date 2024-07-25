@@ -14,11 +14,11 @@ public class CardService {
     private final CardRepository cardRepository;
 
     //카드 등록
-    public Card registerCard(CardRegisterDTO registerDTO) {
+    public Card registerCard(CardPaymentRequest request, String billingKey) {
         Card card = Card.builder()
-            .billingKey(registerDTO.getBillingKey())
-            .cardNumber(registerDTO.getCardNumber())
-            .cardCompany(registerDTO.getCardCompany())
+            .billingKey(billingKey)
+            .cardNumber(request.getCardNumber())
+            .cardCompany(request.getCardCompany())
             .build();
         cardRepository.save(card);
         return card;
