@@ -1,0 +1,14 @@
+package com.elice.nbbang.domain.user.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+@ResponseBody
+public class Admincontroller {
+    @GetMapping("/admin")
+    public String adminP(){
+        return "Admin Controller";
+    }
+}
