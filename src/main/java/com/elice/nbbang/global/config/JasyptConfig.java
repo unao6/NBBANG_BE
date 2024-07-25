@@ -1,4 +1,4 @@
-package com.elice.nbbang.config;
+package com.elice.nbbang.global.config;
 
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import org.jasypt.encryption.StringEncryptor;
