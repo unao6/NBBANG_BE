@@ -1,7 +1,7 @@
 package com.elice.nbbang.domain.user.controller;
 
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-import com.elice.nbbang.domain.user.service.UserService;
+//import com.elice.nbbang.domain.user.dto.UserSignUpDto;
+//import com.elice.nbbang.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
