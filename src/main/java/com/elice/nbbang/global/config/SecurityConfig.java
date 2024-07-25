@@ -64,28 +64,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-//
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-//
-//        http.csrf((auth) -> auth.disable());
-//        //From 로그인 방식 disable
-//        http.formLogin((auth) -> auth.disable());
-//
-//        //http basic 인증 방식 disable
-//        http.httpBasic((auth) -> auth.disable());
-//
-//    //경로별 인가 작업
-//        http.authorizeHttpRequests((auth) -> auth
-//                        .requestMatchers("/", "/login").permitAll()
-//                        .requestMatchers("/admin").hasRole("ADMIN")
-//                        .requestMatchers("/my/**").hasAnyRole("ADMIN", "USER")
-//                        .anyRequest().authenticated()
-//                );
-//
-//        http.formLogin((auth) -> auth.loginPage("/login")
-//                        .loginProcessingUrl("/loginProc")
-//                        .permitAll()
-//                );
-
 }
