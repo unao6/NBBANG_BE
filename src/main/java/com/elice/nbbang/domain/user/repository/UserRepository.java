@@ -3,11 +3,12 @@ package com.elice.nbbang.domain.user.repository;
 import com.elice.nbbang.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface UserRepository extends JpaRepository<User, Long> {
 
     //로그인 이메일을 갖는 객체가 존재하는지 -> 존재하면 true 리턴 (ID 중복 검사 시 필요)
-    boolean existsByLoginEmail(String email);
+    Boolean existsByEmail(String email);
 
-    //로그인 이메일을 갖는 객체 반환
-    User findByLoginEmail(String email);
+    User findByEmail(String email);
 }

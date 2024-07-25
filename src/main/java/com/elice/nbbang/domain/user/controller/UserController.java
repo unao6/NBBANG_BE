@@ -8,9 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
-@ResponseBody
 public class UserController {
 
     @GetMapping("/")
