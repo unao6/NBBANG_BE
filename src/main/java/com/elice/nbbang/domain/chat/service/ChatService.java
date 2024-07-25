@@ -31,7 +31,7 @@ public class ChatService {
     public Long startChat(Long userId) {
         Optional<Chat> optionalChat = chatRepository.findByUserIdAndStatus(userId, true);
         if (optionalChat.isPresent()) {
-            return optionalChat.get().getChatId();
+            return optionalChat.get().getId();
         } else {
             return -1L; // 임시 챗아이디 설정
         }

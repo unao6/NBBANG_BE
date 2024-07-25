@@ -16,8 +16,9 @@ import java.util.List;
 @Entity
 public class ArchivedChats {
     @Id
+    @Column(name="archived_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long archivedId;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

@@ -19,14 +19,14 @@ public class ChatController{
     // '상담 시작' 버튼으로 채팅을 시작 -> 웹소켓 연결 및 chatId 반환
     @PostMapping("/start")
     public ResponseEntity<Long> startChat(@AuthenticationPrincipal User user) {
-        Long chatId = chatService.startChat(user.getUserId());
+        Long chatId = chatService.startChat(user.getId());
         return ResponseEntity.ok(chatId);
     }
 
     // 상담 종료
     @PostMapping("/end")
     private ResponseEntity<String> endChat(@RequestBody User user) {
-        chatService.endChat(user.getUserId());
+        chatService.endChat(user.getId());
         return ResponseEntity.ok("Chat ended successfully.");
     }
 

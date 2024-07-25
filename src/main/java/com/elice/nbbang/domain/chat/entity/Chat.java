@@ -16,8 +16,9 @@ import java.util.List;
 @Entity
 public class Chat {
     @Id
+    @Column(name="chat_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long chatId;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
