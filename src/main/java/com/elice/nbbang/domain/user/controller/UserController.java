@@ -1,22 +1,20 @@
 package com.elice.nbbang.domain.user.controller;
 
-//import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-//import com.elice.nbbang.domain.user.service.UserService;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import com.elice.nbbang.domain.user.dto.UserSignUpDto;
+import com.elice.nbbang.domain.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
 @ResponseBody
-//@RestController
-//@RequestMapping("/users")
-//@RequiredArgsConstructor
 public class UserController {
 
     @GetMapping("/")
-    public String mainP() {
+    public String userP() {
         return "User Controller";
     }
 
