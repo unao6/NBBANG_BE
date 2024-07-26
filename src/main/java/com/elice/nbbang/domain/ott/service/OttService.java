@@ -39,7 +39,7 @@ public class OttService {
         final List<Ott> results = ottRepository.findAll();
 
         return results.stream()
-                .map(ott -> new OttResponse(ott.getName(), ott.getPrice(), ott.getCapacity()))
+                .map(ott -> new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity()))
                 .toList();
     }
 
@@ -48,7 +48,7 @@ public class OttService {
         final Ott ott = ottRepository.findById(ottId)
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
-        return new OttResponse(ott.getName(), ott.getPrice(), ott.getCapacity());
+        return new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity());
     }
 
     public void updateOtt(final OttUpdateRequest ottUpdateRequest) {
