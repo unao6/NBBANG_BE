@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,12 @@ public class KakaoPayController {
 
     private final KakaoPayService kakaoPayService;
 
-
+    /**
+     * 카카오페이 결제준비 생성 API
+     * @param userId
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/create")
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> createSubscription(@RequestParam Long userId)
         throws Exception {
@@ -30,6 +36,12 @@ public class KakaoPayController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 카카오페이 결제 승인 API
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/approve")
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> approveSubscription(@RequestBody KakaoPaySubscriptionApproveRequest request) throws Exception {
         log.info("Received approve request: tid={}, pgToken={}", request.getTid(), request.getPgToken());
@@ -37,10 +49,28 @@ public class KakaoPayController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 카카오페이 결제 취소 API
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/cancel")
     public ResponseEntity<Void> cancelPayment(@RequestBody KakaoPayCancelRequest request) throws Exception {
         log.info("Received cancel request: tid={}", request.getTid());
         kakaoPayService.cancelPayment(request);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 카카오페이 정기결제 신청 API
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/subscription/{userId}")
+    public ResponseEntity<Void> subscription(@PathVariable Long userId, @RequestParam String tid, @RequestParam String sid) throws Exception {
+        kakaoPayService.subscription(userId, tid, sid);
         return ResponseEntity.ok().build();
     }
 }

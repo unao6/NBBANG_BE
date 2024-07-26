@@ -32,7 +32,7 @@ public class KakaoPayCancelRequest {
 
     public static KakaoPayCancelRequest fromProperties(KakaoPayProperties properties, Payment payment, Integer cancelAmount, Integer cancelTaxFreeAmount, Integer cancelVatAmount, Integer cancelAvailableAmount, String payload) {
         return KakaoPayCancelRequest.builder()
-            .cid(properties.getCid())
+            .cid(properties.getSubscriptionCid())
             .tid(payment.getTid())
             .cancelAmount(cancelAmount)
             .cancelTaxFreeAmount(cancelTaxFreeAmount)

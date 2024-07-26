@@ -27,10 +27,10 @@ public class KakaoPaySubscriptionCreateRequest {
     private int quantity;
 
     @JsonProperty("total_amount")
-    private int totalAmount;
+    private Integer totalAmount;
 
     @JsonProperty("tax_free_amount")
-    private int taxFreeAmount;
+    private Integer taxFreeAmount;
 
     @JsonProperty("approval_url")
     private String approveUrl;
@@ -46,14 +46,14 @@ public class KakaoPaySubscriptionCreateRequest {
 
     public static KakaoPaySubscriptionCreateRequest fromProperties(KakaoPayProperties properties, String partnerOrderId, String partnerUserId) {
         return KakaoPaySubscriptionCreateRequest.builder()
-            .cid(properties.getCid())
+            .cid(properties.getSubscriptionCid())
             .partnerOrderId(partnerOrderId)
             .partnerUserId(partnerUserId)
             .paymentMethodType(properties.getPaymentMethodType())
             .itemName(properties.getItemName())
             .quantity(properties.getQuantity())
-            .totalAmount(properties.getTotalAmount().intValue())  //**아주 에러때문에 개고생을 했음. 프로퍼티스의 값은 Long이었음.. 그래서 intValue()로 형변환을 해줘야함.
-            .taxFreeAmount(properties.getTaxFreeAmount().intValue())
+            .totalAmount(properties.getTotalAmount())  //**아주 에러때문에 개고생을 했음. 프로퍼티스의 값은 Long이었음.. 그래서 intValue()로 형변환을 해줘야했는데 바꿈 Integer로
+            .taxFreeAmount(properties.getTaxFreeAmount())
             .approveUrl(properties.getReadyCreateRedirectUrl())
             .failUrl(properties.getReadyFailUrl())
             .cancelUrl(properties.getReadyCancelUrl())

@@ -15,11 +15,14 @@ public class KakaoPayProperties {
     private String readyApproveUrl;
     private String readyFailUrl;
     private String readyCancelUrl;
+    private String subscribeUrl;
     private String cancelUrl;
-    private String cid;
+    private String sequenceCid;
+    private String subscriptionCid;
     private String itemName;
-    private int quantity;
-    private Long totalAmount;
-    private Long taxFreeAmount;
+    private Integer quantity;
+    private Integer testAmount;
+    private Integer totalAmount;
+    private Integer taxFreeAmount;
     private String paymentMethodType;
 }

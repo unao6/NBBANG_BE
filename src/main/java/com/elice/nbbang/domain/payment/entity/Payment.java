@@ -49,7 +49,7 @@ public class Payment extends BaseTimeEntity {
     private String paymentType;
 
     @Column(nullable = false)
-    private Long amount;
+    private Integer amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,15 +65,17 @@ public class Payment extends BaseTimeEntity {
 
     private LocalDateTime paymentApprovedAt;
 
+    private LocalDateTime paymentSubscribedAt;
+
     private LocalDateTime refundDate;
 
     private String cardCompany;
 
-    private Long refundAmount;
+    private Integer refundAmount;
 
     private String sid;
 
-    public Payment(User user, String partnerUserId, String partnerOrderId, String paymentType, Long amount,
+    public Payment(User user, String partnerUserId, String partnerOrderId, String paymentType, Integer amount,
         PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {
         this.user = user;
         this.partnerUserId = partnerUserId;
@@ -86,9 +88,22 @@ public class Payment extends BaseTimeEntity {
         this.tid = tid;
     }
 
-    public void updateApprovePayment(PaymentStatus status, String sid, String approvedAt) {
+    public void updateApprovePayment(PaymentStatus status, String sid, LocalDateTime approvedAt) {
         this.status = status;
         this.sid = sid;
-        this.paymentApprovedAt = LocalDateTime.parse(approvedAt);
+        this.paymentApprovedAt = approvedAt;
+    }
+
+    //todo 정보수정해야함
+    public void updateRefundPayment(PaymentStatus status, String refundDate, String cardCompany, Integer refundAmount) {
+        this.status = status;
+        this.refundDate = LocalDateTime.parse(refundDate);
+        this.cardCompany = cardCompany;
+        this.refundAmount = refundAmount;
+    }
+
+    public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
+        this.status = status;
+        this.paymentSubscribedAt = paymentSubscribedAt;
     }
 }

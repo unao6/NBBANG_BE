@@ -6,9 +6,16 @@ import com.elice.nbbang.domain.payment.enums.PaymentStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByTid(String tid);
+
+    Optional<Payment> findByUserUserId(Long userId);
+
+    @Query("select p from Payment p where p.user.id = :userId and p.tid = :tid and p.sid = :sid")
+    Optional<Payment> findByUserIdAndTidAndSid(@Param("userId") Long userId, @Param("tid") String tid, @Param("sid") String sid);
 
     //모든 결제를 최신순 조회
     List<Payment> findAllByOrderByPaymentCreatedAtDesc();

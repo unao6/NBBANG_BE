@@ -7,17 +7,18 @@ import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateResponse;
-import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionRequest;
+import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionResponse;
+import com.elice.nbbang.domain.Card.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.enums.PaymentStatus;
-import com.elice.nbbang.domain.payment.repository.CardRepository;
+import com.elice.nbbang.domain.Card.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +96,7 @@ public class KakaoPayService {
                     kakaoPayProperties.getTotalAmount(),
                     PaymentStatus.CREATED,
                     kakaoResponse.getCreatedAt(),
-                    kakaoPayProperties.getCid(),
+                    kakaoPayProperties.getSubscriptionCid(),
                     kakaoResponse.getTid()
                 );
 
@@ -154,7 +155,7 @@ public class KakaoPayService {
                 log.info("결제 승인 정보 저장 전.");
 
                 // 결제 상태와 승인 시간 업데이트
-                lastPayment.updateApprovePayment(PaymentStatus.APPROVED, kakaoResponse.getSid(), kakaoResponse.getApprovedAt().toString());
+                lastPayment.updateApprovePayment(PaymentStatus.APPROVED, kakaoResponse.getSid(), kakaoResponse.getApprovedAt());
                 paymentRepository.save(lastPayment);
                 log.info("결제 승인 정보 저장 후.");
 
@@ -164,6 +165,13 @@ public class KakaoPayService {
                 log.info("카드 정보 저장 완료.");
 
                 //이것도 근데 값을 이렇게 세팅하는게 아니라 받아와야할듯 나중에수정!
+                cancelPayment(KakaoPayCancelRequest.builder()
+                    .tid(tid)
+                    .cancelAmount(kakaoPayProperties.getTotalAmount())
+                    .cancelTaxFreeAmount(0)
+                    .cancelVatAmount(0)
+                    .payload("최초결제 자동취소")
+                    .build());
             }
         }
     }
@@ -212,6 +220,47 @@ public class KakaoPayService {
                 payment.updateApprovePayment(PaymentStatus.CANCELED, payment.getSid(), cancelResponse.getCanceledAt());
                 paymentRepository.save(payment);
                 log.info("결제 취소 정보 저장 후.");
+            }
+        }
+    }
+
+    /**
+     * 4.정기결제
+     */
+    public void subscription(Long userId, String tid, String sid) throws Exception {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost httpPost = new HttpPost(kakaoPayProperties.getSubscribeUrl());
+
+            Optional<Payment> paymentSid = paymentRepository.findByUserIdAndTidAndSid(userId, tid, sid);
+            if (paymentSid.isEmpty()) {
+                throw new EntityNotFoundException("결제 정보를 찾을 수 없습니다.");
+            }
+            Payment lastPayment = paymentSid.get();
+
+            setHeaders(httpPost, kakaoPayProperties.getSecretKey());
+
+            String json = objectMapper.writeValueAsString(KakaoPaySubscriptionRequest.fromProperties(kakaoPayProperties, lastPayment));
+            log.info("정기결제 요청 KakaoPay: {}", json);
+
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+
+            try (CloseableHttpResponse response = client.execute(httpPost)) {
+                String responseString = EntityUtils.toString(response.getEntity(),
+                    StandardCharsets.UTF_8);
+                log.info("Kakao Pay Subscription 응답: {}", responseString);
+
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    throw new RuntimeException("카카오페이 정기결제 요청 실패: " + responseString);
+                }
+
+                KakaoPaySubscriptionResponse subscriptionResponse = objectMapper.readValue(
+                    responseString, KakaoPaySubscriptionResponse.class);
+                log.info("정기결제 정보 저장 전.");
+
+                lastPayment.updateSubscribtionPayment(PaymentStatus.SUBSCRIBED, subscriptionResponse.getApprovedAt());
+                paymentRepository.save(lastPayment);
+                log.info("정기결제 정보 저장 후.");
             }
         }
     }

@@ -15,14 +15,14 @@ public class PaymentDto {
     private String partnerUserId;
     private String partnerOrderId;
     private String paymentType;
-    private Long amount;
+    private Integer amount;
     private String status;
     private String paymentCreatedAt;
     private String cid;
     private String paymentApprovedAt;
     private String refundDate;
     private String cardCompany;
-    private Long refundAmount;
+    private Integer refundAmount;
     private String sid;
 
     public static PaymentDto fromEntity(Payment payment) {

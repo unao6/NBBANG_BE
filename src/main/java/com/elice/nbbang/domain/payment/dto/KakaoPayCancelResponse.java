@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.payment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -41,13 +42,13 @@ public class KakaoPayCancelResponse {
     private Integer quantity;
 
     @JsonProperty("created_at")
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     @JsonProperty("approved_at")
-    private String approvedAt;
+    private LocalDateTime approvedAt;
 
     @JsonProperty("canceled_at")
-    private String canceledAt;
+    private LocalDateTime canceledAt;
 
     private String payload;
 

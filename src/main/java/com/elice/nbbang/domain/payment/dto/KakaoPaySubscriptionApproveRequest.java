@@ -27,7 +27,7 @@ public class KakaoPaySubscriptionApproveRequest {
     public static KakaoPaySubscriptionApproveRequest fromProperties(KakaoPayProperties properties,
         Payment payment, String pgToken) {
         return KakaoPaySubscriptionApproveRequest.builder()
-            .cid(properties.getCid())
+            .cid(properties.getSubscriptionCid())
             .tid(payment.getTid())
             .partnerOrderId(payment.getPartnerOrderId())
             .partnerUserId(payment.getPartnerUserId())
