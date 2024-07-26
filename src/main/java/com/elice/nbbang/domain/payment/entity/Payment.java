@@ -38,15 +38,13 @@ public class Payment extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+
     @Column(nullable = false)
     private String partnerUserId;
 
 
     @Column(nullable = false)
     private String partnerOrderId;
-
-    @Column(nullable = false)
-    private String paymentType;
 
     @Column(nullable = false)
     private Integer amount;
@@ -80,7 +78,6 @@ public class Payment extends BaseTimeEntity {
         this.user = user;
         this.partnerUserId = partnerUserId;
         this.partnerOrderId = partnerOrderId;
-        this.paymentType = paymentType;
         this.amount = amount;
         this.status = status;
         this.paymentCreatedAt = paymentCreatedAt;

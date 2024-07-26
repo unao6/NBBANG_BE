@@ -3,6 +3,7 @@ package com.elice.nbbang.domain.Card.entity;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,14 +24,15 @@ public class Card extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cardId;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
     //카드 매입사명
-    private String purchaseCorp;
+    @Column(nullable = false)
+    private String cardCompany;
 
     //매입사 코드
     private String purchaseCorpCode;
@@ -68,7 +70,7 @@ public class Card extends BaseTimeEntity {
 
     public Card(User user, KakaoPaySubscriptionApproveResponse.CardInfo cardInfo) {
         this.user = user;
-        this.purchaseCorp = cardInfo.getPurchaseCorp();
+        this.cardCompany = cardInfo.getPurchaseCorp();
         this.purchaseCorpCode = cardInfo.getPurchaseCorpCode();
         this.issuerCorp = cardInfo.getIssuerCorp();
         this.issuerCorpCode = cardInfo.getIssuerCorpCode();
