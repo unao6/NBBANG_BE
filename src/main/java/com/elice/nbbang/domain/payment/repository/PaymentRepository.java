@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByTid(String tid);
 
-    Optional<Payment> findByUserUserId(Long userId);
+    Optional<Payment> findByUserId(Long userId);
 
     @Query("select p from Payment p where p.user.id = :userId and p.tid = :tid and p.sid = :sid")
     Optional<Payment> findByUserIdAndTidAndSid(@Param("userId") Long userId, @Param("tid") String tid, @Param("sid") String sid);
@@ -22,7 +22,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findAllByOrderByPaymentCreatedAtDesc();
 
     //특정 유저의 결제를 최신순 조회
-    List<Payment> findByUserUserIdOrderByPaymentCreatedAtDesc(Long userId);
+    List<Payment> findByUserIdOrderByPaymentCreatedAtDesc(Long userId);
 
     //결제 상태별 최신순 조회
     List<Payment> findByStatusOrderByPaymentCreatedAtDesc(PaymentStatus status);

@@ -65,7 +65,7 @@ public class KakaoPayService {
             // partner_user_id는 유저 이름을 이용
             // partner_order_id는 랜덤한 8자리 문자열
             String partnerOrderId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
-            String partnerUserId = user.getName();
+            String partnerUserId = user.getNickname();
 
             //요청 객체 생성
             KakaoPaySubscriptionCreateRequest request = KakaoPaySubscriptionCreateRequest.fromProperties(kakaoPayProperties, partnerOrderId, partnerUserId);

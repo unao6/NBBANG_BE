@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
-    Optional<Card> findByUserUserId(Long userId);
+    Optional<Card> findByUserId(Long userId);
 
     Card save(Card card);
 }

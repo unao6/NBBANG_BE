@@ -28,7 +28,6 @@ public class PaymentDto {
             .tid(payment.getTid())
             .partnerUserId(payment.getPartnerUserId())
             .partnerOrderId(payment.getPartnerOrderId())
-            .paymentType(payment.getPaymentType())
             .amount(payment.getAmount())
             .status(payment.getStatus().toString())
             .paymentCreatedAt(payment.getPaymentCreatedAt() != null ? payment.getPaymentCreatedAt().toString() : null)

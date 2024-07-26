@@ -47,7 +47,7 @@ public class BootPayService {
     }
 
     //결제 예약
-    public String reservePayment(String billingKey, Long amount, LocalDateTime paymentTime) throws Exception {
+    public String reservePayment(String billingKey, Integer amount, LocalDateTime paymentTime) throws Exception {
         bootpay.getAccessToken();
 
         SubscribePayload payload = new SubscribePayload();

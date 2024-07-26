@@ -20,7 +20,7 @@ public class PaymentRegisterDTO {
 
     private String billingKey;
 
-    private LocalDateTime paymentDate;
+    private LocalDateTime paymentSubscribedAt;
 
     private PaymentType paymentType;
 

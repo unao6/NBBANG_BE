@@ -16,7 +16,7 @@ public class CardService {
     private final CardRepository cardRepository;
 
     public CardInfoResponse getCardInfo(Long userId) {
-        return cardRepository.findByUserUserId(userId)
+        return cardRepository.findByUserId(userId)
             .map(card -> new CardInfoResponse(card.getIssuerCorp(), card.getCardType()))
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
     }

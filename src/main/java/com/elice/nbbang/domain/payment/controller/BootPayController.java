@@ -65,7 +65,7 @@ public class BootPayController {
             PaymentRegisterDTO registerDTO = PaymentRegisterDTO.builder()
                 .billingKey(reserve.getBillingKey())
                 .amount(reserve.getAmount())
-                .paymentDate(localDateTime)
+                .paymentSubscribedAt(localDateTime)
                 .paymentType(PaymentType.CARD)
                 .paymentStatus(PaymentStatus.RESERVE_COMPLETED)
                 .reserveId(reserveId)

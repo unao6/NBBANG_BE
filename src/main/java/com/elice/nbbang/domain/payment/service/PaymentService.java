@@ -31,7 +31,7 @@ public class PaymentService {
      * userId로 Payments 조회
      */
     public List<PaymentDto> getPaymentsByUserId(Long userId) {
-        return paymentRepository.findByUserUserIdOrderByPaymentCreatedAtDesc(userId).stream()
+        return paymentRepository.findByUserIdOrderByPaymentCreatedAtDesc(userId).stream()
             .map(PaymentDto::fromEntity)
             .collect(Collectors.toList());
     }
