@@ -27,14 +27,11 @@ public class Payment extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //private User user;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
-    @Column(nullable = false)
-    private LocalDateTime paymentDate;
+    private LocalDateTime paymentSubscribedAt;
 
     @Column(nullable = false)
     private Long amount;

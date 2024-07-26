@@ -13,6 +13,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
+    //payment 생성
     public Payment createPayment(PaymentRegisterDTO registerDTO) {
         Payment payment = Payment.builder()
             .billingKey(registerDTO.getBillingKey())
@@ -26,6 +27,7 @@ public class PaymentService {
         return payment;
     }
 
+    //payment 취소
     public void deletePayment(String id) {
         Payment payment = paymentRepository.findByReserveId(id);
         Payment updatedPayment = payment.toBuilder()

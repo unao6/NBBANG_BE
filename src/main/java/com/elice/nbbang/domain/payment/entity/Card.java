@@ -29,10 +29,6 @@ public class Card extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "card")
-    private User user;
-
-    @Column(nullable = false)
     private String cardNumber; //암호화 필요
 
     @Column(nullable = false)
