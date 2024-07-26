@@ -1,19 +1,30 @@
 package com.elice.nbbang.domain.party.entity;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
+import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
 public class Party extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +35,36 @@ public class Party extends BaseTimeEntity {
     @JoinColumn(name = "ott_id")
     private Ott ott;
 
-    private Long leaderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "leader_id")
+    private User leader;
 
-    //private List<Long> memberIds;
+    @Column(nullable = false)
+    private String ottAccountId;
+
+    @Column(nullable = false)
+    private String ottAccountPassword;
+
+    @Enumerated(EnumType.STRING)
+    private PartyStatus partyStatus;
+
+    @OneToMany(mappedBy = "party")
+    private List<PartyMember> partyMembers = new ArrayList<>();
+
+    @Builder
+    public Party(Ott ott, String ottAccountId,
+                 String ottAccountPassword, PartyStatus partyStatus, User leader) {
+        this.ott = ott;
+        this.ottAccountId = ottAccountId;
+        this.ottAccountPassword = ottAccountPassword;
+        this.partyStatus = partyStatus;
+        this.leader = leader;
+    }
+
+    public void changeStatus(int capacity) {
+        if (capacity == partyMembers.size()) {
+            this.partyStatus = PartyStatus.FULL;
+        }
+    }
 
 }
