@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.payment.service;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class BootPayService {
     }
 
     //결제 예약
-    public void reservePayment(String billingKey, int amount, LocalDate paymentTime) throws Exception {
+    public String reservePayment(String billingKey, Long amount, LocalDateTime paymentTime) throws Exception {
         bootpay.getAccessToken();
 
         SubscribePayload payload = new SubscribePayload();
@@ -55,7 +56,7 @@ public class BootPayService {
         payload.price = amount;
         payload.orderId = "" + (System.currentTimeMillis() / 1000);
 
-        Date date = Date.from(paymentTime.atStartOfDay(ZoneId.of("UTC")).toInstant());
+        Date date = Date.from(paymentTime.atZone(ZoneId.of("UTC")).toInstant());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -71,8 +72,11 @@ public class BootPayService {
             } else {
                 System.out.println("reserveSubscribe false: " + res);
             }
+
+            return res.get("reserve_id").toString();
         } catch (Exception e) {
             e.printStackTrace();
+            throw new IllegalArgumentException("에러 발생");
         }
     }
 

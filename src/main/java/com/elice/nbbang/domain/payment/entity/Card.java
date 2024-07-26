@@ -1,9 +1,12 @@
 package com.elice.nbbang.domain.payment.entity;
 
+import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,4 +40,7 @@ public class Card extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String billingKey; //암호화 필요
+
+    @Enumerated(EnumType.STRING)
+    private CardStatus cardStatus;
 }

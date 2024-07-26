@@ -2,14 +2,21 @@ package com.elice.nbbang.domain.payment.controller;
 
 import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
 import com.elice.nbbang.domain.payment.dto.CardRegisterDTO;
+import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.CardService;
+import com.elice.nbbang.domain.payment.service.PaymentService;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +34,13 @@ public class BootPayController {
 
     private final BootPayService bootPayService;
     private final CardService cardService;
+    private final PaymentService paymentService;
 
-    //카드 등록 API
+    /*
+    * 카드 등록 API
+    * 1. 카드에 대한 빌링키를 발급받음
+    * 2. DB에 카드 정보를 저장
+    * */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/card")
     public ResponseEntity<String> registerCard(@RequestBody CardPaymentRequest request) {
@@ -42,12 +54,29 @@ public class BootPayController {
         return ResponseEntity.ok("Payment completed");
     }
 
-    //예약 결제 API
+    /*
+    * 카드 예약 결제 API
+    * 1. 빌링키를 통해 결제 예약
+    * 2. DB에 결제 정보를 저장
+    * */
     @PostMapping("/reserve")
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
-            LocalDate localDate = LocalDate.parse(reserve.getPaymentTime()); // Make sure the date format is handled correctly
-            bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), localDate);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            LocalDateTime localDateTime = LocalDateTime.parse(reserve.getPaymentTime(), formatter);
+
+            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), localDateTime);
+
+            PaymentRegisterDTO registerDTO = PaymentRegisterDTO.builder()
+                .billingKey(reserve.getBillingKey())
+                .amount(reserve.getAmount())
+                .paymentDate(localDateTime)
+                .paymentType(PaymentType.CARD)
+                .paymentStatus(PaymentStatus.RESERVE_COMPLETED)
+                .reserveId(reserveId)
+                .build();
+            paymentService.createPayment(registerDTO);
+
             return ResponseEntity.ok("Payment reservation successful");
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,7 +84,7 @@ public class BootPayController {
         }
     }
 
-    //예약 결제 조회 API
+    //카드 예약 결제 조회 API
     @GetMapping("/reserve/{reserveId}")
     public ResponseEntity<String> lookupReservation(@PathVariable("reserveId") String id) {
         try {
@@ -67,11 +96,16 @@ public class BootPayController {
         }
     }
 
-    //예약 결제 취소 API
+    /*
+     * 카드 예약 결제 취소 API
+     * 1. reseveId 통해 결제 취소
+     * 2. DB에 결제 정보의 결제 상태를 예약 취소로 변경
+     * */
     @DeleteMapping("/reserve/{reserveId}")
     public ResponseEntity<String> cancelReservation(@PathVariable("reserveId") String id) {
         try {
-            bootPayService.reserveLookup(id);
+            bootPayService.reserveDelete(id);
+            paymentService.deletePayment(id);
             return ResponseEntity.ok("Reservation cancel successful");
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.payment.dto;
 
+import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -12,4 +13,6 @@ public class CardPaymentRequest {
     private String cardNumber;
 
     private String cardCompany;
+
+    private CardStatus cardStatus;
 }

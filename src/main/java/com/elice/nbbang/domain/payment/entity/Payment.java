@@ -1,6 +1,5 @@
 package com.elice.nbbang.domain.payment.entity;
 
-import com.elice.nbbang.domain.payment.entity.enums.TransactionType;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.global.util.BaseTimeEntity;
@@ -16,11 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.lang.Nullable;
 
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,10 +31,6 @@ public class Payment extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
     @Column(nullable = false)
@@ -48,9 +41,11 @@ public class Payment extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
-
-    private String cardCompany;
+    private PaymentStatus paymentStatus;
 
     private String bankName;
+
+    private String billingKey;
+
+    private String reserveId;
 }

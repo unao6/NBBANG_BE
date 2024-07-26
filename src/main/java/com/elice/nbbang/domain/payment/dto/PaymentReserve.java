@@ -7,7 +7,7 @@ public class PaymentReserve {
 
     private String billingKey;
 
-    private int amount;
+    private Long amount;
 
     private String paymentTime;
 }
