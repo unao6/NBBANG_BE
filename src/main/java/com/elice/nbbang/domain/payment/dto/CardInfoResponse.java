@@ -1,9 +1,8 @@
-package com.elice.nbbang.domain.Card.dto;
+package com.elice.nbbang.domain.payment.dto;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor

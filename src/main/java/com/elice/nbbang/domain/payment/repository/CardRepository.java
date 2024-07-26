@@ -1,6 +1,6 @@
-package com.elice.nbbang.domain.Card.repository;
+package com.elice.nbbang.domain.payment.repository;
 
-import com.elice.nbbang.domain.Card.entity.Card;
+import com.elice.nbbang.domain.payment.entity.Card;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

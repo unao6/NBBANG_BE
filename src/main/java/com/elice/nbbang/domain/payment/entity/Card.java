@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.Card.entity;
+package com.elice.nbbang.domain.payment.entity;
 
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
 import com.elice.nbbang.domain.user.entity.User;

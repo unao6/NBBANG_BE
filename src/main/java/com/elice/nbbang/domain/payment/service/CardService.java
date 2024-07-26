@@ -1,7 +1,7 @@
-package com.elice.nbbang.domain.Card.service;
+package com.elice.nbbang.domain.payment.service;
 
-import com.elice.nbbang.domain.Card.dto.CardInfoResponse;
-import com.elice.nbbang.domain.Card.repository.CardRepository;
+import com.elice.nbbang.domain.payment.dto.CardInfoResponse;
+import com.elice.nbbang.domain.payment.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

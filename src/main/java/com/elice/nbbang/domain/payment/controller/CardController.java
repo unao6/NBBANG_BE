@@ -1,9 +1,7 @@
-package com.elice.nbbang.domain.Card.controller;
+package com.elice.nbbang.domain.payment.controller;
 
-import com.elice.nbbang.domain.Card.dto.CardInfoResponse;
-import com.elice.nbbang.domain.Card.entity.Card;
-import com.elice.nbbang.domain.Card.repository.CardRepository;
-import com.elice.nbbang.domain.Card.service.CardService;
+import com.elice.nbbang.domain.payment.dto.CardInfoResponse;
+import com.elice.nbbang.domain.payment.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
