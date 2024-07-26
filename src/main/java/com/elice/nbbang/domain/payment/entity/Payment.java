@@ -1,7 +1,8 @@
 package com.elice.nbbang.domain.payment.entity;
 
 
-import com.elice.nbbang.domain.payment.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.Column;
@@ -20,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 
 @Getter
@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @NoArgsConstructor
 @Table(name = "payment")
 @Entity
+@Builder(toBuilder = true)
 public class Payment extends BaseTimeEntity {
 
     @Id
@@ -38,10 +39,12 @@ public class Payment extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 
     @Column(nullable = false)
     private String partnerUserId;
-
 
     @Column(nullable = false)
     private String partnerOrderId;
@@ -72,6 +75,12 @@ public class Payment extends BaseTimeEntity {
     private Integer refundAmount;
 
     private String sid;
+
+    private String bankName;
+
+    private String billingKey;
+
+    private String reserveId;
 
     public Payment(User user, String partnerUserId, String partnerOrderId, String paymentType, Integer amount,
         PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {

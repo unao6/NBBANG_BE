@@ -1,9 +1,6 @@
 package com.elice.nbbang.domain.payment.dto;
 
 import com.elice.nbbang.domain.payment.entity.Payment;
-import com.elice.nbbang.domain.payment.enums.PaymentStatus;
-import com.elice.nbbang.domain.user.entity.User;
-import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 

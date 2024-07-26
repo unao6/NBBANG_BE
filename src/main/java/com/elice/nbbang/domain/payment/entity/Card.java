@@ -1,10 +1,13 @@
 package com.elice.nbbang.domain.payment.entity;
 
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
+import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,12 +15,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "card")
 @Entity
 public class Card extends BaseTimeEntity {
@@ -29,6 +34,14 @@ public class Card extends BaseTimeEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    private String cardNumber; //암호화 필요
+
+    @Column(nullable = false)
+    private String billingKey; //암호화 필요
+
+    @Enumerated(EnumType.STRING)
+    private CardStatus cardStatus;
 
     //카드 매입사명
     @Column(nullable = false)

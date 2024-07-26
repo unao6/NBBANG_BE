@@ -11,7 +11,7 @@ import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionResponse;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
-import com.elice.nbbang.domain.payment.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;

@@ -2,13 +2,11 @@ package com.elice.nbbang.domain.payment.controller;
 
 import com.elice.nbbang.domain.payment.dto.KakaoPayCancelRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
-import com.elice.nbbang.domain.payment.entity.Payment;
-import com.elice.nbbang.domain.payment.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.service.PaymentService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

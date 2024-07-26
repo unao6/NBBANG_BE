@@ -1,6 +1,7 @@
-package com.elice.nbbang.domain.payment.enums;
+package com.elice.nbbang.domain.payment.entity.enums;
 
 public enum PaymentStatus {
+    COMPLETED,
     CREATED,
     APPROVED,
     FAILED,
@@ -9,5 +10,8 @@ public enum PaymentStatus {
     REFUND_REQUESTED,
     REFUNDED_COMPLETED,
     REFUND_FAILED,
-    REFUND_CANCELLED
+    REFUND_CANCELLED,
+    RESERVE_COMPLETED,
+    RESERVE_FAILED,
+    RESERVE_CANCELLED
 }
