@@ -1,31 +1,37 @@
 package com.elice.nbbang.domain.payment.dto;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
+import com.elice.nbbang.domain.payment.entity.Payment;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
 public class KakaoPaySubscriptionApproveRequest {
+    @JsonProperty("cid")
     private String cid;
+
+    @JsonProperty("tid")
     private String tid;
-    private String partner_order_id;
-    private String partner_user_id;
+
+    @JsonProperty("partner_order_id")
+    private String partnerOrderId;
+
+    @JsonProperty("partner_user_id")
+    private String partnerUserId;
+
+    @JsonProperty("pg_token")
     private String pgToken;
 
-    public String toFormUrlEncoded() throws UnsupportedEncodingException {
-        return Stream.of(
-                new AbstractMap.SimpleEntry<>("cid", cid),
-                new AbstractMap.SimpleEntry<>("tid", tid),
-                new AbstractMap.SimpleEntry<>("pg_token", pgToken)
-            )
-            .map(entry -> entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
-            .collect(Collectors.joining("&"));
+    public static KakaoPaySubscriptionApproveRequest fromProperties(KakaoPayProperties properties,
+        Payment payment, String pgToken) {
+        return KakaoPaySubscriptionApproveRequest.builder()
+            .cid(properties.getCid())
+            .tid(payment.getTid())
+            .partnerOrderId(payment.getPartnerOrderId())
+            .partnerUserId(payment.getPartnerUserId())
+            .pgToken(pgToken)
+            .build();
     }
-
 }

@@ -1,18 +1,23 @@
 package com.elice.nbbang.domain.payment.service;
 
 import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
+import com.elice.nbbang.domain.payment.dto.KakaoPayCancelRequest;
+import com.elice.nbbang.domain.payment.dto.KakaoPayCancelResponse;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveRequest;
+import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateResponse;
+import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -34,17 +39,21 @@ public class KakaoPayService {
 
     private final KakaoPayProperties kakaoPayProperties;
     private final PaymentRepository paymentRepository;
+    private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
+
     /**
-     * 최초 카카오페이 카드등록 요청처리
+     * 1.결제준비
      * userId를 파라미터로 전달받아 데이터 세팅후 카카오페이에 요청
      * tid, next_redirect_pc_url 확보
      */
     public KakaoPaySubscriptionCreateResponse createSubscription(Long userId) throws Exception {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost(kakaoPayProperties.getSubscriptionCreateUrl());
+
+            // 카카오페이 결제준비 요청 URL
+            HttpPost httpPost = new HttpPost(kakaoPayProperties.getReadyCreateUrl());
 
             Optional<User> userOptional = userRepository.findById(userId);
             if (userOptional.isEmpty()) {
@@ -54,45 +63,47 @@ public class KakaoPayService {
 
             // partner_user_id는 유저 이름을 이용
             // partner_order_id는 랜덤한 8자리 문자열
-            String partnerOrderId = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            String partnerOrderId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
             String partnerUserId = user.getName();
 
+            //요청 객체 생성
             KakaoPaySubscriptionCreateRequest request = KakaoPaySubscriptionCreateRequest.fromProperties(kakaoPayProperties, partnerOrderId, partnerUserId);
 
             //헤더 세팅
-            setHeaders(httpPost, kakaoPayProperties.getApiKey());
+            setHeaders(httpPost, kakaoPayProperties.getSecretKey());
 
-            //request 바디 세팅, application/x-www-form-urlencoded 형식 사용.
-            String urlEncodedRequest = request.toFormUrlEncoded();
-            log.info("Sending request to KakaoPay: {}", urlEncodedRequest);
+            //바디 세팅
+            String json = objectMapper.writeValueAsString(request);
 
-            StringEntity entity = new StringEntity(urlEncodedRequest, StandardCharsets.UTF_8);
+            log.info("요청값 완성: {}", json);
+
+            StringEntity entity = new StringEntity(json);
             httpPost.setEntity(entity);
 
             try (CloseableHttpResponse response = client.execute(httpPost)) {
                 String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-                log.info("Kakao Pay Subscription Create 응답: {}", responseString);
+                log.info("응답값: {}", responseString);
 
                 KakaoPaySubscriptionCreateResponse kakaoResponse = objectMapper.readValue(responseString, KakaoPaySubscriptionCreateResponse.class);
-                log.info("결제 정보 저장 전.");
-                // 결제 정보 저장
+
+                // 결제준비 정보 저장
                 Payment payment = new Payment(
                     user,
                     partnerUserId,
                     partnerOrderId,
-                    "CARD", // 예: 결제 유형 의미 있을까... 고민고민 여기있으면 나중에 수정도 어려움
-                    kakaoPayProperties.getAmount(),
-                    PaymentStatus.REQUESTED,
-                    LocalDateTime.now(),
+                    kakaoPayProperties.getPaymentMethodType(),
+                    kakaoPayProperties.getTotalAmount(),
+                    PaymentStatus.CREATED,
+                    kakaoResponse.getCreatedAt(),
                     kakaoPayProperties.getCid(),
-                    kakaoResponse.getTid(),
-                    ""// SID는 추후 설정 일단 빈값
+                    kakaoResponse.getTid()
                 );
 
                 paymentRepository.save(payment);
-                log.info("결제 정보 저장 후.");
+                log.info("결제준비단계에서 저장후 로그임.");
                 //결제 QR코드 URL 반환
                 return KakaoPaySubscriptionCreateResponse.builder()
+                    .tid(kakaoResponse.getTid())
                     .nextRedirectPcUrl(kakaoResponse.getNextRedirectPcUrl())
                     .build();
             }
@@ -100,30 +111,116 @@ public class KakaoPayService {
     }
 
     /**
-     * 카카오페이 정기결제를 위한 서비스 로직
-     *
+     * 2.결제승인 (최초결제 자동취소 포함)
+     * tid와 pg_token을 파라미터로 전달받아 데이터 세팅후 카카오페이에 요청
+     * sid 확보, 상태변경
      */
-    public KakaoPaySubscriptionCreateResponse approveSubscription(
-        KakaoPaySubscriptionApproveRequest request) throws Exception {
-
-        log.info("approveSubscription called with pgToken: {}", request.getPgToken());
+    public void approveSubscription(String tid, String pgToken) throws Exception {
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost(kakaoPayProperties.getSubscriptionApprovalUrl());
-            log.info("Subscription Approval URL: {}", approvalUrl);
-            setHeaders(httpPost, kakaoPayProperties.getApiKey());
-            StringEntity entity = new StringEntity(request.toFormData());
+            // 결제 승인 요청 URL
+            HttpPost httpPost = new HttpPost(kakaoPayProperties.getReadyApproveUrl());
+
+            // tid를 사용하여 결제 정보 조회
+            Optional<Payment> paymentTid = paymentRepository.findByTid(tid);
+            if (paymentTid.isEmpty()) {
+                throw new EntityNotFoundException("결제 정보를 찾을 수 없습니다.");
+            }
+            Payment lastPayment = paymentTid.get();
+            User user = lastPayment.getUser();
+
+            // 승인 요청 객체 생성
+            KakaoPaySubscriptionApproveRequest request = KakaoPaySubscriptionApproveRequest.fromProperties(kakaoPayProperties, lastPayment, pgToken);
+
+            // 헤더 세팅
+            setHeaders(httpPost, kakaoPayProperties.getSecretKey());
+
+            // 바디 세팅
+            String json = objectMapper.writeValueAsString(request);
+            log.info("승인요청 제이슨...: {}", json);
+
+            StringEntity entity = new StringEntity(json);
             httpPost.setEntity(entity);
 
             try (CloseableHttpResponse response = client.execute(httpPost)) {
-                String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
-                return objectMapper.readValue(responseString, KakaoPaySubscriptionCreateResponse.class);
+                String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                log.info("카카오페이 응답: {}", responseString);
+
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    throw new RuntimeException("카카오페이 요청 실패: " + responseString);
+                }
+
+                KakaoPaySubscriptionApproveResponse kakaoResponse = objectMapper.readValue(responseString, KakaoPaySubscriptionApproveResponse.class);
+                log.info("결제 승인 정보 저장 전.");
+
+                // 결제 상태와 승인 시간 업데이트
+                lastPayment.updateApprovePayment(PaymentStatus.APPROVED, kakaoResponse.getSid(), kakaoResponse.getApprovedAt().toString());
+                paymentRepository.save(lastPayment);
+                log.info("결제 승인 정보 저장 후.");
+
+                // 카드 정보 저장
+                Card card = new Card(user, kakaoResponse.getCardInfo());
+                cardRepository.save(card);
+                log.info("카드 정보 저장 완료.");
+
+                //이것도 근데 값을 이렇게 세팅하는게 아니라 받아와야할듯 나중에수정!
             }
         }
     }
 
-    private void setHeaders(HttpPost httpPost, String apiKey) {
-        httpPost.setHeader("Authorization", "KakaoAK " + apiKey);
-        httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+    /**
+     * 3.결제취소
+     */
+    public void cancelPayment(KakaoPayCancelRequest request) throws Exception {
+        String tid = request.getTid();
+        Integer cancelAmount = request.getCancelAmount();
+        Integer cancelTaxFreeAmount = request.getCancelTaxFreeAmount();
+        Integer cancelVatAmount = request.getCancelVatAmount();
+        Integer cancelAvailableAmount = request.getCancelAvailableAmount();
+        String payload = request.getPayload();
+
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost httpPost = new HttpPost(kakaoPayProperties.getCancelUrl());
+
+            Optional<Payment> paymentTid = paymentRepository.findByTid(tid);
+            if (paymentTid.isEmpty()) {
+                throw new EntityNotFoundException("결제 정보를 찾을 수 없습니다.");
+            }
+            Payment payment = paymentTid.get();
+
+            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.fromProperties(kakaoPayProperties, payment, cancelAmount, cancelTaxFreeAmount, cancelVatAmount, cancelAvailableAmount, payload);
+
+            setHeaders(httpPost, kakaoPayProperties.getSecretKey());
+
+            String json = objectMapper.writeValueAsString(cancelRequest);
+            log.info("Sending cancel request to KakaoPay: {}", json);
+
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+
+            try (CloseableHttpResponse response = client.execute(httpPost)) {
+                String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                log.info("Kakao Pay Cancel 응답: {}", responseString);
+
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    throw new RuntimeException("카카오페이 취소 요청 실패: " + responseString);
+                }
+
+                KakaoPayCancelResponse cancelResponse = objectMapper.readValue(responseString, KakaoPayCancelResponse.class);
+                log.info("결제 취소 정보 저장 전.");
+
+                payment.updateApprovePayment(PaymentStatus.CANCELED, payment.getSid(), cancelResponse.getCanceledAt());
+                paymentRepository.save(payment);
+                log.info("결제 취소 정보 저장 후.");
+            }
+        }
+    }
+
+    /**
+     * 헤더 세팅 메소드
+     */
+    private void setHeaders(HttpPost httpPost, String secretKey) {
+        httpPost.setHeader("Authorization", "SECRET_KEY " + secretKey);
+        httpPost.setHeader("Content-Type", "application/json");
     }
 }

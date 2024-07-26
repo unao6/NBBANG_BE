@@ -17,14 +17,15 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 
 @Getter
-@RequiredArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "payment")
 @Entity
 public class Payment extends BaseTimeEntity {
@@ -54,17 +55,7 @@ public class Payment extends BaseTimeEntity {
     @Column(nullable = false)
     private PaymentStatus status;
 
-    @Column(nullable = false)
-    private LocalDateTime paymentDate;
-
-    @Column
-    private LocalDateTime refundDate;
-
-    @Column
-    private String cardCompany;
-
-    @Column
-    private Long refundAmount;
+    private LocalDateTime paymentCreatedAt;
 
     @Column(nullable = false)
     private String cid;
@@ -72,20 +63,32 @@ public class Payment extends BaseTimeEntity {
     @Column(nullable = false)
     private String tid;
 
-    @Column(nullable = false)
+    private LocalDateTime paymentApprovedAt;
+
+    private LocalDateTime refundDate;
+
+    private String cardCompany;
+
+    private Long refundAmount;
+
     private String sid;
 
     public Payment(User user, String partnerUserId, String partnerOrderId, String paymentType, Long amount,
-        PaymentStatus status, LocalDateTime paymentDate, String cid, String tid, String sid) {
+        PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {
         this.user = user;
         this.partnerUserId = partnerUserId;
         this.partnerOrderId = partnerOrderId;
         this.paymentType = paymentType;
         this.amount = amount;
         this.status = status;
-        this.paymentDate = paymentDate;
+        this.paymentCreatedAt = paymentCreatedAt;
         this.cid = cid;
         this.tid = tid;
+    }
+
+    public void updateApprovePayment(PaymentStatus status, String sid, String approvedAt) {
+        this.status = status;
         this.sid = sid;
+        this.paymentApprovedAt = LocalDateTime.parse(approvedAt);
     }
 }

@@ -1,10 +1,10 @@
 package com.elice.nbbang.domain.payment.enums;
 
 public enum PaymentStatus {
-    REQUESTED,
-    COMPLETED,
+    CREATED,
+    APPROVED,
     FAILED,
-    CANCELLED,
+    CANCELED,
     REFUND_REQUESTED,
     REFUNDED_COMPLETED,
     REFUND_FAILED,

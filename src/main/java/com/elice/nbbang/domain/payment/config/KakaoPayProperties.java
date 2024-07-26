@@ -9,14 +9,17 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "kakao.pay")
 public class KakaoPayProperties {
-    private String apiKey;
-    private String subscriptionCreateUrl;
-    private String subscriptionApprovalUrl;
-    private String subscriptionFailUrl;
-    private String subscriptionCancelUrl;
+    private String secretKey;
+    private String readyCreateUrl;
+    private String readyCreateRedirectUrl;
+    private String readyApproveUrl;
+    private String readyFailUrl;
+    private String readyCancelUrl;
+    private String cancelUrl;
     private String cid;
     private String itemName;
     private int quantity;
-    private Long amount;
+    private Long totalAmount;
     private Long taxFreeAmount;
+    private String paymentMethodType;
 }
