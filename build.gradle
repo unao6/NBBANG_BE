@@ -44,7 +44,7 @@ dependencies {
 	// Websocket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-	//Jackson
+	// Jackson
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 	// jwt
