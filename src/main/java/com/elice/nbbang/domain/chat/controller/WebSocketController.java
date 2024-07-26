@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.chat.service.ChatService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Controller
 public class WebSocketController {
@@ -20,12 +21,13 @@ public class WebSocketController {
     @SendTo("/queue/messages")
     public Message sendMessage(MessageRequest messageRequest) {
         Long chatId = messageRequest.getChatId();
+        Long userId = messageRequest.getUserId();
         Message message = messageRequest.getMessage();
         if(chatId == -1L) {
-            chatId = chatService.startChat(message.getUserId());
+            chatId = chatService.startChat(userId);
             messageRequest.setChatId(chatId);
         }
-        chatService.sendMessage(chatId, message);
+        chatService.sendMessage(chatId, userId, message);
         return message;
     }
 

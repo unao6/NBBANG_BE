@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.chat.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.AttributeConverter;
 import com.elice.nbbang.domain.chat.dto.Message;
 import jakarta.persistence.Converter;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @Converter
 public class MessageConverter implements AttributeConverter<List<Message>, String> {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Override
     public String convertToDatabaseColumn(List<Message> messages) {

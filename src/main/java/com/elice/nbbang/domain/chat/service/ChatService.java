@@ -38,10 +38,10 @@ public class ChatService {
     }
 
     // 메시지 전송
-    public Chat sendMessage(Long chatId, Message message) {
+    public Chat sendMessage(Long chatId, Long userId, Message message) {
         Chat chat;
         if(chatId == -1L) {
-            User user = userRepository.findById(message.getUserId()).orElseThrow(UserNotFoundException::new);
+            User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
             chat = new Chat();
             chat.setUser(user);
             chat.setLastRepliedAt(LocalDateTime.now());
@@ -75,7 +75,7 @@ public class ChatService {
         return chatRepository.findAllByUserId(userId, pageable);
     }
 
-    // 특정 사용자 메시지 조회
+    // 특정 채팅방 메시지 조회
     public List<Message> getChatMessages(Long chatId) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         return chat.getMessages();
