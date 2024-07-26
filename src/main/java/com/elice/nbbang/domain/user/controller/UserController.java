@@ -40,18 +40,17 @@ public class UserController {
         return "User Controller" + email + role;
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
-    @PostMapping("/api/users/user-login")
-    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userLogInDto.getEmail(), userLogInDto.getPassword())
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String jwt = jwtUtil.createJwt(userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
-
-        return ResponseEntity.ok().header("Authorization", "Bearer " + jwt).body("Login successful");
-    }
-
+//    @PostMapping("/api/users/user-login")
+//    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto) {
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(userLogInDto.getEmail(), userLogInDto.getPassword())
+//        );
+//
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//        String jwt = jwtUtil.createJwt(userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
+//
+//        return ResponseEntity.ok().header("Authorization", "Bearer " + jwt).body("Login successful");
+//    }
+//
 }
