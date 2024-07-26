@@ -35,8 +35,22 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
 
+	// Jasypt
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+
+	// BootPay
+	implementation 'io.github.bootpay:backend:+'
+
 	// Websocket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	//Jackson
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -47,13 +61,18 @@ dependencies {
 
 	// MySql
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// httpClient
+	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-
+	//validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
 tasks.named('test') {
