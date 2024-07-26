@@ -1,22 +1,28 @@
 package com.elice.nbbang.global.jwt;
 
+import com.elice.nbbang.domain.user.dto.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.core.AuthenticationException;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -37,9 +43,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             throw new RuntimeException("Email or Password not provided");
         }
 
-
-        System.out.println(email);
-
         //스프링 시큐리티에서 email과 password를 검증하기 위해서는 token에 담아야 함
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
 
@@ -51,14 +54,27 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
 
-        System.out.println("success");
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        String email = customUserDetails.getUsername();
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+        GrantedAuthority auth = iterator.next();
+
+        String role = auth.getAuthority();
+
+        String token = jwtUtil.createJwt(email, role, 60*60*10L);
+
+        response.addHeader("Authentication", "Bearer " + token);
     }
+
 
     //로그인 실패시 실행하는 메소드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
 
-        System.out.println("fail");
+        response.setStatus(401);
     }
 
     // 정적 클래스 정의
@@ -75,4 +91,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             return password;
         }
     }
+
+//    public static Cookie createCookie(String key, String value) {
+//        Cookie cookie = new Cookie(key, value);
+//        cookie.setMaxAge(24*60*60);
+//        cookie.setPath("/");
+//        cookie.setHttpOnly(true);
+//        return cookie;
+//    }
 }
+
