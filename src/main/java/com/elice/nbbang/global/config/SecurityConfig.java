@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -47,21 +48,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors((cors) -> cors
+                .cors(cors -> cors
                         .configurationSource(new CorsConfigurationSource() {
                             @Override
                             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                                configuration.setAllowedMethods(Collections.singletonList("*"));
+                                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                                 configuration.setAllowCredentials(true);
-                                configuration.setAllowedHeaders(Collections.singletonList("*"));
+                                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
                                 configuration.setMaxAge(3600L);
-
                                 configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-                                return null;
+
+                                return configuration;
                             }
                         }));
 
@@ -77,7 +77,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/").permitAll()  // 특정 경로 허용
+                        .requestMatchers("/api/users/sign-up", "/login", "/", "/users/user-login").permitAll()  // 특정 경로 허용
                         .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요

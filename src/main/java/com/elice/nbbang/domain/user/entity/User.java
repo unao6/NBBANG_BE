@@ -1,6 +1,5 @@
 package com.elice.nbbang.domain.user.entity;
 
-import com.elice.nbbang.domain.auth.entity.Auth;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
