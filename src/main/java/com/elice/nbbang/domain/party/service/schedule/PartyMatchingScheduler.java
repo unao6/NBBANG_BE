@@ -19,7 +19,7 @@ public class PartyMatchingScheduler {
     private final RedisTemplate<String, Long> redisTemplate;
 
 
-    @Scheduled(fixedRate = 5000)
+    //@Scheduled(fixedRate = 5000)
     public void schedulePartyMatching() {
         List<Ott> otts = ottRepository.findAll();
         for (Ott ott : otts) {

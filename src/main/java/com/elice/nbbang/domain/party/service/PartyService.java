@@ -7,14 +7,12 @@ import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.party.dto.PartyCreateRequest;
 import com.elice.nbbang.domain.party.entity.Party;
-import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +24,6 @@ public class PartyService {
 
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
-
-    private final RedisTemplate<String, Long> redisTemplate;
 
     public Long createParty(final PartyCreateRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
