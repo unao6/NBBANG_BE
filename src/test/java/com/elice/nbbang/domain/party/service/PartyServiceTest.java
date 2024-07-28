@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
-import com.elice.nbbang.domain.party.dto.PartyCreateRequest;
+import com.elice.nbbang.domain.party.controller.dto.PartyCreateRequest;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
@@ -64,7 +64,7 @@ class PartyServiceTest {
         );
 
         //when
-        Long party = partyService.createParty(request);
+        Long party = partyService.createParty(request.toServiceRequest());
 
         //then
         assertThat(party).isNotNull();

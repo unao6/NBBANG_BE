@@ -5,9 +5,10 @@ import static com.elice.nbbang.domain.party.entity.PartyStatus.*;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
-import com.elice.nbbang.domain.party.dto.PartyCreateRequest;
+import com.elice.nbbang.domain.party.controller.dto.PartyCreateRequest;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
+import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -25,7 +26,7 @@ public class PartyService {
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
 
-    public Long createParty(final PartyCreateRequest request) {
+    public Long createParty(final PartyCreateServiceRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 

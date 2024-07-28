@@ -3,12 +3,11 @@ package com.elice.nbbang.domain.party.service;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
-import com.elice.nbbang.domain.party.dto.PartyMatchRequest;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
-import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
+import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -35,7 +34,7 @@ public class PartyMatchService {
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
     * */
-    public boolean addPartyMatchingQueue(final PartyMatchRequest request) {
+    public boolean addPartyMatchingQueue(final PartyMatchServiceRequest request) {
 
         final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));

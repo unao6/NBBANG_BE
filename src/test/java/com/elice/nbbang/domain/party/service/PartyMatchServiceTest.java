@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
-import com.elice.nbbang.domain.party.dto.PartyMatchRequest;
+import com.elice.nbbang.domain.party.controller.dto.PartyMatchRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import java.util.Set;
@@ -41,6 +41,8 @@ class PartyMatchServiceTest {
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
+        ottRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
     @DisplayName("자동 매칭을 신청하고 매칭 대기 큐에 들어간다.")
     @Test
@@ -61,7 +63,7 @@ class PartyMatchServiceTest {
         PartyMatchRequest request = new PartyMatchRequest(user.getId(), ott.getId());
 
         //when
-        boolean result = partyMatchService.addPartyMatchingQueue(request);
+        boolean result = partyMatchService.addPartyMatchingQueue(request.toServiceRequest());
 
         //then
 
