@@ -77,7 +77,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/", "/users/user-login").permitAll()  // 특정 경로 허용
+                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login").permitAll()  // 특정 경로 허용
                         .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요

@@ -1,13 +1,14 @@
 package com.elice.nbbang.domain.user.controller;
 
 
-import com.elice.nbbang.domain.auth.dto.AuthResponse;
 import com.elice.nbbang.domain.auth.dto.TokenRefreshRequest;
 import com.elice.nbbang.domain.user.dto.CustomUserDetails;
 import com.elice.nbbang.domain.user.dto.UserLogInDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 @RestController
-//@RequestMapping("/")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -46,8 +47,8 @@ public class UserController {
         return "User Controller" + email + role;
     }
 
-    @PostMapping("/users/user-login")
-    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto) {
+    @PostMapping("/user-login")
+    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userLogInDto.getEmail(), userLogInDto.getPassword())
         );
@@ -55,13 +56,23 @@ public class UserController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String accessToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
-        String refreshToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 7200000L); // 리프레시 토큰은 더 긴 유효기간을 가집니다.
+        String refreshToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 7200000L);
 
-        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        response.addCookie(accessTokenCookie);
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.ok("Login successful");
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request, HttpServletResponse response) {
         String requestRefreshToken = request.getRefreshToken();
         String email = jwtUtil.getEmail(requestRefreshToken);
 
@@ -77,7 +88,11 @@ public class UserController {
         CustomUserDetails userDetails = new CustomUserDetails(user);
         String newAccessToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
 
-        return ResponseEntity.ok(new AuthResponse(newAccessToken, requestRefreshToken));
-    }
+        Cookie accessTokenCookie = new Cookie("accessToken", newAccessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        response.addCookie(accessTokenCookie);
 
+        return ResponseEntity.ok("Token refreshed");
+    }
 }
