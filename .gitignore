@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### mac book ###
+.DS_Store
+src/.DS_Store
+src/main/.DS_Store
