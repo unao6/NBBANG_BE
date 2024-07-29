@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/users/sign-up", "/login", "/").permitAll()  // 특정 경로 허용
                         .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
-                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+                        .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
                 );
 
         http

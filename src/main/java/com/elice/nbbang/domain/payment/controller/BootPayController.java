@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/api/payment")
+@RequestMapping("/api/bootpay")
 @RequiredArgsConstructor
 @RestController
 public class BootPayController {
@@ -58,14 +58,13 @@ public class BootPayController {
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(reserve.getPaymentTime(), formatter);
 
-            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), localDateTime);
+            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
 
             PaymentRegisterDTO registerDTO = PaymentRegisterDTO.builder()
                 .billingKey(reserve.getBillingKey())
                 .amount(reserve.getAmount())
-                .paymentSubscribedAt(localDateTime)
+                .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
                 .paymentType(PaymentType.CARD)
                 .paymentStatus(PaymentStatus.RESERVE_COMPLETED)
                 .reserveId(reserveId)

@@ -36,32 +36,25 @@ public class Payment extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
-    @Column(nullable = false)
     private String partnerUserId;
 
-    @Column(nullable = false)
     private String partnerOrderId;
 
-    @Column(nullable = false)
     private Integer amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PaymentStatus status;
 
     private LocalDateTime paymentCreatedAt;
 
-    @Column(nullable = false)
     private String cid;
 
-    @Column(nullable = false)
     private String tid;
 
     private LocalDateTime paymentApprovedAt;
