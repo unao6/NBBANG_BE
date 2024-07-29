@@ -5,10 +5,11 @@ import static com.elice.nbbang.domain.party.entity.PartyStatus.*;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
-import com.elice.nbbang.domain.party.controller.dto.PartyCreateRequest;
 import com.elice.nbbang.domain.party.entity.Party;
+import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
+import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -46,6 +47,20 @@ public class PartyService {
         partyRepository.save(party);
 
         return party.getId();
+    }
+
+    public void updatePartyOttAccount(final Long partyId, final PartyUpdateServiceRequest request) {
+
+        // 현재 요청하는 User 와 변경하려는 Party 의 정보가 같은지 확인해야함
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new PartyNotFoundException(ErrorCode.NOT_FOUND_PARTY));
+
+        party.updatePartyOttAccount(request);
+        partyRepository.save(party);
+    }
+
+    public void partyBreakup(final Long partId) {
+
     }
 
 }
