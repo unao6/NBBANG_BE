@@ -46,6 +46,7 @@ public class PaymentService {
     }
 
     //payment 생성
+    @Transactional(readOnly = false)
     public Payment createPayment(PaymentRegisterDTO registerDTO) {
         Payment payment = Payment.builder()
             .billingKey(registerDTO.getBillingKey())

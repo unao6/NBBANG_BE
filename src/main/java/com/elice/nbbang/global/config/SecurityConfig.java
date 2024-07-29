@@ -4,6 +4,7 @@ import com.elice.nbbang.global.jwt.JWTFilter;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import com.elice.nbbang.global.jwt.LoginFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
+        /*http
                 .cors((cors) -> cors
                         .configurationSource(new CorsConfigurationSource() {
                             @Override
@@ -51,15 +53,17 @@ public class SecurityConfig {
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                                configuration.setAllowedMethods(Collections.singletonList("*"));
+                                configuration.setAllowedMethods(
+                                    Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                configuration.setAllowedMethods(Collections.singletonList(""));
                                 configuration.setAllowCredentials(true);
-                                configuration.setAllowedHeaders(Collections.singletonList("*"));
+                                configuration.setAllowedHeaders(Collections.singletonList(""));
                                 configuration.setMaxAge(3600L);
 
                                 configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-                                return null;
+                                return configuration;
                             }
-                        }));
+                        }));*/
 
         //csrf disable
         http
@@ -70,6 +74,12 @@ public class SecurityConfig {
         //http basic 인증 방식 disable
         http
                 .httpBasic((auth) -> auth.disable());
+
+        /*//모든 경로 허용
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                .anyRequest().permitAll()
+            );*/
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
