@@ -6,13 +6,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.elice.nbbang.domain.ott.dto.OttCreateRequest;
-import com.elice.nbbang.domain.ott.dto.OttResponse;
-import com.elice.nbbang.domain.ott.dto.OttUpdateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttCreateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
+import com.elice.nbbang.domain.ott.controller.dto.OttUpdateRequest;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.DuplicateOttName;
 import com.elice.nbbang.domain.ott.exception.InvalidOttCapacity;
+import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
+import com.elice.nbbang.global.exception.ErrorCode;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +44,7 @@ class OttServiceTest {
         OttCreateRequest request = new OttCreateRequest("ChatGPT", 40000, 5);
 
         //when
-        Long ott = ottService.createOtt(request);
+        Long ott = ottService.createOtt(request.toServiceRequest());
 
         //then
         assertThat(ott).isNotNull();
@@ -57,7 +59,7 @@ class OttServiceTest {
         OttCreateRequest request = new OttCreateRequest("ChatGPT", 40000, 5);
 
         //when //then
-        assertThatThrownBy(() -> ottService.createOtt(request))
+        assertThatThrownBy(() -> ottService.createOtt(request.toServiceRequest()))
                 .isInstanceOf(DuplicateOttName.class)
                 .hasMessage("중복된 OTT 서비스 입니다.");
     }
@@ -69,7 +71,7 @@ class OttServiceTest {
         OttCreateRequest request = new OttCreateRequest("ChatGPT", 40000, 6);
 
         //when //then
-        assertThatThrownBy(() -> ottService.createOtt(request))
+        assertThatThrownBy(() -> ottService.createOtt(request.toServiceRequest()))
                 .isInstanceOf(InvalidOttCapacity.class)
                 .hasMessage("잘못된 인원수 입니다.");
 
@@ -81,7 +83,7 @@ class OttServiceTest {
         OttCreateRequest request = new OttCreateRequest("ChatGPT", 40000, 0);
 
         //when //then
-        assertThatThrownBy(() -> ottService.createOtt(request))
+        assertThatThrownBy(() -> ottService.createOtt(request.toServiceRequest()))
                 .isInstanceOf(InvalidOttCapacity.class)
                 .hasMessage("잘못된 인원수 입니다.");
 
@@ -136,10 +138,12 @@ class OttServiceTest {
         OttUpdateRequest request = new OttUpdateRequest(ott1.getId(), "Netflix", 30000, 4);
 
         //when
-        ott1.updateOtt(request.name(), request.price(), request.capacity());
+        ottService.updateOtt(request.toServiceRequest());
+        Ott updatedOtt = ottRepository.findById(ott1.getId())
+                .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
         //then
-        assertThat(ott1)
+        assertThat(updatedOtt)
                 .extracting("name", "price", "capacity")
                 .contains("Netflix", 30000, 4);
     }

@@ -1,9 +1,10 @@
-package com.elice.nbbang.domain.ott.dto;
+package com.elice.nbbang.domain.ott.controller.dto;
 
-public record OttUpdateRequest (
+public record OttResponse(
         Long ottId,
         String name,
         int price,
         int capacity
-){
+) {
+
 }
