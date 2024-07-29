@@ -2,14 +2,15 @@ package com.elice.nbbang.domain.user.controller;
 
 import com.elice.nbbang.domain.auth.dto.TokenRefreshRequest;
 import com.elice.nbbang.domain.user.dto.CustomUserDetails;
-import com.elice.nbbang.domain.user.dto.EmailCheckRequestDto;
 import com.elice.nbbang.domain.user.dto.UserLogInDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -81,14 +82,5 @@ public class UserController {
         response.setHeader("Authorization", "Bearer " + newAccessToken);
 
         return ResponseEntity.ok("Token refreshed");
-    }
-
-    @PostMapping("/check-email")
-    public ResponseEntity<?> checkEmailDuplicate(@RequestBody EmailCheckRequestDto emailCheckRequestDto) {
-        boolean isDuplicate = userService.isEmailDuplicate(emailCheckRequestDto.getEmail());
-        if (isDuplicate) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email is already in use");
-        }
-        return ResponseEntity.ok("Email is available");
     }
 }

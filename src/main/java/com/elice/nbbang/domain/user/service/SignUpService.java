@@ -1,10 +1,12 @@
 package com.elice.nbbang.domain.user.service;
 
+import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
+import com.elice.nbbang.domain.user.provider.CertificationNumber;
+import com.elice.nbbang.domain.user.provider.EmailProvider;
 import com.elice.nbbang.domain.user.repository.UserRepository;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ public class SignUpService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final EmailProvider emailProvider;
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();
@@ -41,5 +44,13 @@ public class SignUpService {
 
         userRepository.save(user);
         return true;
+    }
+
+    public boolean emailCertification(EmailCertificationRequestDto emailCertificationRequestDto) {
+        String email = emailCertificationRequestDto.getEmail();
+
+        String certificationNumber = CertificationNumber.getCertificationNumber();
+        boolean isSuccessed = emailProvider.sendCertificationMail(email, certificationNumber);
+        return isSuccessed;
     }
 }
