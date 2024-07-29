@@ -11,18 +11,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class SignUpController {
 
     private final SignUpService signUpService;
 
-    @PostMapping("/users/sign-up")
+    @PostMapping("/sign-up")
     public ResponseEntity<String> signUpProcess(@RequestBody UserSignUpDto userSignUpDto) {
+        boolean isSignedUp = signUpService.signUpProcess(userSignUpDto);
 
-        signUpService.signUpProcess(userSignUpDto);
-
-        //나중에 회원가입 됐는지 안됐는지에 따라 리턴 값 다르게 바꿔주기. 일단은 되던 안되던 ok로 표시
-        return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
+        if (isSignedUp) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+        }
     }
 }
