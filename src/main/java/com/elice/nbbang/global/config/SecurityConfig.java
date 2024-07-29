@@ -52,15 +52,18 @@ public class SecurityConfig {
                         .configurationSource(new CorsConfigurationSource() {
                             @Override
                             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                configuration.setAllowedMethods(
+                                        Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                configuration.setAllowedMethods(Collections.singletonList(""));
                                 configuration.setAllowCredentials(true);
-                                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+                                configuration.setAllowedHeaders(Collections.singletonList(""));
                                 configuration.setMaxAge(3600L);
-                                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
 
+                                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
                                 return configuration;
                             }
                         }));
@@ -74,14 +77,21 @@ public class SecurityConfig {
         //http basic 인증 방식 disable
         http
                 .httpBasic((auth) -> auth.disable());
-        //경로별 인가 작업
+
+        // 임시 전체 허용
         http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login").permitAll()  // 특정 경로 허용
-                        .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
-                        .requestMatchers("/reissue").permitAll()
-                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
                 );
+
+        //경로별 인가 작업
+//        http
+//                .authorizeHttpRequests((auth) -> auth
+//                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login").permitAll()  // 특정 경로 허용
+//                        .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
+//                        .requestMatchers("/reissue").permitAll()
+//                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+//                );
 
         http
                 .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
