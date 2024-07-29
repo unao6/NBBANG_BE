@@ -24,7 +24,7 @@ public class SignUpController {
         if (isSignedUp) {
             return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email or Nickname already exists");
         }
     }
 }
