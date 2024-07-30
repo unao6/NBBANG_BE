@@ -1,11 +1,9 @@
 package com.elice.nbbang.domain.user.dto;
 
-<<<<<<< HEAD
-=======
+
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
->>>>>>> b174502d8a9fb8e273d2fa6e4dddfeb7f5c17d8a
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
