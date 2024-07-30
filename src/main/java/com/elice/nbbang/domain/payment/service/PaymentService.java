@@ -63,10 +63,26 @@ public class PaymentService {
     //payment 취소
     @Transactional(readOnly = false)
     public void deletePayment(String id) {
-        Payment payment = paymentRepository.findByReserveId(id);
+        Payment payment = paymentRepository.findByReserveId(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
             .status(PaymentStatus.RESERVE_CANCELLED)
             .build();
         paymentRepository.save(updatedPayment);
+    }
+
+    //payment 조회
+    public Payment getPaymentByReserveId(String id) {
+        return paymentRepository.findByReserveId(id).orElse(null);
+    }
+
+    //payment 상태 변경
+    @Transactional(readOnly = false)
+    public void modifyStatus(Payment payment) {
+        payment.toBuilder()
+                .status(payment.getStatus())
+                .build();
+
+        System.out.println("status: " + payment.getStatus());
+        paymentRepository.save(payment);
     }
 }

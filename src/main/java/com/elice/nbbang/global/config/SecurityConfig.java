@@ -87,11 +87,11 @@ public class SecurityConfig {
                         .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
                 );
 
-        // 모든 경로 허용
+        /*// 모든 경로 허용
         http
             .authorizeHttpRequests(authorize -> authorize
                 .anyRequest().permitAll()
-            );
+            );*/
 
 //        //경로별 인가 작업
 //        http

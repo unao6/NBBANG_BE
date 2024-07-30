@@ -3,6 +3,7 @@ package com.elice.nbbang.domain.payment.controller;
 import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
+import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.service.BootPayService;
@@ -58,6 +59,7 @@ public class BootPayController {
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            System.out.println(formatter);
 
             String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
 
@@ -82,7 +84,17 @@ public class BootPayController {
     @GetMapping("/reserve/{reserveId}")
     public ResponseEntity<String> lookupReservation(@PathVariable("reserveId") String id) {
         try {
-            bootPayService.reserveLookup(id);
+            String status = bootPayService.reserveLookup(id);
+
+            if(status.equals("1")) { //예약결제 완료
+                Payment payment = paymentService.getPaymentByReserveId(id);
+                payment.updateSubscribtionPayment(PaymentStatus.COMPLETED, payment.getPaymentSubscribedAt());
+                paymentService.modifyStatus(payment);
+            } else if (status.equals("3")) { //예약결제 실패
+                Payment payment = paymentService.getPaymentByReserveId(id);
+                payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
+                paymentService.modifyStatus(payment);
+            }
             return ResponseEntity.ok("Reservation lookup successful");
         } catch (Exception e) {
             e.printStackTrace();

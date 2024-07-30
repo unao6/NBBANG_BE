@@ -57,7 +57,7 @@ public class BootPayService {
         payload.price = amount;
         payload.orderId = "" + (System.currentTimeMillis() / 1000);
 
-        Date date = Date.from(paymentTime.atZone(ZoneId.of("UTC")).toInstant());
+        Date date = Date.from(paymentTime.atZone(ZoneId.of("UTC")).minusHours(9).toInstant());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -82,7 +82,7 @@ public class BootPayService {
     }
 
     //예약 결제 조회
-    public void reserveLookup(String reserveId) throws Exception {
+    public String reserveLookup(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
@@ -95,8 +95,11 @@ public class BootPayService {
             } else {
                 System.out.println("getReceipt false: " + res);
             }
+
+            return res.get("status").toString();
         } catch (Exception e) {
             e.printStackTrace();
+            throw new IllegalArgumentException("에러 발생");
         }
     }
 
