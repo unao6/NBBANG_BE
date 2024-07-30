@@ -17,7 +17,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public boolean existsByEmail(String email) {
+    public boolean isEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
     }
 }
