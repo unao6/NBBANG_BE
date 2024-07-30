@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.user.service;
 
+import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.user.entity.User;
@@ -21,18 +22,19 @@ public class SignUpService {
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();
-        String password = userSignUpDto.getPassword();
-        String nickname = userSignUpDto.getNickname();
-        String phoneNumber = userSignUpDto.getPhoneNumber();
-
         if (userRepository.existsByEmail(email)) {
             return false;
         }
+
+        String password = userSignUpDto.getPassword();
+        String encodedPassword = bCryptPasswordEncoder.encode(password);
+
+        String nickname = userSignUpDto.getNickname();
         if (userRepository.existsByNickname(nickname)) {
             return false;
         }
 
-        String encodedPassword = bCryptPasswordEncoder.encode(password);
+        String phoneNumber = userSignUpDto.getPhoneNumber();
 
         User user = User.builder()
                 .email(email)
@@ -49,8 +51,8 @@ public class SignUpService {
     public boolean emailCertification(EmailCertificationRequestDto emailCertificationRequestDto) {
         String email = emailCertificationRequestDto.getEmail();
 
+        // 이메일 인증 번호 생성 및 전송
         String certificationNumber = CertificationNumber.getCertificationNumber();
-        boolean isSuccessed = emailProvider.sendCertificationMail(email, certificationNumber);
-        return isSuccessed;
+        return emailProvider.sendCertificationMail(email, certificationNumber);
     }
 }

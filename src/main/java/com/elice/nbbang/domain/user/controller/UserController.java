@@ -8,9 +8,7 @@ import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -82,5 +81,17 @@ public class UserController {
         response.setHeader("Authorization", "Bearer " + newAccessToken);
 
         return ResponseEntity.ok("Token refreshed");
+    }
+
+    @GetMapping("/user-info")
+    public User getUserInfo() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof CustomUserDetails) {
+            email = ((CustomUserDetails)principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+        return userService.findByEmail(email);
     }
 }
