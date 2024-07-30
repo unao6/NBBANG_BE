@@ -20,6 +20,9 @@ import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -87,7 +90,7 @@ public class KakaoPayService {
                 log.info("응답값: {}", responseString);
 
                 KakaoPaySubscriptionCreateResponse kakaoResponse = objectMapper.readValue(responseString, KakaoPaySubscriptionCreateResponse.class);
-
+                //todo: 이거 최종 카드 저장 안되면 삭제해야함.
                 // 결제준비 정보 저장
                 Payment payment = new Payment(
                     user,
@@ -169,16 +172,15 @@ public class KakaoPayService {
                 }
 
                 // 카드 정보 저장
-                Card card = new Card(user, kakaoResponse.getCardInfo());
+                Card card = new Card(user, kakaoResponse.getCardInfo(), kakaoResponse.getSid());
                 cardRepository.save(card);
                 log.info("카드 정보 저장 완료.");
-
             }
         }
     }
 
     /**
-     * 3.결제취소
+     * 3.결제취소 API 사용
      */
     public void cancelPayment(KakaoPayCancelRequest request) throws Exception {
         String tid = request.getTid();
@@ -226,6 +228,65 @@ public class KakaoPayService {
     }
 
     /**
+     *  3-1. 결제취소 내부 자동취소 로직 -> 3번 API 사용
+     */
+    public void autoCancelPayment(Long userId, Long ottId) throws Exception {
+        List<Payment> paymentList = paymentRepository.findByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+
+        log.info("결제 내역 조회 userId: {}, ottId: {}", userId, ottId);
+        if (!paymentList.isEmpty()) {
+            Payment latestPayment = paymentList.get(0);
+
+            String tid = latestPayment.getTid();
+            LocalDateTime paymentApprovedDateTime = latestPayment.getPaymentApprovedAt();
+            LocalDateTime currentDateTime = LocalDateTime.now();
+
+            //Integer ottMonthlyAmount = ottService.getOttMonthlyAmount(ottId);
+            Integer ottMonthlyAmount = 5000;
+
+            Integer totalCancelAmount = calculateTotalCancelAmount(paymentApprovedDateTime, currentDateTime, ottMonthlyAmount);
+
+            Integer cancelTaxFreeAmount = 0; // 세금 비과세 금액
+            Integer cancelVatAmount = 0; // 부가세 금액
+            Integer cancelAvailableAmount = totalCancelAmount - cancelTaxFreeAmount - cancelVatAmount;
+            String payload = "";
+
+            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.builder()
+                .tid(tid)
+                .cancelAmount(totalCancelAmount)
+                .cancelTaxFreeAmount(cancelTaxFreeAmount)
+                .cancelVatAmount(cancelVatAmount)
+                .cancelAvailableAmount(cancelAvailableAmount)
+                .payload(payload)
+                .build();
+
+            cancelPayment(cancelRequest);
+
+        } else {
+            System.out.println("결제 내역이 없습니다. userId: " + userId + ", ottId: " + ottId);
+        }
+    }
+
+    /**
+     * 3-2. 결제취소 내부 자동취소 로직
+     */
+    public Integer calculateTotalCancelAmount(LocalDateTime paymentApprovedDateTime, LocalDateTime currentDateTime, Integer ottMonthlyAmount) {
+        long daysBetween = ChronoUnit.DAYS.between(paymentApprovedDateTime.toLocalDate(), currentDateTime.toLocalDate());
+        // 하루가 지났으면 1일로 간주하고, 지나지 않았으면 0일로 간주
+        long extraDay = paymentApprovedDateTime.toLocalTime().isBefore(currentDateTime.toLocalTime()) ? 1 : 0;
+        long totalDays = daysBetween + extraDay;
+
+        // 정기 결제일을 30일로 고정
+        long daysInMonth = 30;
+        Integer dailyAmount = ottMonthlyAmount / (int) daysInMonth;
+
+        Integer cancelAmount = dailyAmount * (int) totalDays;
+        return cancelAmount;
+    }
+
+
+
+    /**
      * 4.정기결제 여기근데 tid가 필요한가? 필요없을거같은데..??가 아니라 필요가 없음 새로운 payment 생성해서 sid를 가져와야함
      */
     public void subscription(Long userId, String tid, String sid) throws Exception {
@@ -263,6 +324,8 @@ public class KakaoPayService {
 
                 lastPayment.updateSubscribtionPayment(PaymentStatus.SUBSCRIBED, subscriptionResponse.getApprovedAt());
                 paymentRepository.save(lastPayment);
+                //test ott id 추가
+                //lastPayment.setOttId(1L);
                 log.info("정기결제 정보 저장 후.");
             }
         }

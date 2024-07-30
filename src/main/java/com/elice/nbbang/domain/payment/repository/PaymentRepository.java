@@ -30,4 +30,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Payment save(Payment payment);
 
     Payment findByReserveId(String id);
+
+    //Optional<Payment> findByUserIdAndOttId(Long userId, Long ottId);
+    List<Payment> findByUserIdAndOttIdOrderByPaymentApprovedAtDesc(Long userId, Long ottId);
 }

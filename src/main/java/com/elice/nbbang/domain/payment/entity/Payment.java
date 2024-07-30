@@ -64,6 +64,8 @@ public class Payment extends BaseTimeEntity {
     @Column(nullable = false)
     private String tid;
 
+    private Long ottId;
+
     private LocalDateTime paymentApprovedAt;
 
     private LocalDateTime paymentSubscribedAt;
