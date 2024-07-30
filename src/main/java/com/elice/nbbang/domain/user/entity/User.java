@@ -1,16 +1,13 @@
 package com.elice.nbbang.domain.user.entity;
 
-import com.elice.nbbang.domain.auth.entity.Auth;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Builder
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends BaseTimeEntity {
