@@ -84,17 +84,7 @@ public class BootPayController {
     @GetMapping("/reserve/{reserveId}")
     public ResponseEntity<String> lookupReservation(@PathVariable("reserveId") String id) {
         try {
-            String status = bootPayService.reserveLookup(id);
-
-            if(status.equals("1")) { //예약결제 완료
-                Payment payment = paymentService.getPaymentByReserveId(id);
-                payment.updateSubscribtionPayment(PaymentStatus.COMPLETED, payment.getPaymentSubscribedAt());
-                paymentService.modifyStatus(payment);
-            } else if (status.equals("3")) { //예약결제 실패
-                Payment payment = paymentService.getPaymentByReserveId(id);
-                payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
-                paymentService.modifyStatus(payment);
-            }
+            bootPayService.reserveLookup(id);
             return ResponseEntity.ok("Reservation lookup successful");
         } catch (Exception e) {
             e.printStackTrace();
