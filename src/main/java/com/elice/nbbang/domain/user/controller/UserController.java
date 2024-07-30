@@ -84,7 +84,7 @@ public class UserController {
     }
 
     @GetMapping("/user-info")
-    public User getUserInfo() {
+    public ResponseEntity<?> getUserInfo() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email;
         if (principal instanceof CustomUserDetails) {
@@ -92,6 +92,10 @@ public class UserController {
         } else {
             email = principal.toString();
         }
-        return userService.findByEmail(email);
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        return ResponseEntity.ok(user);
     }
 }

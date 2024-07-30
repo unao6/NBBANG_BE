@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.payment.entity;
 
 
+import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.user.entity.User;
@@ -36,32 +37,25 @@ public class Payment extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
-    @Column(nullable = false)
     private String partnerUserId;
 
-    @Column(nullable = false)
     private String partnerOrderId;
 
-    @Column(nullable = false)
     private Integer amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PaymentStatus status;
 
     private LocalDateTime paymentCreatedAt;
 
-    @Column(nullable = false)
     private String cid;
 
-    @Column(nullable = false)
     private String tid;
 
     private Long ottId;
@@ -114,5 +108,14 @@ public class Payment extends BaseTimeEntity {
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
         this.status = status;
         this.paymentSubscribedAt = paymentSubscribedAt;
+    }
+
+    public PaymentReserve toPaymentReserve() {
+        PaymentReserve paymentReserve = new PaymentReserve();
+        paymentReserve.setBillingKey(this.getBillingKey());
+        paymentReserve.setAmount(this.getAmount());
+        paymentReserve.setPaymentSubscribedAt(this.getPaymentSubscribedAt());
+
+        return paymentReserve;
     }
 }
