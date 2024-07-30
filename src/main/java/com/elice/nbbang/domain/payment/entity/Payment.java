@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.payment.entity;
 
 
+import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.user.entity.User;
@@ -105,5 +106,14 @@ public class Payment extends BaseTimeEntity {
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
         this.status = status;
         this.paymentSubscribedAt = paymentSubscribedAt;
+    }
+
+    public PaymentReserve toPaymentReserve() {
+        PaymentReserve paymentReserve = new PaymentReserve();
+        paymentReserve.setBillingKey(this.getBillingKey());
+        paymentReserve.setAmount(this.getAmount());
+        paymentReserve.setPaymentSubscribedAt(this.getPaymentSubscribedAt());
+
+        return paymentReserve;
     }
 }

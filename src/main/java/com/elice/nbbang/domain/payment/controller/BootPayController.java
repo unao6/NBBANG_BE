@@ -59,19 +59,8 @@ public class BootPayController {
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            System.out.println(formatter);
-
             String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
-
-            PaymentRegisterDTO registerDTO = PaymentRegisterDTO.builder()
-                .billingKey(reserve.getBillingKey())
-                .amount(reserve.getAmount())
-                .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
-                .paymentType(PaymentType.CARD)
-                .paymentStatus(PaymentStatus.RESERVE_COMPLETED)
-                .reserveId(reserveId)
-                .build();
-            paymentService.createPayment(registerDTO);
+            paymentService.createPayment(reserve, reserveId);
 
             return ResponseEntity.ok("Payment reservation successful");
         } catch (Exception e) {

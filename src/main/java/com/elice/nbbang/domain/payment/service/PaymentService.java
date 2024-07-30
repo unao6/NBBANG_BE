@@ -1,8 +1,12 @@
 package com.elice.nbbang.domain.payment.service;
 
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
+import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,14 +54,14 @@ public class PaymentService {
 
     //payment 생성
     @Transactional(readOnly = false)
-    public Payment createPayment(PaymentRegisterDTO registerDTO) {
+    public Payment createPayment(PaymentReserve reserve, String reserveId) {
         Payment payment = Payment.builder()
-            .billingKey(registerDTO.getBillingKey())
-            .amount(registerDTO.getAmount())
-            .paymentSubscribedAt(registerDTO.getPaymentSubscribedAt())
-            .paymentType(registerDTO.getPaymentType())
-            .status(registerDTO.getPaymentStatus())
-            .reserveId(registerDTO.getReserveId())
+            .billingKey(reserve.getBillingKey())
+            .amount(reserve.getAmount())
+            .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
+            .paymentType(PaymentType.CARD)
+            .status(PaymentStatus.RESERVE_COMPLETED)
+            .reserveId(reserveId)
             .build();
         paymentRepository.save(payment);
         return payment;
@@ -90,7 +94,7 @@ public class PaymentService {
     }
 
     //예약완료된 payment를 주기마다 조회
-    @Scheduled(fixedRate = 600000)
+    @Scheduled(fixedRate = 60000)
     @Transactional(readOnly = false)
     public void scheduledLookupReservation() {
         List<String> reserveIds = getAllReservedPayment();
@@ -110,6 +114,14 @@ public class PaymentService {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.COMPLETED, payment.getPaymentSubscribedAt());
                 paymentRepository.save(payment);
+
+                //정기결제 30일 후 새로운 정기결제 예약
+                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusDays(30);
+
+                String newReserveId = bootPayService.reservePayment(payment.getBillingKey(), payment.getAmount(), newPaymentTime);
+                PaymentReserve paymentReserve = payment.toPaymentReserve();
+                paymentReserve.setPaymentSubscribedAt(newPaymentTime);
+                createPayment(paymentReserve, newReserveId);
             } else if (status.equals("3")) {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
