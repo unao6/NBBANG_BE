@@ -52,7 +52,7 @@ public class KakaoPaySubscriptionCreateRequest {
             .paymentMethodType(properties.getPaymentMethodType())
             .itemName(properties.getItemName())
             .quantity(properties.getQuantity())
-            .totalAmount(properties.getTotalAmount())  //**아주 에러때문에 개고생을 했음. 프로퍼티스의 값은 Long이었음.. 그래서 intValue()로 형변환을 해줘야했는데 바꿈 Integer로
+            .totalAmount(properties.getTestAmount())  //**아주 에러때문에 개고생을 했음. 프로퍼티스의 값은 Long이었음.. 그래서 intValue()로 형변환을 해줘야했는데 바꿈 Integer로
             .taxFreeAmount(properties.getTaxFreeAmount())
             .approveUrl(properties.getReadyCreateRedirectUrl())
             .failUrl(properties.getReadyFailUrl())

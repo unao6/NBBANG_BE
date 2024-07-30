@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.payment.dto;
 
+import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
@@ -9,5 +10,5 @@ public class PaymentReserve {
 
     private Integer amount;
 
-    private String paymentTime;
+    private LocalDateTime paymentSubscribedAt;
 }
