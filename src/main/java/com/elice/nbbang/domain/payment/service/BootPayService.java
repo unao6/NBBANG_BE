@@ -82,7 +82,7 @@ public class BootPayService {
     }
 
     //예약 결제 조회
-    public String reserveLookup(String reserveId) throws Exception {
+    public HashMap<String, Object> reserveLookup(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
@@ -96,7 +96,10 @@ public class BootPayService {
                 System.out.println("getReceipt false: " + res);
             }
 
-            return res.get("status").toString();
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("status", res.get("status"));
+            response.put("receipt_id", res.get("receipt_id"));
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("에러 발생");

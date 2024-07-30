@@ -8,6 +8,7 @@ import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
@@ -104,15 +105,15 @@ public class PaymentService {
         }
     }
 
-    //payment 상태 변경
+    //정기결제 예약
     @Transactional(readOnly = false)
     public void lookupReservation(String id) {
         try {
-            String status = bootPayService.reserveLookup(id);
+            HashMap<String, Object> response = bootPayService.reserveLookup(id);
 
-            if (status.equals("1")) {
+            if (response.get("status").toString().equals("1")) {
                 Payment payment = getPaymentByReserveId(id);
-                payment.updateSubscribtionPayment(PaymentStatus.COMPLETED, payment.getPaymentSubscribedAt());
+                payment.updateCompletePayment(PaymentStatus.COMPLETED, response.get("receipt_id").toString());
                 paymentRepository.save(payment);
 
                 //정기결제 30일 후 새로운 정기결제 예약
@@ -122,7 +123,7 @@ public class PaymentService {
                 PaymentReserve paymentReserve = payment.toPaymentReserve();
                 paymentReserve.setPaymentSubscribedAt(newPaymentTime);
                 createPayment(paymentReserve, newReserveId);
-            } else if (status.equals("3")) {
+            } else if (response.get("status").toString().equals("3")) {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
                 paymentRepository.save(payment);
