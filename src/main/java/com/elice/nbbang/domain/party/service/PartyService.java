@@ -59,8 +59,6 @@ public class PartyService {
         partyRepository.save(party);
     }
 
-    public void partyBreakup(final Long partId) {
 
-    }
 
 }
