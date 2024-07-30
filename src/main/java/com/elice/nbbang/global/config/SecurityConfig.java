@@ -86,13 +86,6 @@ public class SecurityConfig {
                         .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
                         .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
                 );
-
-        /*// 모든 경로 허용
-        http
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll()
-            );*/
-
 //        //경로별 인가 작업
 //        http
 //                .authorizeHttpRequests((auth) -> auth
