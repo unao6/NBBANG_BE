@@ -32,7 +32,7 @@ public class KakaoPayController {
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> createSubscription(@RequestParam Long userId)
         throws Exception {
         KakaoPaySubscriptionCreateResponse response = kakaoPayService.createSubscription(userId);
-        log.info("Subscription created: tid={}, nextRedirectPcUrl={}", response.getTid(), response.getNextRedirectPcUrl());
+        log.info("QR페이지로 보내는 정보임: tid={}, nextRedirectPcUrl={}", response.getTid(), response.getNextRedirectPcUrl());
         return ResponseEntity.ok(response);
     }
 
@@ -44,7 +44,7 @@ public class KakaoPayController {
      */
     @PostMapping("/approve")
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> approveSubscription(@RequestBody KakaoPaySubscriptionApproveRequest request) throws Exception {
-        log.info("Received approve request: tid={}, pgToken={}", request.getTid(), request.getPgToken());
+        log.info("결제 승인단계 : tid={}, pgToken={}", request.getTid(), request.getPgToken());
         kakaoPayService.approveSubscription(request.getTid(), request.getPgToken());
         return ResponseEntity.ok().build();
     }
