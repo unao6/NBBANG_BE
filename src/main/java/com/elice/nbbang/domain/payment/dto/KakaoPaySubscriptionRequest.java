@@ -3,11 +3,15 @@ package com.elice.nbbang.domain.payment.dto;
 import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class KakaoPaySubscriptionRequest {
     @JsonProperty("cid")
     private String cid;

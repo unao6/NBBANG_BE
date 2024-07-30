@@ -22,9 +22,5 @@ public class PaymentRegisterDTO {
 
     private LocalDateTime paymentSubscribedAt;
 
-    private PaymentType paymentType;
-
-    private PaymentStatus paymentStatus;
-
     private String reserveId;
 }
