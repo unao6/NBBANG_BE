@@ -1,13 +1,19 @@
 package com.elice.nbbang.domain.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoPaySubscriptionApproveResponse {
     @JsonProperty("aid")
     private String aid;
@@ -59,6 +65,8 @@ public class KakaoPaySubscriptionApproveResponse {
 
     @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Amount {
         @JsonProperty("total")
         private Integer total;
@@ -81,6 +89,8 @@ public class KakaoPaySubscriptionApproveResponse {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CardInfo {
         @JsonProperty("kakaopay_purchase_corp")
         private String purchaseCorp;

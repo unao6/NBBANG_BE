@@ -61,6 +61,7 @@ public class PaymentService {
     }
 
     //payment 취소
+    @Transactional(readOnly = false)
     public void deletePayment(String id) {
         Payment payment = paymentRepository.findByReserveId(id);
         Payment updatedPayment = payment.toBuilder()

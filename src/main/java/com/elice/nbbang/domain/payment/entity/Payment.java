@@ -75,11 +75,12 @@ public class Payment extends BaseTimeEntity {
 
     private String reserveId;
 
-    public Payment(User user, String partnerUserId, String partnerOrderId, String paymentType, Integer amount,
+    public Payment(User user, String partnerUserId, String partnerOrderId, PaymentType paymentType, Integer amount,
         PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {
         this.user = user;
         this.partnerUserId = partnerUserId;
         this.partnerOrderId = partnerOrderId;
+        this.paymentType = paymentType;
         this.amount = amount;
         this.status = status;
         this.paymentCreatedAt = paymentCreatedAt;
