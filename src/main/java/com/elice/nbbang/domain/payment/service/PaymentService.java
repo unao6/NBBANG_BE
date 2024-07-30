@@ -46,6 +46,7 @@ public class PaymentService {
     }
 
     //payment 생성
+    @Transactional(readOnly = false)
     public Payment createPayment(PaymentRegisterDTO registerDTO) {
         Payment payment = Payment.builder()
             .billingKey(registerDTO.getBillingKey())
@@ -60,6 +61,7 @@ public class PaymentService {
     }
 
     //payment 취소
+    @Transactional(readOnly = false)
     public void deletePayment(String id) {
         Payment payment = paymentRepository.findByReserveId(id);
         Payment updatedPayment = payment.toBuilder()

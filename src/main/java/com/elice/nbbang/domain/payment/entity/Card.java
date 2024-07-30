@@ -37,14 +37,12 @@ public class Card extends BaseTimeEntity {
 
     private String cardNumber; //암호화 필요
 
-    @Column(nullable = false)
     private String billingKey; //암호화 필요
 
     @Enumerated(EnumType.STRING)
     private CardStatus cardStatus;
 
     //카드 매입사명
-    @Column(nullable = false)
     private String cardCompany;
 
     //매입사 코드

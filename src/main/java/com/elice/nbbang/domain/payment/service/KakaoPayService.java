@@ -12,6 +12,7 @@ import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionResponse;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
@@ -46,7 +47,7 @@ public class KakaoPayService {
 
 
     /**
-     * 1.결제준비
+     * 1.결제준비 (카드 등록을 위한)
      * userId를 파라미터로 전달받아 데이터 세팅후 카카오페이에 요청
      * tid, next_redirect_pc_url 확보
      */
@@ -92,8 +93,8 @@ public class KakaoPayService {
                     user,
                     partnerUserId,
                     partnerOrderId,
-                    kakaoPayProperties.getPaymentMethodType(),
-                    kakaoPayProperties.getTotalAmount(),
+                    PaymentType.CARD,
+                    kakaoPayProperties.getTestAmount(),
                     PaymentStatus.CREATED,
                     kakaoResponse.getCreatedAt(),
                     kakaoPayProperties.getSubscriptionCid(),
@@ -112,12 +113,12 @@ public class KakaoPayService {
     }
 
     /**
-     * 2.결제승인 (최초결제 자동취소 포함)
+     * 2.결제승인 (카드 등록을 위한)
      * tid와 pg_token을 파라미터로 전달받아 데이터 세팅후 카카오페이에 요청
      * sid 확보, 상태변경
      */
     public void approveSubscription(String tid, String pgToken) throws Exception {
-
+        log.info("결제 승인 요청 시작. tid: {}, pgToken: {}", tid, pgToken);
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             // 결제 승인 요청 URL
             HttpPost httpPost = new HttpPost(kakaoPayProperties.getReadyApproveUrl());
@@ -159,19 +160,19 @@ public class KakaoPayService {
                 paymentRepository.save(lastPayment);
                 log.info("결제 승인 정보 저장 후.");
 
+                // 기존 카드 정보 조회 및 삭제 중간에 한번 커밋 날려줘야함.
+                Optional<Card> existingCard = cardRepository.findByUserId(user.getId());
+                if (existingCard.isPresent()) {
+                    cardRepository.delete(existingCard.get());
+                    cardRepository.flush(); // 영속성 컨텍스트를 즉시 반영
+                    log.info("기존 카드 정보 삭제 완료.");
+                }
+
                 // 카드 정보 저장
                 Card card = new Card(user, kakaoResponse.getCardInfo());
                 cardRepository.save(card);
                 log.info("카드 정보 저장 완료.");
 
-                //이것도 근데 값을 이렇게 세팅하는게 아니라 받아와야할듯 나중에수정!
-                cancelPayment(KakaoPayCancelRequest.builder()
-                    .tid(tid)
-                    .cancelAmount(kakaoPayProperties.getTotalAmount())
-                    .cancelTaxFreeAmount(0)
-                    .cancelVatAmount(0)
-                    .payload("최초결제 자동취소")
-                    .build());
             }
         }
     }
@@ -225,16 +226,18 @@ public class KakaoPayService {
     }
 
     /**
-     * 4.정기결제
+     * 4.정기결제 여기근데 tid가 필요한가? 필요없을거같은데..??가 아니라 필요가 없음 새로운 payment 생성해서 sid를 가져와야함
      */
     public void subscription(Long userId, String tid, String sid) throws Exception {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(kakaoPayProperties.getSubscribeUrl());
-
+            //이 과정이 필요가 없음
+            //OTT에서 금액을 가져와서 넣어줘야함
             Optional<Payment> paymentSid = paymentRepository.findByUserIdAndTidAndSid(userId, tid, sid);
             if (paymentSid.isEmpty()) {
                 throw new EntityNotFoundException("결제 정보를 찾을 수 없습니다.");
             }
+            //이거 카드에서 가져와야함. sid 값을
             Payment lastPayment = paymentSid.get();
 
             setHeaders(httpPost, kakaoPayProperties.getSecretKey());
