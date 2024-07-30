@@ -7,7 +7,6 @@ import com.elice.nbbang.domain.party.service.PartyMatchService;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
 import com.elice.nbbang.global.util.TaskManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -25,6 +24,7 @@ public class PartyMatchingScheduler {
     private final PartyMatchService partyMatchService;
     private final TaskManager<Long> taskManager;
     private final RedisTemplate<String, String> redisTemplate;
+
 
 //    @Scheduled(fixedRate = 5000)
     public void schedulePartyMatching() {
@@ -49,6 +49,7 @@ public class PartyMatchingScheduler {
                     }
                 } finally {
                     taskManager.removeTask(ott.getId());
+
                 }
             }
         }

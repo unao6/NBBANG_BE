@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +33,7 @@ public class KakaoPayController {
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> createSubscription(@RequestParam Long userId)
         throws Exception {
         KakaoPaySubscriptionCreateResponse response = kakaoPayService.createSubscription(userId);
-        log.info("Subscription created: tid={}, nextRedirectPcUrl={}", response.getTid(), response.getNextRedirectPcUrl());
+        log.info("QR페이지로 보내는 정보임: tid={}, nextRedirectPcUrl={}", response.getTid(), response.getNextRedirectPcUrl());
         return ResponseEntity.ok(response);
     }
 
@@ -44,7 +45,7 @@ public class KakaoPayController {
      */
     @PostMapping("/approve")
     public ResponseEntity<KakaoPaySubscriptionCreateResponse> approveSubscription(@RequestBody KakaoPaySubscriptionApproveRequest request) throws Exception {
-        log.info("Received approve request: tid={}, pgToken={}", request.getTid(), request.getPgToken());
+        log.info("결제 승인단계 : tid={}, pgToken={}", request.getTid(), request.getPgToken());
         kakaoPayService.approveSubscription(request.getTid(), request.getPgToken());
         return ResponseEntity.ok().build();
     }
@@ -71,6 +72,12 @@ public class KakaoPayController {
     @PostMapping("/subscription/{userId}")
     public ResponseEntity<Void> subscription(@PathVariable Long userId, @RequestParam String tid, @RequestParam String sid) throws Exception {
         kakaoPayService.subscription(userId, tid, sid);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/subscription/cancel")
+    public ResponseEntity<Void> cancelSubscription() throws Exception {
+        kakaoPayService.autoCancelPayment(1L,1L);
         return ResponseEntity.ok().build();
     }
 }

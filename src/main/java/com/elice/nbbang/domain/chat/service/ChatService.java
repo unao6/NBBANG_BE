@@ -66,13 +66,8 @@ public class ChatService {
     }
 
     // 모든 상담 조회
-    public Page<Chat> getAllChats(Pageable pageable) {
-        return chatRepository.findAll(pageable);
-    }
-
-    // 특정 사용자 상담 조회
-    public Page<Chat> getChatsByUserId(Long userId, Pageable pageable) {
-        return chatRepository.findAllByUserId(userId, pageable);
+    public List<Chat> getAllChats() {
+        return chatRepository.findAll();
     }
 
     // 특정 채팅방 메시지 조회
@@ -94,9 +89,10 @@ public class ChatService {
     }
 
     // 아카이브된 상담 조회
-    public Page<ArchivedChats> getArchivedChats(Pageable pageable) {
-        return archivedChatRepository.findAll(pageable);
+    public List<ArchivedChats> getArchivedChats() {
+        return archivedChatRepository.findAll();
     }
+
 
     // 특정 아카이브된 상담 조회
     public ArchivedChats getArchivedChat(Long archivedId) {
