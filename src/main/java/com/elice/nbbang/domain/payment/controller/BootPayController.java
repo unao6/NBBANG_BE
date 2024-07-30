@@ -3,6 +3,7 @@ package com.elice.nbbang.domain.payment.controller;
 import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
+import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.service.BootPayService;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/api/payment")
+@RequestMapping("/api/bootpay")
 @RequiredArgsConstructor
 @RestController
 public class BootPayController {
@@ -58,19 +59,8 @@ public class BootPayController {
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(reserve.getPaymentTime(), formatter);
-
-            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), localDateTime);
-
-            PaymentRegisterDTO registerDTO = PaymentRegisterDTO.builder()
-                .billingKey(reserve.getBillingKey())
-                .amount(reserve.getAmount())
-                .paymentSubscribedAt(localDateTime)
-                .paymentType(PaymentType.CARD)
-                .paymentStatus(PaymentStatus.RESERVE_COMPLETED)
-                .reserveId(reserveId)
-                .build();
-            paymentService.createPayment(registerDTO);
+            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
+            paymentService.createPayment(reserve, reserveId);
 
             return ResponseEntity.ok("Payment reservation successful");
         } catch (Exception e) {

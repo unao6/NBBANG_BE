@@ -6,6 +6,7 @@ import com.elice.nbbang.global.jwt.JWTFilter;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import com.elice.nbbang.global.jwt.LoginFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -63,7 +65,7 @@ public class SecurityConfig {
 
                                 return configuration;
                             }
-                        }));
+                        }));*/
 
         //csrf disable
         http
@@ -74,6 +76,12 @@ public class SecurityConfig {
         //http basic 인증 방식 disable
         http
                 .httpBasic((auth) -> auth.disable());
+
+        /*//모든 경로 허용
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                .anyRequest().permitAll()
+            );*/
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
@@ -87,7 +95,20 @@ public class SecurityConfig {
 
 
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+            .authorizeHttpRequests(authorize -> authorize
+                .anyRequest().permitAll()
+            );*/
+
+//        //경로별 인가 작업
+//        http
+//                .authorizeHttpRequests((auth) -> auth
+//                        .requestMatchers("/api/users/sign-up", "/login", "/").permitAll()  // 특정 경로 허용
+//                        .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
+//                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+//                );
+
+//        http
+//                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         http
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
         http

@@ -17,7 +17,7 @@ public class CardService {
 
     public CardInfoResponse getCardInfo(Long userId) {
         return cardRepository.findByUserId(userId)
-            .map(card -> new CardInfoResponse(card.getIssuerCorp(), card.getCardType()))
+            .map(card -> new CardInfoResponse(card.getIssuerCorp(), card.getCardType(), card.getCardCompany()))
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
     }
     //카드 등록
@@ -30,5 +30,11 @@ public class CardService {
             .build();
         cardRepository.save(card);
         return card;
+    }
+
+    public void deleteCardInfo(Long userId) {
+        Card card = cardRepository.findByUserId(userId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        cardRepository.delete(card);
     }
 }
