@@ -65,7 +65,7 @@ public class SecurityConfig {
 
                                 return configuration;
                             }
-                        }));*/
+                        }));
 
         //csrf disable
         http
@@ -97,7 +97,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorize -> authorize
                 .anyRequest().permitAll()
-            );*/
+            );
 
 //        //경로별 인가 작업
 //        http
