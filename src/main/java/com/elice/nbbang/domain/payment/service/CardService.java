@@ -16,10 +16,25 @@ public class CardService {
     private final CardRepository cardRepository;
 
     public CardInfoResponse getCardInfo(Long userId) {
-        return cardRepository.findByUserId(userId)
-            .map(card -> new CardInfoResponse(card.getIssuerCorp(), card.getCardType(), card.getCardCompany()))
-            .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        Card userCard = cardRepository.findByUserId(userId).orElse(null);
+        if (userCard.getIssuerCorp() == null) { //카드
+            return cardRepository.findByUserId(userId)
+                .map(card -> CardInfoResponse.builder()
+                    .cardCompany(userCard.getCardCompany())
+                    .cardNumber(userCard.getCardNumber())
+                    .build())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        } else { //카카오페이
+            return cardRepository.findByUserId(userId)
+                .map(card -> CardInfoResponse.builder()
+                    .issuerCorp(userCard.getIssuerCorp())
+                    .cardType(userCard.getCardType())
+                    .cardCompany(userCard.getCardCompany())
+                    .build())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        }
     }
+
     //카드 등록
     public Card registerCard(CardPaymentRequest request, String billingKey) {
         Card card = Card.builder()
