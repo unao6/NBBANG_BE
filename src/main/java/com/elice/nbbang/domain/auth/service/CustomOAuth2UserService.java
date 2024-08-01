@@ -50,7 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .nickname(userSignUpDto.getNickname())
                     .password(userSignUpDto.getPassword())
                     .phoneNumber(userSignUpDto.getPhoneNumber())
-                    .role(UserRole.USER) // 기본 역할 설정
+                    .role(UserRole.ROLE_USER) // 기본 역할 설정
                     .build();
 
             userRepository.save(newUser);

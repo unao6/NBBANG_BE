@@ -1,83 +1,89 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.3.2'
-	id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.elice'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	// Spring Boot
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	// Oauth2.0
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // Oauth2.0
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-	// Security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	testImplementation 'org.springframework.security:spring-security-test'
+    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
 
-	// Jasypt
-	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+    // Jasypt
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
-	// BootPay
-	implementation 'io.github.bootpay:backend:+'
+    // BootPay
+    implementation 'io.github.bootpay:backend:+'
 
-	// Websocket
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // Websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-	// Jackson
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    // Jackson
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-	// jwt
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	//mail
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
+    //mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// h2
-	runtimeOnly 'com.h2database:h2'
+    // h2
+    runtimeOnly 'com.h2database:h2'
 
-	// MySql
-	runtimeOnly 'com.mysql:mysql-connector-j'
+    // MySql
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// httpClient
-	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    // httpClient
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
-	// test
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	//validation
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+    //validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // javax.servlet-api
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+
+    // spring-security-oauth2-jose
+    implementation 'org.springframework.security:spring-security-oauth2-jose:5.5.1'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
