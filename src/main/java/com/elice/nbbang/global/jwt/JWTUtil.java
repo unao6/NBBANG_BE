@@ -29,6 +29,7 @@ public class JWTUtil {
                 .get("email", String.class);
     }
 
+
     public String getRole(String token) {
 
         return Jwts.parser()
