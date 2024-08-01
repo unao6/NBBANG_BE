@@ -20,7 +20,9 @@ import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -302,8 +304,12 @@ public class KakaoPayService {
     /**
      * 4.정기결제 userId와 ottId 필요.
      */
+    @Transactional
     public void subscription(Long userId, Long ottId) throws Exception {
         log.info("4.정기결제 시작 ");
+        //ott id를 역순으로 조회하고 가장 최근 것이 상태가 subscribed이면 regularNumber를 +1 하고 nextPaymentDate를 +30한다
+
+
         //Ott 정보 가져와서 가격 세팅
         Optional<Ott> ottOptional = ottRepository.findById(ottId);
         if (ottOptional.isEmpty()) {
@@ -326,6 +332,25 @@ public class KakaoPayService {
 
         String partnerUserId = user.getNickname();
         String partnerOrderId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+
+        Optional<Payment> latestPaymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+        int installmentNumber = 1;
+
+        // OTT의 최근 Payment가 존재하면 회차 정보 업데이트
+        if (latestPaymentOptional.isPresent()) {
+            Payment latestPayment = latestPaymentOptional.get();
+            if (latestPayment.getStatus() == PaymentStatus.SUBSCRIBED) {
+                // 이전 Payment의 상태를 COMPLETED로 변경
+                log.info("이전 상태: {}", latestPayment.getStatus());
+                latestPayment.setStatus(PaymentStatus.COMPLETED);
+                paymentRepository.save(latestPayment);
+                log.info("변경 후 상태: {}", latestPayment.getStatus());
+
+                log.info("4-0.이전 회차의 Payment 상태를 COMPLETED로 변경");
+
+                installmentNumber = latestPayment.getInstallmentNumber() + 1;
+            }
+        }
 
         //정기결제 URL 세팅
         try (CloseableHttpClient client = HttpClients.createDefault()) {
@@ -354,7 +379,7 @@ public class KakaoPayService {
                 log.info("4-3.정기결제 정보 저장 전.");
 
                 LocalDateTime approvedAt = subscriptionResponse.getApprovedAt();
-                LocalDate nextPaymentDate = approvedAt.toLocalDate().plusDays(30);
+                LocalDateTime subscribedAt = approvedAt.plusDays(30);
 
                 //응답 payment 저장.
                 //todo: 몇 회차인지 체크할 필요가 있을까?
@@ -364,15 +389,16 @@ public class KakaoPayService {
                     .partnerOrderId(partnerOrderId)
                     .paymentType(PaymentType.KAKAOPAY)
                     .amount(price)
-                    .nextPaymentDate(nextPaymentDate)
                     .cardCompany(subscriptionResponse.getCardInfo().getPurchaseCorp())
                     .status(PaymentStatus.SUBSCRIBED)
+                    .paymentSubscribedAt(subscribedAt)
                     .paymentCreatedAt(subscriptionResponse.getCreatedAt())
                     .paymentApprovedAt(subscriptionResponse.getApprovedAt())
                     .cid(kakaoPayProperties.getSubscriptionCid())
                     .tid(subscriptionResponse.getTid())
                     .sid(subscriptionResponse.getSid())
                     .ottId(ottId)
+                    .installmentNumber(installmentNumber)
                     .build();
 
                 paymentRepository.save(newPayment);
