@@ -83,7 +83,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
                         .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용
-                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+                        .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
                 );
 
         http
