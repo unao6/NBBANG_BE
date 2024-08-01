@@ -18,7 +18,7 @@ public class MailConfig {
     }
 
     @Bean
-    @ConfigurationProperties(prefix="notification.user")
+    @ConfigurationProperties(prefix="mail.notification")
     public JavaMailSender notificationMailSender() {
         return createMailSender();
     }
