@@ -1,6 +1,8 @@
 package com.elice.nbbang.domain.user.provider;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -8,16 +10,23 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class EmailProvider {
+public class UserEmailProvider {
 
-    private final JavaMailSender javaMailSender;
+    @Qualifier("userMailSender")
+    private final JavaMailSender userMailSender;
+
+    @Value("${mail.user.from}")
+    private String fromAddress;
+
+    @Value("${mail.user.from.name}")
+    private String fromName;
 
     private final String SUBJECT = "[N/BBANG] 인증메일입니다.";
 
     public boolean sendCertificationMail(String email, String certificationNumber) {
 
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessage message = userMailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(message);
 
             String htmlContent = getCertificationMessage(certificationNumber);
@@ -25,8 +34,9 @@ public class EmailProvider {
             messageHelper.setTo(email);
             messageHelper.setSubject(SUBJECT);
             messageHelper.setText(htmlContent, true);
+            messageHelper.setFrom(fromAddress, fromName); // 발신자 주소와 이름 설정
 
-            javaMailSender.send(message);
+            userMailSender.send(message);
 
         } catch (Exception exception) {
             exception.printStackTrace();
