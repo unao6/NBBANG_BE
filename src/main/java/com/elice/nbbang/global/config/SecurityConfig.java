@@ -77,11 +77,11 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification").permitAll()  // 특정 경로 허용
-                        .requestMatchers("'/api/users/**").hasRole("USER")  // USER 역할 필요
-                        .requestMatchers("'/api/admin/**").hasRole("ADMIN")  // ADMIN 역할 필요
+                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/check-email", "/api/users/email-certification").permitAll()  // 특정 경로 허용
+                        .requestMatchers("/api/users/user-info").hasAnyAuthority("ROLE_USER")  // USER 역할 필요
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
-                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+                        .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
                 );
 
         http
