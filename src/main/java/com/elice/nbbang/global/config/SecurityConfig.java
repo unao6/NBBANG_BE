@@ -72,12 +72,13 @@ public class SecurityConfig {
             .httpBasic((auth) -> auth.disable());
         http
             .authorizeHttpRequests((auth) -> auth
-                .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification", "/api/users/user-info").permitAll()
-                .requestMatchers("'/api/users/**").hasRole("USER")
-                .requestMatchers("'/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/reissue").permitAll()
-                .requestMatchers("/api/**").permitAll()
-                .anyRequest().authenticated()
+//                .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification", "/api/users/user-info").permitAll()
+//                .requestMatchers("'/api/users/**").hasRole("USER")
+//                .requestMatchers("'/api/admin/**").hasRole("ADMIN")
+//                .requestMatchers("/reissue").permitAll()
+//                .requestMatchers("/api/**").permitAll()
+//                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             );
 
         http
