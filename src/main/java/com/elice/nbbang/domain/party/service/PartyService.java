@@ -37,6 +37,12 @@ public class PartyService {
         final String email = userUtil.getAuthenticatedUserEmail();
         final User user = userRepository.findByEmail(email);
 
+        Optional<Party> existParty = partyRepository.findByLeaderIdAndOttId(ott.getId(), user.getId());
+
+        if (existParty.isPresent()) {
+            throw new DuplicateParty(ErrorCode.DUPLICATE_PARTY);
+        }
+
         final Party party = Party.builder()
                 .ott(ott)
                 .leader(user)

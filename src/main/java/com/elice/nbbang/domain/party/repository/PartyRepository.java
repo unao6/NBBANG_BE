@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface PartyRepository extends JpaRepository<Party, Long> {
 
+    Optional<Party> findByLeaderIdAndOttId(Long leaderId, Long ottId);
+
 
     @Query("select p "
             + "from Party p "
