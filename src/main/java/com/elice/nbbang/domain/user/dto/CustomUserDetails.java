@@ -21,7 +21,7 @@ public class CustomUserDetails implements UserDetails {
         this.user.setPassword(userSignUpDto.getPassword());
         this.user.setNickname(userSignUpDto.getNickname());
         this.user.setPhoneNumber(userSignUpDto.getPhoneNumber());
-        this.user.setRole(UserRole.USER); // 기본 역할 설정
+        this.user.setRole(UserRole.ROLE_USER); // 기본 역할 설정
     }
 
     @Override

@@ -58,6 +58,8 @@ public class Payment extends BaseTimeEntity {
 
     private String tid;
 
+    private Long ottId;
+
     private LocalDateTime paymentApprovedAt;
 
     private LocalDateTime paymentSubscribedAt;

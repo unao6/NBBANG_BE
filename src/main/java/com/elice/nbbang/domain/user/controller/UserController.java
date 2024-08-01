@@ -31,35 +31,6 @@ public class UserController {
     private final JWTUtil jwtUtil;
     private final UserService userService;
 
-    @PostMapping("/user-login")
-    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto, HttpServletResponse response) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userLogInDto.getEmail(), userLogInDto.getPassword())
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = userService.findByEmail(userLogInDto.getEmail());
-
-            String accessToken = jwtUtil.createJwt("category", user.getEmail(), user.getRole().name(), 3600000L);
-            String refreshToken = jwtUtil.createJwt("category", user.getEmail(), user.getRole().name(), 7200000L);
-
-            // Set refresh token in cookie
-            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setPath("/");
-            response.addCookie(refreshTokenCookie);
-
-            // Return access token in response header
-            response.setHeader("Authorization", "Bearer " + accessToken);
-
-            return ResponseEntity.ok("Login successful");
-        } catch (Exception e) {
-            logger.error("Login error: ", e);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid credentials");
-        }
-    }
-
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request, HttpServletResponse response) {
         String requestRefreshToken = request.getRefreshToken();
