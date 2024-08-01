@@ -41,7 +41,7 @@ public class SignUpService {
                 .password(encodedPassword)
                 .nickname(nickname)
                 .phoneNumber(phoneNumber)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
