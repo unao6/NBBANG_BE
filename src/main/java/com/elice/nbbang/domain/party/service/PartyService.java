@@ -2,10 +2,12 @@ package com.elice.nbbang.domain.party.service;
 
 import static com.elice.nbbang.domain.party.entity.PartyStatus.*;
 
+import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.party.entity.Party;
+import com.elice.nbbang.domain.party.exception.DuplicateParty;
 import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
@@ -17,6 +19,9 @@ import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional
@@ -54,6 +59,17 @@ public class PartyService {
         partyRepository.save(party);
 
         return party.getId();
+    }
+
+    public List<OttResponse> subscribeParty() {
+        String email = userUtil.getAuthenticatedUserEmail();
+        final User user = userRepository.findByEmail(email);
+        List<Ott> subscribedOttByUserId = partyRepository.findSubscribedOttByUserId(user.getId());
+
+        return subscribedOttByUserId.stream()
+                .map(ott -> new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity()))
+                .toList();
+
     }
 
     public void updatePartyOttAccount(final Long partyId, final PartyUpdateServiceRequest request) {
