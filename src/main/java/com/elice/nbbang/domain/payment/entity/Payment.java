@@ -83,6 +83,8 @@ public class Payment extends BaseTimeEntity {
 
     private String reserveId;
 
+    private String receiptId;
+
     public Payment(User user, String partnerUserId, String partnerOrderId, PaymentType paymentType, Integer amount,
         PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {
         this.user = user;
@@ -105,6 +107,11 @@ public class Payment extends BaseTimeEntity {
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
         this.status = status;
         this.paymentSubscribedAt = paymentSubscribedAt;
+    }
+
+    public void updateCompletePayment(PaymentStatus status, String receiptId) {
+        this.status = status;
+        this.receiptId = receiptId;
     }
 
     public PaymentReserve toPaymentReserve() {
