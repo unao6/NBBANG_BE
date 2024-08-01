@@ -58,7 +58,6 @@ class PartyServiceTest {
 
         PartyCreateRequest request = new PartyCreateRequest(
                 ott.getId(),
-                user.getId(),
                 "opix0306@naver.com",
                 "qwer1234"
         );

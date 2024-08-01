@@ -13,7 +13,7 @@ import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
-import java.util.NoSuchElementException;
+import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +26,7 @@ public class PartyService {
 
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
+    private final UserUtil userUtil;
 
     public Long createParty(final PartyCreateServiceRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
@@ -33,8 +34,8 @@ public class PartyService {
 
         // 커스텀 예외 수정해야함
         // 시큐리티 구현시 변경될수도
-        final User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new NoSuchElementException("조회된 유저가 없습니다."));
+        final String email = userUtil.getAuthenticatedUserEmail();
+        final User user = userRepository.findByEmail(email);
 
         final Party party = Party.builder()
                 .ott(ott)
