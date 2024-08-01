@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserUtil {
 
-    private String getAuthenticatedUserEmail() {
+    public String getAuthenticatedUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
