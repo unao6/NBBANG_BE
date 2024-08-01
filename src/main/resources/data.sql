@@ -1,7 +1,4 @@
 -- OTT
-# INSERT INTO ott (name, price, capacity, created_at, modified_at)
-# VALUES ('넷플', 15000, 4, NOW(), NOW());
-
 INSERT INTO ott (name, price, capacity, created_at, modified_at)
 VALUES ('디즈니플러스', 9900, 4, NOW(), NOW());
 
