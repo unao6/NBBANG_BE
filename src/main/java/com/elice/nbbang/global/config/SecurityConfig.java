@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -59,7 +60,7 @@ public class SecurityConfig {
                                 configuration.setAllowCredentials(true);
                                 configuration.setAllowedHeaders(Arrays.asList("access", "Cache-Control", "Content-Type"));
                                 configuration.setMaxAge(3600L);
-                                configuration.setExposedHeaders(Arrays.asList("access"));
+                                configuration.setExposedHeaders(List.of("access"));
 
                                 return configuration;
                             }
