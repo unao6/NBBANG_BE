@@ -11,5 +11,4 @@ public class CardInfoResponse {
     private String issuerCorp;
     private String cardType;
     private String cardCompany;
-
 }

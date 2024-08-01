@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -65,6 +66,10 @@ public class Payment extends BaseTimeEntity {
     private LocalDateTime paymentSubscribedAt;
 
     private LocalDateTime refundDate;
+
+    private LocalDate nextPaymentDate;
+
+    private int regularNumber;
 
     private String cardCompany;
 

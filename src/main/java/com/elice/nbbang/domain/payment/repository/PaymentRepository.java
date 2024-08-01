@@ -15,6 +15,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByTid(String tid);
 
+    Optional<Payment> findBySid(String sid);
+
     Optional<Payment> findByUserId(Long userId);
 
     @Query("select p from Payment p where p.user.id = :userId and p.tid = :tid and p.sid = :sid")
