@@ -40,12 +40,20 @@ public class SignUpService {
                 .email(email)
                 .password(encodedPassword)
                 .nickname(nickname)
-                .phoneNumber(phoneNumber)
+//                .phoneNumber(phoneNumber)
                 .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
         return true;
+    }
+
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    public boolean isNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
     }
 
     public boolean emailCertification(EmailCertificationRequestDto emailCertificationRequestDto) {

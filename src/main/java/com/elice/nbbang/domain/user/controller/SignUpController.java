@@ -31,6 +31,28 @@ public class SignUpController {
         }
     }
 
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(@RequestBody UserSignUpDto userSignUpDto) {
+        boolean isAvailable = signUpService.isEmailAvailable(userSignUpDto.getEmail());
+
+        if (isAvailable) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(false);
+        }
+    }
+
+    @PostMapping("/check-nickname")
+    public ResponseEntity<Boolean> checkNickname(@RequestBody UserSignUpDto userSignUpDto) {
+        boolean isAvailable = signUpService.isNicknameAvailable(userSignUpDto.getNickname());
+
+        if (isAvailable) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(false);
+        }
+    }
+
     @PostMapping("/email-certification")
     public ResponseEntity<?> emailCertification(@RequestBody EmailCertificationRequestDto emailCertificationRequestDto) {
         boolean isCertified = signUpService.emailCertification(emailCertificationRequestDto);
