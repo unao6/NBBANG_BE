@@ -42,6 +42,8 @@ public class Card extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CardStatus cardStatus;
 
+    private String sid;
+
     //카드 매입사명
     private String cardCompany;
 
@@ -79,8 +81,9 @@ public class Card extends BaseTimeEntity {
     //디폴트 세팅
     private String installmentType="CARD_INSTALLMENT";
 
-    public Card(User user, KakaoPaySubscriptionApproveResponse.CardInfo cardInfo) {
+    public Card(User user, KakaoPaySubscriptionApproveResponse.CardInfo cardInfo, String sid) {
         this.user = user;
+        this.sid = sid;
         this.cardCompany = cardInfo.getPurchaseCorp();
         this.purchaseCorpCode = cardInfo.getPurchaseCorpCode();
         this.issuerCorp = cardInfo.getIssuerCorp();

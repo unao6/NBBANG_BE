@@ -6,7 +6,7 @@ import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.provider.CertificationNumber;
-import com.elice.nbbang.domain.user.provider.EmailProvider;
+import com.elice.nbbang.domain.user.provider.UserEmailProvider;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,7 +18,7 @@ public class SignUpService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final EmailProvider emailProvider;
+    private final UserEmailProvider emailProvider;
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();

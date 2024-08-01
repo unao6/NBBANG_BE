@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,6 +72,12 @@ public class KakaoPayController {
     @PostMapping("/subscription/{userId}")
     public ResponseEntity<Void> subscription(@PathVariable Long userId, @RequestParam String tid, @RequestParam String sid) throws Exception {
         kakaoPayService.subscription(userId, tid, sid);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/subscription/cancel")
+    public ResponseEntity<Void> cancelSubscription() throws Exception {
+        kakaoPayService.autoCancelPayment(1L,1L);
         return ResponseEntity.ok().build();
     }
 }
