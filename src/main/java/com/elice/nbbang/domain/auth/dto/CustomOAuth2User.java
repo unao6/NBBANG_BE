@@ -18,33 +18,22 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public Map<String, Object> getAttributes() {
-        return null;
+        return null; // 필요에 따라 구현
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collection = new ArrayList<>();
-
-        collection.add(new GrantedAuthority() {
-            @Override
-            public String getAuthority() {
-                return "ROLE_USER"; // 기본 역할을 "ROLE_USER"로 설정합니다.
-            }
-        });
-
+        collection.add((GrantedAuthority) () -> "ROLE_USER");
         return collection;
     }
 
     @Override
     public String getName() {
-        return userSignUpDto.getNickname(); // 닉네임을 이름으로 사용합니다.
+        return userSignUpDto.getNickname();
     }
 
     public String getEmail() {
         return userSignUpDto.getEmail();
-    }
-
-    public String getNickname() {
-        return userSignUpDto.getNickname();
     }
 }

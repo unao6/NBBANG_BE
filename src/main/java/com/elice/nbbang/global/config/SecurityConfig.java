@@ -6,7 +6,6 @@ import com.elice.nbbang.global.jwt.JWTFilter;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import com.elice.nbbang.global.jwt.LoginFilter;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,10 +20,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -48,76 +47,40 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
                 .cors(cors -> cors
-                        .configurationSource(new CorsConfigurationSource() {
-                            @Override
-                            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                                CorsConfiguration configuration = new CorsConfiguration();
-
-                                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                                configuration.setAllowCredentials(true);
-                                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-                                configuration.setMaxAge(3600L);
-                                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-
-                                return configuration;
-                            }
-                        }));
-
-        //csrf disable
-        http
-                .csrf((auth) -> auth.disable());
-        //From 로그인 방식 disable
-        http
-                .formLogin((auth) -> auth.disable());
-        //http basic 인증 방식 disable
-        http
-                .httpBasic((auth) -> auth.disable());
-
-        /*//모든 경로 허용
-        http
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll()
-            );*/
-        //경로별 인가 작업
-        http
+                        .configurationSource(corsConfigurationSource())
+                )
+                .csrf((auth) -> auth.disable())
+                .formLogin((auth) -> auth.disable())
+                .httpBasic((auth) -> auth.disable())
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification").permitAll()  // 특정 경로 허용
-                        .requestMatchers("'/api/users/**").hasRole("USER")  // USER 역할 필요
-                        .requestMatchers("'/api/admin/**").hasRole("ADMIN")  // ADMIN 역할 필요
+                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification", "/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/users/**").hasRole("USER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/reissue").permitAll()
-                        .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용
-                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
+                        .requestMatchers("/ws/**").permitAll()
+                        .anyRequest().authenticated()
                 );
 
-
         http
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll()
-            );
-
-//        //경로별 인가 작업
-//        http
-//                .authorizeHttpRequests((auth) -> auth
-//                        .requestMatchers("/api/users/sign-up", "/login", "/").permitAll()  // 특정 경로 허용
-//                        .requestMatchers("/admin").hasRole("ADMIN")  // ADMIN 역할 필요
-//                        .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
-//                );
-
-//        http
-//                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
-        http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
-        http
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
-        //세션 설정
-        http
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
