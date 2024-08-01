@@ -7,6 +7,8 @@ import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.CardService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,15 +37,21 @@ public class BootPayController {
      * */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/card")
-    public ResponseEntity<String> registerCard(@RequestBody CardPaymentRequest request) {
+    public ResponseEntity<Map<String, String>> registerCard(@RequestBody CardPaymentRequest request) {
+        Map<String, String> response = new HashMap<>();
+
         try {
             String billingKey = bootPayService.getBillingKey(request.getReceiptId());
             cardService.registerCard(request, billingKey);
+            response.put("message", "register completed");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
+            response.put("message", "register failed");
+            response.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-
-        return ResponseEntity.ok("Payment completed");
     }
 
     /*
@@ -103,7 +111,6 @@ public class BootPayController {
     public ResponseEntity<Void> refundPayment(@PathVariable("receiptId") String id, @RequestBody PaymentRefundDTO dto) {
         try {
             bootPayService.cancelPayment(id, dto.getAmount());
-            //paymentService에서 status 변경, refund_amount, refund_date 추가
             paymentService.cancelPayment(id, dto.getAmount());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
