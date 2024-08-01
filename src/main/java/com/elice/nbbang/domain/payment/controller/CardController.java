@@ -28,6 +28,4 @@ public class CardController {
         cardService.deleteCardInfo(userId);
         return ResponseEntity.ok().build();
     }
-
-
 }

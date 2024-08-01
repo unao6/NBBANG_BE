@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 import kr.co.bootpay.Bootpay;
+import kr.co.bootpay.model.request.Cancel;
 import kr.co.bootpay.model.request.SubscribePayload;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,7 +83,7 @@ public class BootPayService {
     }
 
     //예약 결제 조회
-    public String reserveLookup(String reserveId) throws Exception {
+    public HashMap<String, Object> reserveLookup(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
@@ -96,7 +97,10 @@ public class BootPayService {
                 System.out.println("getReceipt false: " + res);
             }
 
-            return res.get("status").toString();
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("status", res.get("status"));
+            response.put("receipt_id", res.get("receipt_id"));
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("에러 발생");
@@ -116,6 +120,27 @@ public class BootPayService {
                 System.out.println("getReceipt success: " + res);
             } else {
                 System.out.println("getReceipt false: " + res);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //완료된 결제 취소
+    public void cancelPayment(String id, Double cancelAmount) throws Exception {
+        bootpay.getAccessToken();
+
+        try {
+            Cancel cancel = new Cancel();
+            cancel.receiptId = id;
+            cancel.cancelPrice = cancelAmount;
+
+            HashMap<String, Object> res = bootpay.receiptCancel(cancel);
+
+            if (res.get("error_code") == null) {
+                System.out.println("receiptCancel success: " + res);
+            } else {
+                System.out.println("receiptCancel false: " + res);
             }
         } catch (Exception e) {
             e.printStackTrace();

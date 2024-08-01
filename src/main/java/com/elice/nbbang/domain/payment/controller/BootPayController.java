@@ -1,16 +1,14 @@
 package com.elice.nbbang.domain.payment.controller;
 
 import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
-import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
-import com.elice.nbbang.domain.payment.entity.Payment;
-import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
-import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.CardService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,28 +31,33 @@ public class BootPayController {
     private final PaymentService paymentService;
 
     /*
-    * 카드 등록 API
-    * 1. 카드에 대한 빌링키를 발급받음
-    * 2. DB에 카드 정보를 저장
-    * */
-    @CrossOrigin(origins = "http://localhost:3000")
+     * 카드 등록 API
+     * 1. 카드에 대한 빌링키를 발급받음
+     * 2. DB에 카드 정보를 저장
+     * */
     @PostMapping("/card")
-    public ResponseEntity<String> registerCard(@RequestBody CardPaymentRequest request) {
+    public ResponseEntity<Map<String, String>> registerCard(@RequestBody CardPaymentRequest request) {
+        Map<String, String> response = new HashMap<>();
+
         try {
             String billingKey = bootPayService.getBillingKey(request.getReceiptId());
             cardService.registerCard(request, billingKey);
+            response.put("message", "register completed");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
+            response.put("message", "register failed");
+            response.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-
-        return ResponseEntity.ok("Payment completed");
     }
 
     /*
-    * 카드 예약 결제 API
-    * 1. 빌링키를 통해 결제 예약
-    * 2. DB에 결제 정보를 저장
-    * */
+     * 카드 예약 결제 API
+     * 1. 빌링키를 통해 결제 예약
+     * 2. DB에 결제 정보를 저장
+     * */
     @PostMapping("/reserve")
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
@@ -95,6 +98,23 @@ public class BootPayController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Reservation cancel failed");
+        }
+    }
+
+    /*
+     * 완료 결제 취소 API
+     * 1. receiptId 통해 결제 취소
+     * 2. DB에 결제 정보의 결제 상태를 취소로 변경
+     * */
+    @PostMapping("/refund/{receiptId}")
+    public ResponseEntity<Void> refundPayment(@PathVariable("receiptId") String id, @RequestBody PaymentRefundDTO dto) {
+        try {
+            bootPayService.cancelPayment(id, dto.getAmount());
+            paymentService.cancelPayment(id, dto.getAmount());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
