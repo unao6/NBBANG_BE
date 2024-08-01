@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/admin/chat")
 public class AdminChatController {
     private final ChatService chatService;
@@ -22,17 +22,10 @@ public class AdminChatController {
         this.chatService = chatService;
     }
 
-    // 모든 상담 목록 조회 (페이징)
+    // 모든 상담 목록 조회
     @GetMapping("/all")
-    public ResponseEntity<Page<Chat>> getAllChats(Pageable pageable) {
-        Page<Chat> chats = chatService.getAllChats(pageable);
-        return ResponseEntity.ok(chats);
-    }
-
-    // 특정 사용자 상담 조회 (페이징)
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<Chat>> getChat(@PathVariable("userId") Long userId, Pageable pageable) {
-        Page<Chat> chats = chatService.getChatsByUserId(userId, pageable);
+    public ResponseEntity<List<Chat>> getAllChats() {
+        List<Chat> chats = chatService.getAllChats();
         return ResponseEntity.ok(chats);
     }
 
@@ -57,14 +50,14 @@ public class AdminChatController {
         return ResponseEntity.ok("Chat archived successfully");
     }
 
-    // 아카이브된 채팅 목록 조회 (페이징)
+    // 아카이브된 채팅 목록 조회
     @GetMapping("/archived")
-    public ResponseEntity<Page<ArchivedChats>> getArchivedChats(Pageable pageable) {
-        Page<ArchivedChats> archivedChats = chatService.getArchivedChats(pageable);
+    public ResponseEntity<List<ArchivedChats>> getArchivedChats() {
+        List<ArchivedChats> archivedChats = chatService.getArchivedChats();
         return ResponseEntity.ok(archivedChats);
     }
 
-    // 특정 사용자의 아카이브된 채팅 조회 (페이징) 흠..필요없을지도?
+    // 특정 사용자의 아카이브된 채팅 조회
     @GetMapping("/archived/{archivedId}")
     public ResponseEntity<ArchivedChats> getArchivedChat(@PathVariable Long archivedId) {
         ArchivedChats archivedChat = chatService.getArchivedChat(archivedId);

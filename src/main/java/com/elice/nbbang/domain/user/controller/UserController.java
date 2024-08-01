@@ -1,56 +1,67 @@
 package com.elice.nbbang.domain.user.controller;
 
-
+import com.elice.nbbang.domain.auth.dto.TokenRefreshRequest;
 import com.elice.nbbang.domain.user.dto.CustomUserDetails;
-import com.elice.nbbang.domain.user.dto.UserLogInDto;
+import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 @RestController
-//@RequestMapping("/")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
+    private final UserService userService;
 
-    @GetMapping("/")
-    public String userP() {
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request, HttpServletResponse response) {
+        String requestRefreshToken = request.getRefreshToken();
+        String email = jwtUtil.getEmail(requestRefreshToken);
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (jwtUtil.isExpired(requestRefreshToken)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid Refresh Token");
+        }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not found");
+        }
 
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iter = authorities.iterator();
-        GrantedAuthority auth = iter.next();
-        String role = auth.getAuthority();
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        String newAccessToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
 
-        return "User Controller" + email + role;
+        // Return new access token in response header
+        response.setHeader("Authorization", "Bearer " + newAccessToken);
+
+        return ResponseEntity.ok("Token refreshed");
     }
 
-//    @PostMapping("/api/users/user-login")
-//    public ResponseEntity<?> login(@RequestBody UserLogInDto userLogInDto) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(userLogInDto.getEmail(), userLogInDto.getPassword())
-//        );
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        String jwt = jwtUtil.createJwt(userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
-//
-//        return ResponseEntity.ok().header("Authorization", "Bearer " + jwt).body("Login successful");
-//    }
-//
+    @GetMapping("/user-info")
+    public ResponseEntity<?> getUserInfo() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof CustomUserDetails) {
+            email = ((CustomUserDetails)principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        return ResponseEntity.ok(user);
+    }
 }

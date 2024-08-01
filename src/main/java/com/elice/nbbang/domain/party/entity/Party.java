@@ -1,9 +1,9 @@
 package com.elice.nbbang.domain.party.entity;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
+import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -59,6 +59,11 @@ public class Party extends BaseTimeEntity {
         this.ottAccountPassword = ottAccountPassword;
         this.partyStatus = partyStatus;
         this.leader = leader;
+    }
+
+    public void updatePartyOttAccount(PartyUpdateServiceRequest request) {
+        ottAccountId = request.ottAccountId();
+        ottAccountPassword = request.ottAccountPassword();
     }
 
     public void changeStatus(int capacity) {

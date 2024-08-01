@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.user.dto;
 
 import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,6 +14,15 @@ import java.util.Collection;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
+
+    public CustomUserDetails(UserSignUpDto userSignUpDto) {
+        this.user = new User();
+        this.user.setEmail(userSignUpDto.getEmail());
+        this.user.setPassword(userSignUpDto.getPassword());
+        this.user.setNickname(userSignUpDto.getNickname());
+        this.user.setPhoneNumber(userSignUpDto.getPhoneNumber());
+        this.user.setRole(UserRole.ROLE_USER); // 기본 역할 설정
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -33,25 +43,21 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-
         return true;
     }
 
     @Override
     public boolean isEnabled() {
-
         return true;
     }
 }

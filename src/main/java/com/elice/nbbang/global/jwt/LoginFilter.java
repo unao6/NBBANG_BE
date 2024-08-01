@@ -1,12 +1,15 @@
 package com.elice.nbbang.global.jwt;
 
-import com.elice.nbbang.domain.user.dto.CustomUserDetails;
+import com.elice.nbbang.domain.auth.entity.RefreshEntity;
+import com.elice.nbbang.domain.auth.repository.RefreshRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,13 +19,18 @@ import org.springframework.security.core.AuthenticationException;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+    private static final long ACCESS_TOKEN_EXPIRATION_MS = 600000L; // 10 minutes
+    private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -54,27 +62,54 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        String email = customUserDetails.getUsername();
+        //유저 정보
+        String email = authentication.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
-
         String role = auth.getAuthority();
+        System.out.println(role);
 
-        String token = jwtUtil.createJwt(email, role, 60*60*10L);
+        //토큰 생성
+        String access = jwtUtil.createJwt("access", email, role, ACCESS_TOKEN_EXPIRATION_MS);
+        String refresh = jwtUtil.createJwt("refresh", email, role, REFRESH_TOKEN_EXPIRATION_MS);
 
-        response.addHeader("Authentication", "Bearer " + token);
+        addRefreshEntity(email, refresh, REFRESH_TOKEN_EXPIRATION_MS);
+
+        //응답 설정
+        response.setHeader("access", access);
+        response.addCookie(createCookie("refresh", refresh));
+        response.setStatus(HttpStatus.OK.value());
     }
 
+    // 쿠키 생성 메소드
+    public static Cookie createCookie(String key, String value) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(24*60*60);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+
+        return cookie;
+    }
 
     //로그인 실패시 실행하는 메소드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
 
         response.setStatus(401);
+    }
+
+    private void addRefreshEntity(String email, String refresh, Long expiredMs) {
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
+
+        RefreshEntity refreshEntity = RefreshEntity.builder()
+                .email(email)
+                .refresh(refresh)
+                .expiration(date.toString())
+                .build();
+
+        refreshRepository.save(refreshEntity);
     }
 
     // 정적 클래스 정의
@@ -91,13 +126,4 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             return password;
         }
     }
-
-//    public static Cookie createCookie(String key, String value) {
-//        Cookie cookie = new Cookie(key, value);
-//        cookie.setMaxAge(24*60*60);
-//        cookie.setPath("/");
-//        cookie.setHttpOnly(true);
-//        return cookie;
-//    }
 }
-
