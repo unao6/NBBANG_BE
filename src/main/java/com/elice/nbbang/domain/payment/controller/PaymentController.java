@@ -58,5 +58,4 @@ public class PaymentController {
         @RequestBody KakaoPayCancelRequest request) {
         return ResponseEntity.ok().build();
     }
-
 }

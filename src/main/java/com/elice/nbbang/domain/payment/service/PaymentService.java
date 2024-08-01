@@ -8,6 +8,7 @@ import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
@@ -67,12 +68,24 @@ public class PaymentService {
         return payment;
     }
 
-    //payment 취소
+    //payment 상태변경(예약 취소)
     @Transactional(readOnly = false)
     public void deletePayment(String id) {
         Payment payment = paymentRepository.findByReserveId(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
             .status(PaymentStatus.RESERVE_CANCELLED)
+            .build();
+        paymentRepository.save(updatedPayment);
+    }
+
+    //payment 상태변경(결제 취소)
+    @Transactional(readOnly = false)
+    public void cancelPayment(String id, Double amount) {
+        Payment payment = paymentRepository.findByReceiptId(id).orElse(null);
+        Payment updatedPayment = payment.toBuilder()
+            .status(PaymentStatus.CANCELED)
+            .refundAmount(amount.intValue())
+            .refundDate(LocalDateTime.now())
             .build();
         paymentRepository.save(updatedPayment);
     }
@@ -104,25 +117,27 @@ public class PaymentService {
         }
     }
 
-    //payment 상태 변경
+    //정기결제 예약
     @Transactional(readOnly = false)
     public void lookupReservation(String id) {
         try {
-            String status = bootPayService.reserveLookup(id);
+            HashMap<String, Object> response = bootPayService.reserveLookup(id);
 
-            if (status.equals("1")) {
+            if (response.get("status").toString().equals("1")) {
                 Payment payment = getPaymentByReserveId(id);
-                payment.updateSubscribtionPayment(PaymentStatus.COMPLETED, payment.getPaymentSubscribedAt());
+                payment.updateCompletePayment(PaymentStatus.COMPLETED, response.get("receipt_id").toString());
                 paymentRepository.save(payment);
 
                 //정기결제 30일 후 새로운 정기결제 예약
                 LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusDays(30);
+                Payment newPayment = payment.toBuilder()
+                    .paymentSubscribedAt(newPaymentTime)
+                    .build();
 
                 String newReserveId = bootPayService.reservePayment(payment.getBillingKey(), payment.getAmount(), newPaymentTime);
-                PaymentReserve paymentReserve = payment.toPaymentReserve();
-                paymentReserve.setPaymentSubscribedAt(newPaymentTime);
+                PaymentReserve paymentReserve = newPayment.toPaymentReserve();
                 createPayment(paymentReserve, newReserveId);
-            } else if (status.equals("3")) {
+            } else if (response.get("status").toString().equals("3")) {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
                 paymentRepository.save(payment);
