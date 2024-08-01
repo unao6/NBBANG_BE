@@ -35,7 +35,6 @@ public class BootPayController {
      * 1. 카드에 대한 빌링키를 발급받음
      * 2. DB에 카드 정보를 저장
      * */
-    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/card")
     public ResponseEntity<Map<String, String>> registerCard(@RequestBody CardPaymentRequest request) {
         Map<String, String> response = new HashMap<>();
