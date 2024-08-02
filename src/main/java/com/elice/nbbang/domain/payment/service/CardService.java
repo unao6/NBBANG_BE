@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class CardService {
 
     private final CardRepository cardRepository;
+    private final BootPayService bootPayService;
 
     public CardInfoResponse getCardInfo(Long userId) {
         Card userCard = cardRepository.findByUserId(userId).orElse(null);
@@ -47,9 +48,16 @@ public class CardService {
         return card;
     }
 
+    //카드 삭제
     public void deleteCardInfo(Long userId) {
         Card card = cardRepository.findByUserId(userId)
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        //발급받은 빌링키 취소
+        try {
+            bootPayService.deleteBillingKey(card.getBillingKey());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         cardRepository.delete(card);
     }
 }
