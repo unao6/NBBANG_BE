@@ -22,10 +22,10 @@ public interface PartyRepository extends JpaRepository<Party, Long> {
             + "and p.partyStatus = :partyStatus")
     List<Party> findAvailablePartyByOtt(@Param("ottId") Long ottId, @Param("partyStatus") PartyStatus partyStatus);
 
-    @Query("select distinct p.ott" +
+    @Query("select distinct p" +
             " from Party p" +
             " left join PartyMember pm on p = pm.party" +
             " where pm.user.id = :userId" +
             " or p.leader.id = :userId")
-    List<Ott> findSubscribedOttByUserId(@Param("userId") Long userId);
+    List<Party> findSubscribedOttByUserId(@Param("userId") Long userId);
 }

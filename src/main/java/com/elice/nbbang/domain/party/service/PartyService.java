@@ -12,6 +12,7 @@ import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
+import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Transactional
@@ -32,6 +34,7 @@ public class PartyService {
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
     private final UserUtil userUtil;
+    private final KakaoPayService kakaoPayService;
 
     public Long createParty(final PartyCreateServiceRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
@@ -64,12 +67,30 @@ public class PartyService {
     public List<OttResponse> subscribeParty() {
         String email = userUtil.getAuthenticatedUserEmail();
         final User user = userRepository.findByEmail(email);
-        List<Ott> subscribedOttByUserId = partyRepository.findSubscribedOttByUserId(user.getId());
+        List<Party> subscribedOttByUserId = partyRepository.findSubscribedOttByUserId(user.getId());
 
         return subscribedOttByUserId.stream()
-                .map(ott -> new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity()))
-                .toList();
+                .map(party -> {
+                    Ott ott = party.getOtt();
+                    return new OttResponse(
+                            ott.getId(),
+                            ott.getName(),
+                            ott.getPrice(),
+                            ott.getCapacity()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
+    // 구현해야 함
+    public void getAllParty() {
+        String email = userUtil.getAuthenticatedUserEmail();
+        final User user = userRepository.findByEmail(email);
+        List<Party> subscribedOttByUserId = partyRepository.findSubscribedOttByUserId(user.getId());
+
+
+        // 휴대폰 번호(본인인증 완료되면 추가)
+        // 구독중인 Ott 이름, 파티장(nickname email), 휴대폰 번호, 파티원들 (nickname,email,휴대폰번호)
     }
 
     public void updatePartyOttAccount(final Long partyId, final PartyUpdateServiceRequest request) {
@@ -81,7 +102,4 @@ public class PartyService {
         party.updatePartyOttAccount(request);
         partyRepository.save(party);
     }
-
-
-
 }
