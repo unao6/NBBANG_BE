@@ -4,7 +4,6 @@ import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.user.service.SignUpService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +60,17 @@ public class SignUpController {
             return ResponseEntity.status(HttpStatus.OK).body("The email has been successfully sent.");
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Failed to send the email.");
+        }
+    }
+
+    @PostMapping("/check-certification")
+    public ResponseEntity<?> checkCertification(@RequestBody CheckCertificationRequestDto checkCertificationRequestDto) {
+        boolean isChecked = signUpService.checkCertification(checkCertificationRequestDto);
+
+        if (isChecked) {
+            return ResponseEntity.status(HttpStatus.OK).body("Email verification was successful.");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email verification failed.");
         }
     }
 }

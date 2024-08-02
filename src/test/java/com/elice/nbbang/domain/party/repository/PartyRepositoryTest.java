@@ -8,6 +8,7 @@ import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -85,7 +86,7 @@ class PartyRepositoryTest {
                 .nickname(test)
                 .phoneNumber(phoneNumber)
                 .password(password)
-                .role(USER)
+                .role(UserRole.ROLE_USER)
                 .build();
     }
 
