@@ -37,8 +37,12 @@ public class PartyMatchingScheduler {
                         waitingUsers = new ArrayList<>();
                     }
                     for (String userRequest : waitingUsers) {
-                        PartyMatchServiceRequest request = deserializeRequest(userRequest);
-                        CompletableFuture<Boolean> matchingResult = partyMatchService.partyMatch(request.userId(), request.type(), ott.getId());
+
+                        String[] parts = userRequest.split(",");
+                        Long userId = Long.parseLong(parts[0]);
+                        MatchingType type = MatchingType.valueOf(parts[1]);
+
+                        CompletableFuture<Boolean> matchingResult = partyMatchService.partyMatch(userId, type, ott.getId());
                         try {
                             if (matchingResult.get()) {
                                 redisTemplate.opsForList().remove("waiting:" + ott.getId(), 1, userRequest);
@@ -53,13 +57,5 @@ public class PartyMatchingScheduler {
                 }
             }
         }
-    }
-
-    private PartyMatchServiceRequest deserializeRequest(String requestString) {
-        String[] parts = requestString.split(",");
-        Long userId = Long.parseLong(parts[0]);
-        MatchingType type = MatchingType.valueOf(parts[1]);
-        Long ottId = Long.parseLong(parts[2]);
-        return new PartyMatchServiceRequest(userId, type, ottId);
     }
 }
