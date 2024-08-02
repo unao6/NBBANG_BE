@@ -17,11 +17,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Getter
@@ -49,6 +51,7 @@ public class Payment extends BaseTimeEntity {
 
     private Integer amount;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
@@ -65,6 +68,8 @@ public class Payment extends BaseTimeEntity {
     private LocalDateTime paymentSubscribedAt;
 
     private LocalDateTime refundDate;
+
+    private int installmentNumber;
 
     private String cardCompany;
 
@@ -97,14 +102,6 @@ public class Payment extends BaseTimeEntity {
         this.status = status;
         this.sid = sid;
         this.paymentApprovedAt = approvedAt;
-    }
-
-    //todo 정보수정해야함
-    public void updateRefundPayment(PaymentStatus status, String refundDate, String cardCompany, Integer refundAmount) {
-        this.status = status;
-        this.refundDate = LocalDateTime.parse(refundDate);
-        this.cardCompany = cardCompany;
-        this.refundAmount = refundAmount;
     }
 
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {

@@ -2,18 +2,24 @@ package com.elice.nbbang.domain.payment.repository;
 
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByTid(String tid);
+
+    Optional<Payment> findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(Long userId, Long ottId);
+
+    List<Payment> findAllByStatusAndPaymentSubscribedAtBefore(PaymentStatus status, LocalDateTime date);
+
+    Optional<Payment> findBySid(String sid);
 
     Optional<Payment> findByUserId(Long userId);
 

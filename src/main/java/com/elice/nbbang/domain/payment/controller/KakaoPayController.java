@@ -69,9 +69,9 @@ public class KakaoPayController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/subscription/{userId}")
-    public ResponseEntity<Void> subscription(@PathVariable Long userId, @RequestParam String tid, @RequestParam String sid) throws Exception {
-        kakaoPayService.subscription(userId, tid, sid);
+    @PostMapping("/subscription/{userId}/{ottId}")
+    public ResponseEntity<Void> subscription(@PathVariable Long userId, @PathVariable Long ottId) throws Exception {
+        kakaoPayService.subscription(userId, ottId);
         return ResponseEntity.ok().build();
     }
 

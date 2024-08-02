@@ -107,7 +107,7 @@ public class PaymentService {
     }
 
     //예약완료된 payment를 주기마다 조회
-    @Scheduled(fixedRate = 60000)
+    //@Scheduled(fixedRate = 60000)
     @Transactional(readOnly = false)
     public void scheduledLookupReservation() {
         List<String> reserveIds = getAllReservedPayment();

@@ -33,18 +33,35 @@ public class BootPayService {
         try {
             HashMap<String, Object> res = bootpay.lookupBillingKey(receiptId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getKey success: " + res);
+                System.out.println("getKey success");
             } else {
-                System.out.println("getKey false: " + res);
+                System.out.println("getKey false");
             }
 
             return res.get("billing_key").toString();
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("에러 발생");
+        }
+    }
+
+    //빌링키 삭제
+    public void deleteBillingKey(String billingKey) throws Exception {
+        bootpay.getAccessToken();
+
+        try {
+            HashMap<String, Object> res = bootpay.destroyBillingKey(billingKey);
+            JSONObject json = new JSONObject(res);
+
+            if (res.get("error_code") == null) {
+                System.out.println("destroyBillingKey success");
+            } else {
+                System.out.println("destroyBillingKey false");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -67,12 +84,11 @@ public class BootPayService {
         try {
             HashMap<String, Object> res = bootpay.reserveSubscribe(payload);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("reserveSubscribe success: " + res);
+                System.out.println("reserveSubscribe success");
             } else {
-                System.out.println("reserveSubscribe false: " + res);
+                System.out.println("reserveSubscribe false");
             }
 
             return res.get("reserve_id").toString();
@@ -82,19 +98,18 @@ public class BootPayService {
         }
     }
 
-    //예약 결제 조회
+    //예약된 결제 조회
     public HashMap<String, Object> reserveLookup(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
             HashMap<String, Object> res = bootpay.reserveSubscribeLookup(reserveId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getReceipt success: " + res);
+                System.out.println("getReceipt success");
             } else {
-                System.out.println("getReceipt false: " + res);
+                System.out.println("getReceipt false");
             }
 
             HashMap<String, Object> response = new HashMap<>();
@@ -107,19 +122,18 @@ public class BootPayService {
         }
     }
 
-    //예약 결제 취소
+    //예약된 결제 취소
     public void reserveDelete(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
             HashMap<String, Object> res = bootpay.reserveCancelSubscribe(reserveId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getReceipt success: " + res);
+                System.out.println("getReceipt success");
             } else {
-                System.out.println("getReceipt false: " + res);
+                System.out.println("getReceipt false");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -138,9 +152,9 @@ public class BootPayService {
             HashMap<String, Object> res = bootpay.receiptCancel(cancel);
 
             if (res.get("error_code") == null) {
-                System.out.println("receiptCancel success: " + res);
+                System.out.println("receiptCancel success");
             } else {
-                System.out.println("receiptCancel false: " + res);
+                System.out.println("receiptCancel false");
             }
         } catch (Exception e) {
             e.printStackTrace();
