@@ -27,7 +27,7 @@ public class UserEmailProvider {
 
         try {
             MimeMessage message = userMailSender.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(message);
+            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
 
             String htmlContent = getCertificationMessage(certificationNumber);
 
@@ -50,8 +50,8 @@ public class UserEmailProvider {
     private String getCertificationMessage(String certificationNumber) {
 
         String certificationMessage = "";
-        certificationMessage += "<h1 style='text-align: center;'[N/BBANG] 인증메일<h1>";
-        certificationMessage += "<h3 style-'text-align: center;'>인증코드 : <strong style='font-size: 32px;" +
+        certificationMessage += "<h2>[N/BBANG] 인증메일</h2>";
+        certificationMessage += "<h3>인증코드 : <strong style='font-size: 32px;" +
                 "letter-spacing: 8px;'>" + certificationNumber + "</strong></h3>";
 
         return certificationMessage;
