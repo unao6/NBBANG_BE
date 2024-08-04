@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -25,6 +27,26 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    // 회원 탈퇴
+    public void deleteUser(String email) {
+        User user = userRepository.findByEmail(email);
+
+        user.setDeleted(true);
+        userRepository.save(user);
+    }
+
+    // 탈퇴 안한 회원만 조회
+    public List<User> getAllActiveUsers() {
+        return userRepository.findAllByDeletedFalse();
+    }
+
+    // 탈퇴한 회원 복구
+    public void restoreUser(String email) {
+        User user = userRepository.findByEmail(email);
+
+        user.setDeleted(false);
+        userRepository.save(user);
+    }
 
     public User findOrCreateUser(OAuth2Response oAuth2Response) {
         User user = userRepository.findByEmail(oAuth2Response.getEmail());

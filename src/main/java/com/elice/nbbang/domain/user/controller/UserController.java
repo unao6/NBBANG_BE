@@ -53,6 +53,7 @@ public class UserController {
     public ResponseEntity<?> getUserInfo() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email;
+        Long id;
         if (principal instanceof CustomUserDetails) {
             email = ((CustomUserDetails)principal).getUsername();
         } else {
