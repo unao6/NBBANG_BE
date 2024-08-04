@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.user.service;
 
 import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
+import com.elice.nbbang.domain.user.dto.PhoneCerfiticationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.user.entity.MailCertification;
 import com.elice.nbbang.domain.user.entity.User;
@@ -38,13 +39,15 @@ public class SignUpService {
             return false;
         }
 
-        String phoneNumber = userSignUpDto.getPhoneNumber();
+        // PhoneCerfiticationRequestDto 객체로부터 phoneNumber를 추출
+        PhoneCerfiticationRequestDto phoneCerfiticationRequestDto = userSignUpDto.getPhoneCerfiticationRequestDto();
+        String phoneNumber = phoneCerfiticationRequestDto != null ? phoneCerfiticationRequestDto.getPhoneNumber() : null;
 
         User user = User.builder()
                 .email(email)
                 .password(encodedPassword)
                 .nickname(nickname)
-//                .phoneNumber(phoneNumber)
+                .phoneNumber(phoneNumber)
                 .role(UserRole.ROLE_USER)
                 .build();
 

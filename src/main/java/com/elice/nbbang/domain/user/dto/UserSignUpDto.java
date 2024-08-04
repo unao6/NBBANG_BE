@@ -10,9 +10,8 @@ import lombok.AllArgsConstructor;
 public class UserSignUpDto {
 
     private String email;
-//    private String certificationNumber;
     private String password;
     private String nickname;
-    private String phoneNumber;
+    private PhoneCerfiticationRequestDto phoneCerfiticationRequestDto;
 
 }

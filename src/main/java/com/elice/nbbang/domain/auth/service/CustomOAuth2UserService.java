@@ -39,7 +39,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 oAuth2Response.getEmail(),
                 "", // 비밀번호는 OAuth2 인증 시에는 제공되지 않으므로 빈 문자열로 설정합니다.
                 oAuth2Response.getName(),
-                "" // 전화번호는 OAuth2 인증 시에는 제공되지 않으므로 빈 문자열로 설정합니다.
+                null // 전화번호는 OAuth2 인증 시에는 제공되지 않으므로 빈 문자열로 설정합니다.
         );
 
         User existingUser = userRepository.findByEmail(userSignUpDto.getEmail());

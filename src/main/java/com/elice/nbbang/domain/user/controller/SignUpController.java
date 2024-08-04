@@ -1,8 +1,7 @@
 package com.elice.nbbang.domain.user.controller;
 
-import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
+import com.elice.nbbang.domain.user.dto.*;
+import com.elice.nbbang.domain.user.service.MessageService;
 import com.elice.nbbang.domain.user.service.SignUpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SignUpController {
 
     private final SignUpService signUpService;
+    private final MessageService messageService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<String> signUpProcess(@RequestBody UserSignUpDto userSignUpDto) {
@@ -72,5 +72,20 @@ public class SignUpController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email verification failed.");
         }
+    }
+
+    @PostMapping("/phone-certification")
+    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCerfiticationRequestDto requestDto) {
+        String response = messageService.sendSMS(requestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * SMS 인증번호 검증
+     */
+    @PostMapping("/phone-check")
+    public ResponseEntity<String> phoneCheck(@RequestBody PhoneCheckRequestDto requestDto) {
+        String response = messageService.verifySms(requestDto);
+        return ResponseEntity.ok(response);
     }
 }
