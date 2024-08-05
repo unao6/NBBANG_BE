@@ -1,9 +1,7 @@
 package com.elice.nbbang.domain.party.controller;
 
 import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
-import com.elice.nbbang.domain.party.controller.dto.PartyCreateRequest;
-import com.elice.nbbang.domain.party.controller.dto.PartyMatchRequest;
-import com.elice.nbbang.domain.party.controller.dto.PartyUpdateRequest;
+import com.elice.nbbang.domain.party.controller.dto.*;
 import com.elice.nbbang.domain.party.service.PartyMatchService;
 import com.elice.nbbang.domain.party.service.PartyService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +32,23 @@ public class PartyController {
     @GetMapping("/subscribed-otts")
     public ResponseEntity<List<OttResponse>> getSubscribedOtts() {
         return ResponseEntity.ok(partyService.subscribeParty());
+    }
+
+    @GetMapping("/party/{partyId}")
+    public ResponseEntity<PartyDetailResponse> getPartyById(@PathVariable("partyId") Long partyId) {
+        return ResponseEntity.ok().body(partyService.getPartyById(partyId));
+    }
+
+    @GetMapping("/my-party")
+    public ResponseEntity<List<MyPartyResponse>> getMyParty() {
+        return ResponseEntity.ok().body(partyService.getMyParty());
+    }
+
+
+    @DeleteMapping("/party-breakup/{partyId}")
+    public ResponseEntity<Void> partyBreakUp(@PathVariable Long partyId) {
+        partyMatchService.partyBreakup(partyId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/party/{partyId}")

@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.party.repository;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.party.entity.Party;
+import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +29,19 @@ public interface PartyRepository extends JpaRepository<Party, Long> {
             " where pm.user.id = :userId" +
             " or p.leader.id = :userId")
     List<Party> findSubscribedOttByUserId(@Param("userId") Long userId);
+
+    @Query("select p" +
+            " from Party p" +
+            " join fetch p.leader u" +
+            " where p.id =:partyId" +
+            " and p.leader.id = :userId ")
+    Optional<Party> findByPartyIdAndUserId(@Param("partyId") Long partyId, @Param("userId") Long userId);
+
+    @Query("select p" +
+            " from Party p" +
+            " join fetch p.leader" +
+            " join fetch p.ott" +
+            " where p.id = :partyId")
+    Party findPartyAndPartyMemberByPartyId(@Param("partyId") Long partyId);
+
 }
