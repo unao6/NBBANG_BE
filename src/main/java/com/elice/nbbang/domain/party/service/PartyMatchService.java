@@ -151,8 +151,8 @@ public class PartyMatchService {
         redisTemplate.opsForList().leftPush("waiting:" + ottId, createRequestValue(userId, type, ottId));
     }
 
-    private void addPartyMatchingQueue(String setKey, String listKey, String requestString) {
-        redisTemplate.opsForSet().add(setKey, requestString);
+    private void addPartyMatchingQueue(String setKey, String listKey, String requestString, String duplicatedString) {
+        redisTemplate.opsForSet().add(setKey, duplicatedString);
         redisTemplate.opsForList().rightPush(listKey, requestString);
     }
 
