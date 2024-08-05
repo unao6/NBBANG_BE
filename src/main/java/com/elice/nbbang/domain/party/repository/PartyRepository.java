@@ -7,6 +7,8 @@ import com.elice.nbbang.domain.party.entity.PartyStatus;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +31,20 @@ public interface PartyRepository extends JpaRepository<Party, Long> {
             " where pm.user.id = :userId" +
             " or p.leader.id = :userId")
     List<Party> findSubscribedOttByUserId(@Param("userId") Long userId);
+
+    @Query("select distinct p" +
+            " from Party p" +
+            " left join PartyMember pm on p = pm.party")
+    Page<Party> findAllPartyByAdmin(Pageable pageable);
+
+    @Query("select p" +
+            " from Party p" +
+            " left join PartyMember pm on p = pm.party" +
+            " where p.leader.email" +
+            " like %:email%" +
+            " or p.id in" +
+            " (select pm.party.id from PartyMember pm where pm.user.email like %:email%)")
+    Page<Party> findByEmail(@Param("email") String email, Pageable pageable);
 
     @Query("select p" +
             " from Party p" +

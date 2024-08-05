@@ -10,7 +10,6 @@ import com.elice.nbbang.domain.party.controller.dto.MyPartyResponse;
 import com.elice.nbbang.domain.party.controller.dto.PartyAdminResponse;
 import com.elice.nbbang.domain.party.controller.dto.PartyDetailResponse;
 import com.elice.nbbang.domain.party.entity.Party;
-import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.exception.DuplicateParty;
 import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
@@ -23,6 +22,8 @@ import com.elice.nbbang.global.exception.ErrorCode;
 import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -109,8 +110,24 @@ public class PartyService {
                 .collect(Collectors.toList());
     }
 
-        // 휴대폰 번호(본인인증 완료되면 추가)
-        // 구독중인 Ott 이름, 파티장(nickname email), 휴대폰 번호, 파티원들 (nickname,email,휴대폰번호)
+    @Transactional(readOnly = true)
+    public List<PartyAdminResponse> getAllPartyByAdmin(Pageable pageable) {
+
+        Page<Party> subscribedOttByUserId = partyRepository.findAllPartyByAdmin(pageable);
+
+        return subscribedOttByUserId
+                .stream()
+                .map(PartyAdminResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<PartyAdminResponse> getPartiesByEmail(String email, Pageable pageable) {
+        Page<Party> partiesByEmail = partyRepository.findByEmail(email, pageable);
+
+        return partiesByEmail
+                .stream()
+                .map(PartyAdminResponse::new)
+                .collect(Collectors.toList());
     }
 
     public void updatePartyOttAccount(final Long partyId, final PartyUpdateServiceRequest request) {
@@ -125,6 +142,7 @@ public class PartyService {
         partyRepository.save(party);
     }
 
+    @Transactional(readOnly = true)
     public PartyDetailResponse getPartyById(final Long partyId) {
         String email = userUtil.getAuthenticatedUserEmail();
         final User user = userRepository.findByEmail(email);

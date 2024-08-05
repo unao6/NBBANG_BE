@@ -5,6 +5,8 @@ import com.elice.nbbang.domain.party.controller.dto.*;
 import com.elice.nbbang.domain.party.service.PartyMatchService;
 import com.elice.nbbang.domain.party.service.PartyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +46,20 @@ public class PartyController {
         return ResponseEntity.ok().body(partyService.getMyParty());
     }
 
+    @GetMapping("/admin/party")
+    public ResponseEntity<List<PartyAdminResponse>> getPartyByAdmin(@RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(partyService.getAllPartyByAdmin(pageable));
+    }
+
+    @GetMapping("/admin/party-search")
+    public ResponseEntity<List<PartyAdminResponse>> getSearchPartyByEmail(@RequestParam int page,
+                                                                    @RequestParam(defaultValue = "5") int size,
+                                                                    @RequestParam(required = false) String email) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(partyService.getPartiesByEmail(email, pageable));
+    }
 
     @DeleteMapping("/party-breakup/{partyId}")
     public ResponseEntity<Void> partyBreakUp(@PathVariable Long partyId) {
