@@ -25,10 +25,9 @@ public class Chat {
     private User user;
 
     @Convert(converter = MessageConverter.class)
-    @Column(nullable = false, columnDefinition = "json")
+    @Column(columnDefinition = "json")
     private List<Message> messages = new ArrayList<>();
 
-    @Column(nullable = false)
     private LocalDateTime lastRepliedAt;
 
     private LocalDateTime endedAt;

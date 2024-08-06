@@ -20,12 +20,11 @@ public class ArchivedChats {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private Long userId;
 
-//    @Column(nullable = false)
-//    private Long chatId;
+    @Column(nullable = false)
+    private Long chatId;
 
     @Convert(converter = MessageConverter.class)
     @Column(nullable = false, columnDefinition = "json")

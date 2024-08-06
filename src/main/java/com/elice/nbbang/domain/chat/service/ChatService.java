@@ -27,28 +27,52 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final ArchivedChatRepository archivedChatRepository;
 
+//    // 이전에 진행중이던 상담이 있으면 가져와서 이어가기, 없다면 새로운 상담 생성
+//    public Long startChat(Long userId) {
+//        Optional<Chat> optionalChat = chatRepository.findByUserIdAndStatus(userId, true);
+//        if (optionalChat.isPresent()) {
+//            return optionalChat.get().getId();
+//        } else {
+//            return -1L; // 임시 챗아이디 설정
+//        }
+//    }
+
     // 이전에 진행중이던 상담이 있으면 가져와서 이어가기, 없다면 새로운 상담 생성
-    public Long startChat(Long userId) {
+    public Long getOrCreateChat(Long userId) {
+
         Optional<Chat> optionalChat = chatRepository.findByUserIdAndStatus(userId, true);
         if (optionalChat.isPresent()) {
             return optionalChat.get().getId();
         } else {
-            return -1L; // 임시 챗아이디 설정
+            // Create a new chat
+            Chat newChat = new Chat();
+            User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+            newChat.setUser(user);
+            newChat.setStatus(true);
+            return chatRepository.save(newChat).getId();
         }
     }
 
     // 메시지 전송
+//    public Chat sendMessage(Long chatId, Long userId, Message message) {
+//        Chat chat;
+//        if(chatId == -1L) {
+//            User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+//            chat = new Chat();
+//            chat.setUser(user);
+//            chat.setLastRepliedAt(LocalDateTime.now());
+//            chat.setStatus(true);
+//        } else {
+//            chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
+//        }
+//        chat.getMessages().add(message);
+//        chat.setLastRepliedAt(LocalDateTime.now());
+//        return chatRepository.save(chat);
+//    }
+
+    // 메시지 전송
     public Chat sendMessage(Long chatId, Long userId, Message message) {
-        Chat chat;
-        if(chatId == -1L) {
-            User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-            chat = new Chat();
-            chat.setUser(user);
-            chat.setLastRepliedAt(LocalDateTime.now());
-            chat.setStatus(true);
-        } else {
-            chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
-        }
+        Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         chat.getMessages().add(message);
         chat.setLastRepliedAt(LocalDateTime.now());
         return chatRepository.save(chat);
@@ -83,7 +107,7 @@ public class ChatService {
 
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         ArchivedChats archivedChat = new ArchivedChats();
-        archivedChat.setUser(chat.getUser());
+        archivedChat.setUserId(chat.getUser().getId());
         archivedChat.setMessages(new ArrayList<>(chat.getMessages()));
         archivedChat.setEndedAt(chat.getEndedAt());
         archivedChat.setSavedAt(LocalDateTime.now());
