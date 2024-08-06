@@ -316,7 +316,8 @@ public class KakaoPayService {
             throw new EntityNotFoundException("OTT 정보를 찾을 수 없습니다.");
         }
         Ott ott = ottOptional.get();
-        int price = ott.getPrice();
+        //가격 분할
+        int price = ott.getPrice()/ott.getCapacity();
 
         //Card 정보 가져와서 sid 세팅
         Optional<Card> cardOptional = cardRepository.findByUserId(userId);
