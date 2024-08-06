@@ -7,6 +7,9 @@ import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
+import com.elice.nbbang.domain.payment.entity.Account;
+import com.elice.nbbang.domain.payment.entity.enums.AccountType;
+import com.elice.nbbang.domain.payment.repository.AccountRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
@@ -24,28 +27,30 @@ public class DataLoader implements CommandLineRunner {
     private final PartyRepository partyRepository;
     private final PartyMemberRepository partyMemberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
 
     public DataLoader(UserRepository userRepository, OttRepository ottRepository, PartyRepository partyRepository,
-        PartyMemberRepository partyMemberRepository, BCryptPasswordEncoder passwordEncoder) {
+        PartyMemberRepository partyMemberRepository, BCryptPasswordEncoder passwordEncoder, AccountRepository accountRepository) {
         this.userRepository = userRepository;
         this.ottRepository = ottRepository;
         this.partyRepository = partyRepository;
         this.partyMemberRepository = partyMemberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.accountRepository = accountRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         // 초기 OTT 데이터 설정
-        Ott disneyPlus = ottRepository.save(Ott.of("디즈니플러스", 9900, 4));
+        /*Ott disneyPlus = ottRepository.save(Ott.of("디즈니플러스", 9900, 4));
         Ott chatGpt = ottRepository.save(Ott.of("ChatGpT", 29900, 4));
         Ott tving = ottRepository.save(Ott.of("TVING", 9900, 4));
 
         // 초기 사용자 데이터 설정
         User user1 = userRepository.save(User.builder()
             .nickname("JohnDoe")
-            .email("a@a.com")
-            .password(passwordEncoder.encode("a123"))
+            .email("khp@naver.com")
+            .password(passwordEncoder.encode("1234"))
             .phoneNumber("010-1234-5678")
             .role(UserRole.ROLE_USER)
             .build());
@@ -96,5 +101,15 @@ public class DataLoader implements CommandLineRunner {
         partyMemberRepository.save(PartyMember.of(user2, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
         partyMemberRepository.save(PartyMember.of(adminUser, party2, chatGpt, LocalDateTime.of(2024, 8, 1, 0, 0)));
         partyMemberRepository.save(PartyMember.of(user1, party3, tving, LocalDateTime.of(2024, 8, 1, 0, 0)));
+        Account account = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT).orElse(null);
+        if (account == null) {
+            Account serviceAccount = Account.builder()
+                .accountNumber("1111")
+                .bankName("국민")
+                .accountType(AccountType.SERVICE_ACCOUNT)
+                .balance(500000000L)
+                .build();
+            accountRepository.save(serviceAccount);
+        }*/
     }
 }
