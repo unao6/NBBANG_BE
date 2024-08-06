@@ -55,14 +55,11 @@ public class ChatService {
     }
 
     // 상담 종료
-    public void endChat(Long userId) {
-        Optional<Chat> optionalChat = chatRepository.findByUserId(userId);
-        if(optionalChat.isPresent()) {
-            Chat chat = optionalChat.get();
-            chat.setStatus(false);
-            chat.setEndedAt(LocalDateTime.now());
-            chatRepository.save(chat);
-        }
+    public void endChat(Long chatId) {
+        Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
+        chat.setStatus(false);
+        chat.setEndedAt(LocalDateTime.now());
+        chatRepository.save(chat);
     }
 
     // 모든 상담 조회
@@ -78,6 +75,12 @@ public class ChatService {
 
     // 상담 영구 저장
     public void archiveChat(Long chatId, String memo) {
+        // 이미 아카이브된 대화인지 확인
+        boolean alreadyArchived = archivedChatRepository.existsById(chatId);
+        if (alreadyArchived) {
+            throw new IllegalStateException("이미 저장된 채팅입니다.");
+        }
+
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         ArchivedChats archivedChat = new ArchivedChats();
         archivedChat.setUser(chat.getUser());

@@ -24,6 +24,9 @@ public class ArchivedChats {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+//    @Column(nullable = false)
+//    private Long chatId;
+
     @Convert(converter = MessageConverter.class)
     @Column(nullable = false, columnDefinition = "json")
     private List<Message> messages = new ArrayList<>();

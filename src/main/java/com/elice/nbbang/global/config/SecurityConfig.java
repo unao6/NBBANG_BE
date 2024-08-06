@@ -79,7 +79,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/check-email", "/api/users/check-nickname", "/api/users/email-certification", "/api/users/check-certification").permitAll()  // 특정 경로 허용
-                        .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER")  // USER 역할 필요
+//                        .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER")  // USER 역할 필요
+                        .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
                         .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용

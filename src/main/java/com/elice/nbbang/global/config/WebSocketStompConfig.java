@@ -1,7 +1,5 @@
 package com.elice.nbbang.global.config;
 
-import com.elice.nbbang.domain.chat.interceptor.JwtHandshakeInterceptor;
-import com.elice.nbbang.global.jwt.JWTUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
