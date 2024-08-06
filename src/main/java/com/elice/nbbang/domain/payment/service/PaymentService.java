@@ -1,15 +1,26 @@
 package com.elice.nbbang.domain.payment.service;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
+import com.elice.nbbang.domain.ott.entity.Ott;
+import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
+import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.global.util.UserUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Payment;
@@ -25,6 +36,10 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BootPayService bootPayService;
+    private final UserUtil userUtil;
+    private final UserRepository userRepository;
+
+    private static final int FEE = 500;
 
     /**
      * 모든 Payments 조회
@@ -52,6 +67,42 @@ public class PaymentService {
             .map(PaymentDto::fromEntity)
             .collect(Collectors.toList());
     }
+
+    /**
+     * 환불 신청 시 환불 금액, 결제 상태, 환불 요청일 업데이트 실제 환불이 진행되진 않음.
+     */
+    @Transactional(readOnly = false)
+    public void getRefundAmount(Long userId, Long ottId) {
+        Optional<Payment> paymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+        log.info("환불 시작합니다~~~");
+        log.info("userId: " + userId + ", ottId: " + ottId);
+
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+
+            // 결제 금액 가져오기
+            int paymentAmount = payment.getAmount();
+            double dayPrice = (double) paymentAmount / 30; // 일일 가격 계산
+
+            // 결제 승인일로부터 환불 신청일까지의 일수 계산
+            LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
+            LocalDate currentDate = LocalDate.of(2024, 8, 20); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
+            long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
+
+            // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
+            double amountUsed = dayPrice * daysUsed + FEE;
+            int refundAmount = (int) Math.max(0, paymentAmount - amountUsed); // 환불 금액이 음수가 되지 않도록 함.
+
+            // Payment 객체의 상태 업데이트
+            payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
+
+            // 변경사항을 데이터베이스에 저장
+            paymentRepository.save(payment);
+        } else {
+            throw new NoSuchElementException("해당 사용자와 OTT ID에 대한 결제 내역이 없습니다.");
+        }
+    }
+
 
     //payment 생성
     @Transactional(readOnly = false)
@@ -145,5 +196,20 @@ public class PaymentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    //userId 반환하는 메서드
+    @Transactional(readOnly = false)
+    public Long getAuthenticatedUserId() {
+        String email = userUtil.getAuthenticatedUserEmail();
+        if (email != null) {
+            User user = userRepository.findByEmail(email);
+            if (user != null) {
+                return user.getId();
+            } else {
+                throw new NoSuchElementException("해당 이메일에 대한 사용자 정보를 찾을 수 없습니다.");
+            }
+        }
+        throw new NoSuchElementException("인증된 사용자가 없습니다.");
     }
 }
