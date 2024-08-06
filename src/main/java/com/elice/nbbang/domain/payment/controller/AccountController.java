@@ -32,12 +32,6 @@ public class AccountController {
         return ResponseEntity.ok(account);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody AccountRegisterDTO dto) {
-        Account account = accountService.updateAccount(dto);
-        return ResponseEntity.ok(account);
-    }
-
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteAccount() {
         accountService.deleteAccount();

@@ -44,4 +44,12 @@ public class Account extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private AccountType accountType;
+
+    public void increaseBalance(Long amount) {
+        this.balance += amount;
+    }
+
+    public void decreaseBalance(Long amount) {
+        this.balance -= amount;
+    }
 }

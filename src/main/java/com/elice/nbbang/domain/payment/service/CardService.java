@@ -57,18 +57,7 @@ public class CardService {
         User user = userUtilService.getUserByEmail();
 
         Card existingCard = cardRepository.findByUserId(user.getId()).orElse(null);
-
-        if (existingCard == null) {
-            Card card = Card.builder()
-                .user(user)
-                .billingKey(billingKey)
-                .cardNumber(request.getCardNumber())
-                .cardCompany(request.getCardCompany())
-                .cardStatus(CardStatus.AVAILABLE)
-                .build();
-            cardRepository.save(card);
-            return card;
-        } else {
+        if (existingCard != null) {
             cardRepository.delete(existingCard);
             cardRepository.flush();
             Card card = Card.builder()
@@ -81,6 +70,16 @@ public class CardService {
             cardRepository.save(card);
             return card;
         }
+
+        Card card = Card.builder()
+            .user(user)
+            .billingKey(billingKey)
+            .cardNumber(request.getCardNumber())
+            .cardCompany(request.getCardCompany())
+            .cardStatus(CardStatus.AVAILABLE)
+            .build();
+        cardRepository.save(card);
+        return card;
     }
 
     //카드 삭제
