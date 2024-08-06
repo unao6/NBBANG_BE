@@ -35,6 +35,13 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 리프레시 토큰 요청의 경우 accessToken 체크를 하지 않음
+        if ("/api/users/refresh-token".equals(request.getRequestURI())) {
+            log.info("JWTFilter - Skipping Access Token check for URI: /api/users/refresh-token");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 헤더에서 access키에 담긴 토큰을 꺼냄
         String accessToken = request.getHeader("access");
         log.info("JWTFilter - Extracted Access Token: {}", accessToken);
