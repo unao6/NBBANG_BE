@@ -26,28 +26,6 @@ public class UserController {
     private final JWTUtil jwtUtil;
     private final UserService userService;
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request, HttpServletResponse response) {
-        String requestRefreshToken = request.getRefreshToken();
-        String email = jwtUtil.getEmail(requestRefreshToken);
-
-        if (jwtUtil.isExpired(requestRefreshToken)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid Refresh Token");
-        }
-
-        User user = userService.findByEmail(email);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not found");
-        }
-
-        CustomUserDetails userDetails = new CustomUserDetails(user);
-        String newAccessToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
-
-        // Return new access token in response header
-        response.setHeader("Authorization", "Bearer " + newAccessToken);
-
-        return ResponseEntity.ok("Token refreshed");
-    }
 
     @GetMapping("/user-info")
     public ResponseEntity<?> getUserInfo() {
@@ -66,3 +44,35 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 }
+//    @PostMapping("/refresh-token")
+//    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request, HttpServletResponse response) {
+//        String requestRefreshToken = request.getRefreshToken();
+//
+//        if (requestRefreshToken == null || requestRefreshToken.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refresh token is missing or empty");
+//        }
+//
+//        String email;
+//        try {
+//            email = jwtUtil.getEmail(requestRefreshToken);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid Refresh Token");
+//        }
+//
+//        if (jwtUtil.isExpired(requestRefreshToken)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Expired Refresh Token");
+//        }
+//
+//        User user = userService.findByEmail(email);
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not found");
+//        }
+//
+//        CustomUserDetails userDetails = new CustomUserDetails(user);
+//        String newAccessToken = jwtUtil.createJwt("category", userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority(), 3600000L);
+//
+//        // Return new access token in response header
+//        response.setHeader("access", newAccessToken);
+//
+//        return ResponseEntity.ok("Token refreshed");
+//    }
