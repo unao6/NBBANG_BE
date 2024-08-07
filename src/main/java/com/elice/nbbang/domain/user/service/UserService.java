@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.user.service;
 
 
 import com.elice.nbbang.domain.auth.dto.OAuth2Response;
+import com.elice.nbbang.domain.user.dto.PhoneCheckRequestDto;
 import com.elice.nbbang.domain.user.dto.UserResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
@@ -20,19 +21,40 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final UserUtil userUtil;
+    private final MessageService messageService;
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    // 헤더 표시 구분하려고 추가
-    public boolean isAdmin(String email) {
-        User user = userRepository.findByEmail(email);
-        return user != null && user.getRole() == UserRole.ROLE_ADMIN;
-    }
-
     public boolean isEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // 휴대폰 번호 변경
+    public boolean changePhoneNumber(String email, String newPhoneNumber, String verificationCode) {
+        // 인증 코드 확인
+        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, verificationCode);
+        String verificationResult = messageService.verifySms(phoneCheckRequestDto);
+
+        // verificationResult를 확인하여 인증 성공 여부 결정
+        boolean isVerified = "success".equalsIgnoreCase(verificationResult); // "success"가 반환되는 경우 인증 성공으로 간주
+
+        if (!isVerified) {
+            throw new IllegalArgumentException("휴대폰 인증이 완료되지 않았습니다.");
+        }
+
+        // 유저 정보 가져오기
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 휴대폰 번호 변경
+        user.setPhoneNumber(newPhoneNumber);
+        userRepository.save(user);
+
+        return true;
     }
 
     // 회원 탈퇴
