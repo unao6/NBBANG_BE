@@ -1,9 +1,8 @@
-package com.elice.nbbang.domain.user.service;
+package com.elice.nbbang.domain.auth.service;
 
-import com.elice.nbbang.domain.user.dto.PhoneCerfiticationRequestDto;
-import com.elice.nbbang.domain.user.dto.PhoneCheckRequestDto;
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-import com.elice.nbbang.domain.user.repository.SmsCertification;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.repository.SmsCertification;
 import com.elice.nbbang.global.config.MessageProperties;
 import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
