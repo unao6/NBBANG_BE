@@ -14,6 +14,7 @@ public enum ErrorCode {
 
     //Party
     NOT_FOUND_PARTY(404, "조회된 Party가 없습니다."),
+    DUPLICATE_PARTY(400, "이미 이용중인 OTT 입니다."),
 
     //Chat
     CHAT_NOT_FOUND(404, "채팅을 찾을 수 없습니다."),
@@ -22,7 +23,6 @@ public enum ErrorCode {
 
     //Payment
     CARD_NOT_FOUND(404, "등록된 카드가 없습니다.");
-
 
     private final int status;
     private final String message;

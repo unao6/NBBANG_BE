@@ -73,4 +73,6 @@ public class PartyMember extends BaseTimeEntity {
     public void plusExpiration() {
         this.expirationDate = LocalDateTime.now().plusMonths(1);
     }
+
+
 }
