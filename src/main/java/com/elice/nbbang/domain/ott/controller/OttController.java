@@ -41,9 +41,9 @@ public class OttController {
         return ResponseEntity.ok(ottService.getOttById(ottId));
     }
 
-    @PutMapping("/admin/ott")
-    public ResponseEntity<Void> updateOtt(@RequestBody final OttUpdateRequest ottUpdateRequest) {
-        ottService.updateOtt(ottUpdateRequest.toServiceRequest());
+    @PutMapping("/admin/ott/{ottId}")
+    public ResponseEntity<Void> updateOtt(@PathVariable Long ottId, @RequestBody final OttUpdateRequest ottUpdateRequest) {
+        ottService.updateOtt(ottId, ottUpdateRequest.toServiceRequest());
         return ResponseEntity.noContent().build();
     }
 

@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.user.controller;
 
 import com.elice.nbbang.domain.user.dto.CustomUserDetails;
+import com.elice.nbbang.domain.user.dto.UserResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/user-info")
-    public ResponseEntity<?> getUserInfo() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        Long id;
-        if (principal instanceof CustomUserDetails) {
-            email = ((CustomUserDetails)principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
-        User user = userService.findByEmail(email);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponse> getUserInfo() {
+        return ResponseEntity.ok().body(userService.getUserInfo());
     }
 }
