@@ -15,6 +15,7 @@ import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserUtilService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -86,24 +87,18 @@ public class AccountService {
     public void scheduledLookupParty() {
         List<Party> partyList = partyRepository.findBySettlementDateBefore(LocalDateTime.now());
 
-        List<Long> partyIds = partyList.stream()
-            .map(Party::getId)
-            .toList();
-
-        for (Long id : partyIds) {
-            caculateAccount(id);
+        for (Party party : partyList) {
+            caculateAccount(party);
         }
     }
 
     //파티장 정산
     @Transactional(readOnly = false)
-    public void caculateAccount(Long id) {
+    public void caculateAccount(Party party) {
         Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
 
-        Party party = partyRepository.findById(id).get();
         Long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - SETTLEMENT_FEE;
-
         Long leaderId = party.getLeader().getId();
 
         Account userAccount = accountRepository.findByUserId(leaderId)
@@ -123,5 +118,31 @@ public class AccountService {
             .status(PaymentStatus.SETTLE_COMPLETED)
             .build();
         paymentRepository.save(payment);
+    }
+
+    //파티장 부분 정산
+    @Transactional(readOnly = false)
+    public void caculatePartialSettlement(Party party) {
+        long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - SETTLEMENT_FEE;
+        long daysUntilSettlement = ChronoUnit.DAYS.between(LocalDateTime.now(), party.getSettlementDate());
+        long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());
+
+        System.out.println("정산까지 남은일자: " + daysUntilSettlement);
+        System.out.println("총 정산일자: " + totalSettlement);
+
+        double ratio = daysUntilSettlement / totalSettlement;
+        long partialAmount = Math.round(amount * ratio);
+
+        System.out.println("잔여 정산금액: " + partialAmount);
+
+        Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
+            .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
+        Account userAccount = accountRepository.findByUserId(party.getLeader().getId())
+            .orElseThrow(() -> new IllegalArgumentException("유저 계좌가 존재하지 않습니다."));
+
+        if (partialAmount > 0) {
+            serviceAccount.decreaseBalance(partialAmount);
+            userAccount.increaseBalance(partialAmount);
+        }
     }
 }
