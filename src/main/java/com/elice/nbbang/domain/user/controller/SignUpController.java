@@ -3,7 +3,7 @@ package com.elice.nbbang.domain.user.controller;
 import com.elice.nbbang.domain.user.dto.*;
 import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
 import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
 import com.elice.nbbang.domain.auth.service.MessageService;
 import com.elice.nbbang.domain.user.service.SignUpService;
@@ -79,7 +79,7 @@ public class SignUpController {
     }
 
     @PostMapping("/phone-certification")
-    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCerfiticationRequestDto requestDto) {
+    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCertificationRequestDto requestDto) {
         String response = messageService.sendSMS(requestDto);
         return ResponseEntity.ok(response);
     }
