@@ -17,12 +17,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private static final List<String> EXCLUDE_URLS = Arrays.asList(
+            "/api/auth/google",
+            "/api/auth/google/callback",
+            "/api/auth/google/success"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -93,4 +100,9 @@ public class JWTFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        log.info("Checking if request URI should be excluded from JWT filter: {}", request.getRequestURI());
+        return EXCLUDE_URLS.contains(request.getRequestURI());
+    }
 }
