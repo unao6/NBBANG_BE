@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.party.entity.MatchingType;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
+import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
@@ -47,14 +48,14 @@ public class PartyMatchService {
     private final CardRepository cardRepository;
     private final PartyMemberRepository partyMemberRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    private final AccountService accountService;
-    private KakaoPayService kakaoPayService;
+    private final KakaoPayService kakaoPayService;
     private final UserUtil userUtil;
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
     * */
     public boolean addPartyMatchingQueue(final PartyMatchServiceRequest request) {
+        log.info("addPartyMatchingQueue : {}", "Redis 큐에 넣기");
         final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
@@ -67,10 +68,12 @@ public class PartyMatchService {
         String setKey = "waiting_set:" + ott.getId();
 
         if (isDuplicateMatching(setKey, duplicatedString)) {
+            log.info("중복된 레디스");
             return false;
         }
 
         addPartyMatchingQueue(setKey, listKey, requestString, duplicatedString);
+        log.info("레디스 큐 넣기 성공");
         return true;
     }
 
@@ -96,11 +99,15 @@ public class PartyMatchService {
         Optional<Party> availableParty = partyByOtt.stream()
                 .filter(party -> party.getPartyMembers().size() < ott.getCapacity())
                 .findFirst();
-
+        /*
+        * type 이 REMATCHING 이면 결제 하지말고 가능한 파티하고만 매칭
+        * type 이 MATCHING 이면 결제 하고 파티 매칭
+        * */
         if (availableParty.isPresent()) {
             Party party = availableParty.get();
             if (type.equals(MatchingType.MATCHING)) {
-
+                // 카드 결제 서비스 로직 여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
+                // PartyMember 를 처음 생성하는 것
                 if (card.getPaymentType().equals(KAKAOPAY)) {
                     log.info("결제 시도");
                     kakaoPayService.subscription(userId, ottId);
@@ -126,11 +133,10 @@ public class PartyMatchService {
 
     @Transactional
     public void partyBreakup(final Long partyId) {
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new NoSuchElementException("조회된 파티가 없습니다."));
+        User user = getAuthenticatedUser();
 
-        // 파티장 부분정산 실행
-        accountService.caculatePartialSettlement(party);
+        Party party = partyRepository.findByPartyIdAndUserId(partyId, user.getId())
+                .orElseThrow(() -> new PartyNotFoundException(ErrorCode.NOT_FOUND_PARTY));
 
         // 파티 멤버 삭제 및 대기 큐에 추가
         List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
