@@ -55,6 +55,7 @@ public class PartyMatchService {
     private final KakaoPayService kakaoPayService;
     private final AccountService accountService;
     private final BootPayService bootPayService;
+    private final UserUtil userUtil;
     private final EncryptUtils encryptUtils;
 
     /*
@@ -120,6 +121,7 @@ public class PartyMatchService {
                     PaymentReserve reserve = PaymentReserve.builder()
                         .billingKey(card.getBillingKey())
                         .ott(ott)
+                        .user(user)
                         .paymentSubscribedAt(LocalDateTime.now())
                         .build();
                     try {
