@@ -380,7 +380,7 @@ public class KakaoPayService {
                 log.info("4-3.정기결제 정보 저장 전.");
 
                 LocalDateTime approvedAt = subscriptionResponse.getApprovedAt();
-                LocalDateTime subscribedAt = approvedAt.plusDays(30);
+                LocalDateTime subscribedAt = approvedAt.plusMonths(1);
 
                 //응답 payment 저장.
                 //todo: 몇 회차인지 체크할 필요가 있을까?

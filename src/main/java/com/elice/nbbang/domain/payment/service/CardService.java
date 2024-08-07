@@ -6,11 +6,17 @@ import com.elice.nbbang.domain.payment.dto.CardRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
+import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.domain.user.service.UserUtilService;
 import com.elice.nbbang.global.exception.CustomException;
 import com.elice.nbbang.global.exception.ErrorCode;
+import com.elice.nbbang.global.util.UserUtil;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -18,6 +24,9 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final BootPayService bootPayService;
+    private final UserUtil userUtil;
+    private final UserRepository userRepository;
+    private final UserUtilService userUtilService;
 
     public CardInfoResponse getCardInfo(Long userId) {
         Optional<Card> userCardOptional = cardRepository.findByUserId(userId);
@@ -43,9 +52,27 @@ public class CardService {
         }
     }
 
-    //카드 등록
+    //카드 등록 or 변경
     public Card registerCard(CardPaymentRequest request, String billingKey) {
+        User user = userUtilService.getUserByEmail();
+
+        Card existingCard = cardRepository.findByUserId(user.getId()).orElse(null);
+        if (existingCard != null) {
+            cardRepository.delete(existingCard);
+            cardRepository.flush();
+            Card card = Card.builder()
+                .user(user)
+                .billingKey(billingKey)
+                .cardNumber(request.getCardNumber())
+                .cardCompany(request.getCardCompany())
+                .cardStatus(CardStatus.AVAILABLE)
+                .build();
+            cardRepository.save(card);
+            return card;
+        }
+
         Card card = Card.builder()
+            .user(user)
             .billingKey(billingKey)
             .cardNumber(request.getCardNumber())
             .cardCompany(request.getCardCompany())
