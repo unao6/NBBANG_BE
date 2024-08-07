@@ -5,8 +5,6 @@ import lombok.Builder;
 
 @Builder
 public record PartyMatchServiceRequest(
-        Long userId,
-        MatchingType type,
         Long ottId
 ) {
 }
