@@ -26,7 +26,6 @@ public class SignUpService {
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();
-
         if (userRepository.existsByEmail(email)) {
             return false;
         }
@@ -52,6 +51,7 @@ public class SignUpService {
                 .build();
 
         userRepository.save(user);
+
         return true;
     }
 
@@ -84,7 +84,6 @@ public class SignUpService {
     public boolean checkCertification(CheckCertificationRequestDto checkCertificationRequestDto) {
         String email = checkCertificationRequestDto.getEmail();
         String certificationNumber = checkCertificationRequestDto.getCertificationNumber();
-
 
         MailCertification mailCertification = mailRepository.findByEmail(email);
 

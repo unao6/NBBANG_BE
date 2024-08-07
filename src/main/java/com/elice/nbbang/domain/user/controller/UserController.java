@@ -38,6 +38,7 @@ public class UserController {
     @DeleteMapping("/delete-account/{email}")
     public ResponseEntity<String> deleteUser(@PathVariable String email) {
         userService.deleteUser(email);
+
         return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
     }
 }

@@ -34,4 +34,5 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
+
 }

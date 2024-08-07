@@ -20,16 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository userRepository;
     private final UserUtil userUtil;
     private final MessageService messageService;
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
-    }
-
-    public boolean isEmailDuplicate(String email) {
-        return userRepository.existsByEmail(email);
     }
 
     // 휴대폰 번호 변경

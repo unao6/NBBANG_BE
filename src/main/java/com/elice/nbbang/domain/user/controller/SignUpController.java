@@ -81,15 +81,15 @@ public class SignUpController {
     @PostMapping("/phone-certification")
     public ResponseEntity<String> phoneCertification(@RequestBody PhoneCertificationRequestDto requestDto) {
         String response = messageService.sendSMS(requestDto);
+
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * SMS 인증번호 검증
-     */
+    // SMS 인증번호 검증
     @PostMapping("/phone-check")
     public ResponseEntity<String> phoneCheck(@RequestBody PhoneCheckRequestDto requestDto) {
         String response = messageService.verifySms(requestDto);
+
         return ResponseEntity.ok(response);
     }
 }

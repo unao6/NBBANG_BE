@@ -17,6 +17,7 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class MessageService {
+
     private final SmsCertification smsCertification;
     private final MessageProperties messageProperties;
 
@@ -38,6 +39,7 @@ public class MessageService {
         params.put("app_version", "test app 1.2");
         params.put("to", to);
         params.put("text", randomNum);
+
         return params;
     }
 
@@ -66,7 +68,6 @@ public class MessageService {
 
         // DB에 발송한 인증번호 저장
         smsCertification.createSmsCertification(phoneCertificationRequestDto.getPhoneNumber(),randomNum);
-
 
         return "문자 전송이 완료되었습니다.";
     }
