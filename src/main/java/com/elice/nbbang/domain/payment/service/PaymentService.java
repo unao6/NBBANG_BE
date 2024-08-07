@@ -180,7 +180,7 @@ public class PaymentService {
                 paymentRepository.save(payment);
 
                 //정기결제 30일 후 새로운 정기결제 예약
-                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusDays(30);
+                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
                 Payment newPayment = payment.toBuilder()
                     .paymentSubscribedAt(newPaymentTime)
                     .build();

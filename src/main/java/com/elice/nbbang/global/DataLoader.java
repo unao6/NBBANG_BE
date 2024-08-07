@@ -7,6 +7,9 @@ import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
+import com.elice.nbbang.domain.payment.entity.Account;
+import com.elice.nbbang.domain.payment.entity.enums.AccountType;
+import com.elice.nbbang.domain.payment.repository.AccountRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
@@ -24,14 +27,16 @@ public class DataLoader implements CommandLineRunner {
     private final PartyRepository partyRepository;
     private final PartyMemberRepository partyMemberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
 
     public DataLoader(UserRepository userRepository, OttRepository ottRepository, PartyRepository partyRepository,
-        PartyMemberRepository partyMemberRepository, BCryptPasswordEncoder passwordEncoder) {
+        PartyMemberRepository partyMemberRepository, BCryptPasswordEncoder passwordEncoder, AccountRepository accountRepository) {
         this.userRepository = userRepository;
         this.ottRepository = ottRepository;
         this.partyRepository = partyRepository;
         this.partyMemberRepository = partyMemberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -44,8 +49,8 @@ public class DataLoader implements CommandLineRunner {
         // 초기 사용자 데이터 설정
         User user1 = userRepository.save(User.builder()
             .nickname("JohnDoe")
-            .email("a@a.com")
-            .password(passwordEncoder.encode("a123"))
+            .email("khp@naver.com")
+            .password(passwordEncoder.encode("1234"))
             .phoneNumber("010-1234-5678")
             .role(UserRole.ROLE_USER)
             .build());
@@ -88,7 +93,7 @@ public class DataLoader implements CommandLineRunner {
             .ottAccountId("prime_user@example.com")
             .ottAccountPassword("primepass")
             .partyStatus(PartyStatus.AVAILABLE)
-            .leader(adminUser)
+            .leader(user2)
             .build());
 
         // 초기 파티 멤버 데이터 설정
@@ -96,5 +101,37 @@ public class DataLoader implements CommandLineRunner {
         partyMemberRepository.save(PartyMember.of(user2, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
         partyMemberRepository.save(PartyMember.of(adminUser, party2, chatGpt, LocalDateTime.of(2024, 8, 1, 0, 0)));
         partyMemberRepository.save(PartyMember.of(user1, party3, tving, LocalDateTime.of(2024, 8, 1, 0, 0)));
+
+        // 서비스계좌 생성
+        Account account = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT).orElse(null);
+        if (account == null) {
+            Account serviceAccount = Account.builder()
+                .user(adminUser)
+                .accountNumber("1111")
+                .bankName("국민")
+                .accountType(AccountType.SERVICE_ACCOUNT)
+                .balance(500000000L)
+                .build();
+            accountRepository.save(serviceAccount);
+        }
+
+        // 초기 계좌 데이터 설정
+        Account account1 = accountRepository.save(
+            Account.builder()
+                .user(user1)
+                .accountNumber("1234")
+                .bankName("우리")
+                .balance(50000L)
+                .build()
+        );
+
+        Account account2 = accountRepository.save(
+            Account.builder()
+                .user(user2)
+                .accountNumber("5678")
+                .bankName("국민")
+                .balance(0L)
+                .build()
+        );
     }
 }

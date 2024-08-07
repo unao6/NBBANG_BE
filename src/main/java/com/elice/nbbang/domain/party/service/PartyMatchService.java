@@ -13,6 +13,7 @@ import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
+import com.elice.nbbang.domain.payment.service.AccountService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,24 +44,29 @@ public class PartyMatchService {
     private final PartyMemberRepository partyMemberRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final PaymentRepository paymentRepository;
+    private final AccountService accountService;
+    private final UserUtil userUtil;
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
     * */
     public boolean addPartyMatchingQueue(final PartyMatchServiceRequest request) {
-
         final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
-        // 커스텀 예외 수정해야함
-        // 시큐리티 구현시 변경될수도
-        final User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new NoSuchElementException("조회된 유저가 없습니다."));
+        final User user = getAuthenticatedUser();
 
-        String requestString = serializeRequest(user.getId(), request.type(), ott.getId());
+        String requestString = createRequestValue(user.getId(), MatchingType.MATCHING, ott.getId());
+        String duplicatedString = createDuplicateValue(user.getId(), ott.getId());
 
-        redisTemplate.opsForList().rightPush("waiting:" + ott.getId(), requestString);
+        String listKey = "waiting:" + ott.getId();
+        String setKey = "waiting_set:" + ott.getId();
 
+        if (isDuplicateMatching(setKey, duplicatedString)) {
+            return false;
+        }
+
+        addPartyMatchingQueue(setKey, listKey, requestString, duplicatedString);
         return true;
     }
 
@@ -93,7 +101,7 @@ public class PartyMatchService {
         if (availableParty.isPresent()) {
             Party party = availableParty.get();
             if (type.equals(MatchingType.MATCHING)) {
-                // 카드 결제 서비스 로직여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
+                // 카드 결제 서비스 로직 여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
                 // PartyMember 를 처음 생성하는 것
                 log.info("결제 시도");
                 addPartyMemberToParty(party, ott, user, capacity);
@@ -105,13 +113,33 @@ public class PartyMatchService {
                 * int 형으로 날짜 일수 차이를 계산
                 * 일수 차이 -> 결제 로직에 넣어주기
                 * */
-                //LocalDateTime now = LocalDateTime.now() - partyMember.getExpirationDate();
                 partyMember.setParty(party);
             }
         } else {
             return CompletableFuture.completedFuture(false);
         }
         return CompletableFuture.completedFuture(true);
+
+    }
+
+    @Transactional
+    public void partyBreakup(final Long partyId) {
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new NoSuchElementException("조회된 파티가 없습니다."));
+
+        // 파티장 부분정산 실행
+        accountService.caculatePartialSettlement(party);
+
+        // 파티 멤버 삭제 및 대기 큐에 추가
+        List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
+
+        for (PartyMember member : partyMembers) {
+            addPartyPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
+            member.removeParty();
+        }
+        partyRepository.delete(party);
+
+        // 추가적인 로직 (예: 사용자에게 알림 보내기 등)
 
     }
 
@@ -123,30 +151,31 @@ public class PartyMatchService {
         partyMemberRepository.save(partyMember);
     }
 
-    @Transactional
-    public void partyBreakup(final Long partyId) {
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new NoSuchElementException("조회된 파티가 없습니다."));
-
-        // 파티 멤버 삭제 및 대기 큐에 추가
-        List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
-
-        for (PartyMember member : partyMembers) {
-            addToPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
-            member.removeParty();
-        }
-        partyRepository.delete(party);
-
-        // 추가적인 로직 (예: 사용자에게 알림 보내기 등)
-
+    private void addPartyPriorityQueue(Long ottId, MatchingType type, Long userId) {
+        redisTemplate.opsForSet().add("waiting_set:" + ottId, createDuplicateValue(userId, ottId));
+        redisTemplate.opsForList().leftPush("waiting:" + ottId, createRequestValue(userId, type, ottId));
     }
 
-    private void addToPriorityQueue(Long ottId, MatchingType type, Long userId) {
-        redisTemplate.opsForList().leftPush("waiting:" + ottId, serializeRequest(userId, type, ottId));
+    private void addPartyMatchingQueue(String setKey, String listKey, String requestString, String duplicatedString) {
+        redisTemplate.opsForSet().add(setKey, duplicatedString);
+        redisTemplate.opsForList().rightPush(listKey, requestString);
     }
 
-    private String serializeRequest(Long userId, MatchingType type, Long ottId) {
-        return String.format("%d,%s,%d", userId, type, ottId);
+    private boolean isDuplicateMatching(String setKey, String requestString) {
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(setKey, requestString));
+    }
+
+    private String createRequestValue(Long userId, MatchingType type, Long ottId) {
+        return userId + "," + type + "," + ottId;
+    }
+
+    private String createDuplicateValue(Long userId, Long ottId) {
+        return userId + "," + ottId;
+    }
+
+    private User getAuthenticatedUser() {
+        final String email = userUtil.getAuthenticatedUserEmail();
+        return userRepository.findByEmail(email);
     }
 
 }

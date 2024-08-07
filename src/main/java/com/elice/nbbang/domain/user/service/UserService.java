@@ -2,15 +2,17 @@ package com.elice.nbbang.domain.user.service;
 
 
 import com.elice.nbbang.domain.auth.dto.OAuth2Response;
+import com.elice.nbbang.domain.user.dto.UserResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
+import com.elice.nbbang.domain.user.exception.UserNotFoundException;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.global.exception.ErrorCode;
 import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @Transactional
@@ -21,6 +23,12 @@ public class UserService {
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    // 헤더 표시 구분하려고 추가
+    public boolean isAdmin(String email) {
+        User user = userRepository.findByEmail(email);
+        return user != null && user.getRole() == UserRole.ROLE_ADMIN;
     }
 
     public boolean isEmailDuplicate(String email) {
@@ -35,18 +43,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // 탈퇴 안한 회원만 조회
-    public List<User> getAllActiveUsers() {
-        return userRepository.findAllByDeletedFalse();
-    }
-
-    // 탈퇴한 회원 복구
-    public void restoreUser(String email) {
-        User user = userRepository.findByEmail(email);
-
-        user.setDeleted(false);
-        userRepository.save(user);
-    }
 
     public User findOrCreateUser(OAuth2Response oAuth2Response) {
         User user = userRepository.findByEmail(oAuth2Response.getEmail());
@@ -58,5 +54,17 @@ public class UserService {
             user = userRepository.save(newUser);
         }
         return user;
+    }
+
+    public UserResponse getUserInfo() {
+
+        String email = userUtil.getAuthenticatedUserEmail();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
+        boolean isAdmin = user.getRole() == UserRole.ROLE_ADMIN;
+
+        return new UserResponse(user.getId(), user.getEmail(), user.getNickname(), user.getRole(), user.getPhoneNumber(), isAdmin);
     }
 }
