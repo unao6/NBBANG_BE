@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.user.controller;
 
 import com.elice.nbbang.domain.auth.dto.TokenRefreshRequest;
 import com.elice.nbbang.domain.user.dto.CustomUserDetails;
+import com.elice.nbbang.domain.user.dto.UserResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
@@ -50,18 +51,7 @@ public class UserController {
     }
 
     @GetMapping("/user-info")
-    public ResponseEntity<?> getUserInfo() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        if (principal instanceof CustomUserDetails) {
-            email = ((CustomUserDetails)principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
-        User user = userService.findByEmail(email);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponse> getUserInfo() {
+        return ResponseEntity.ok().body(userService.getUserInfo());
     }
 }
