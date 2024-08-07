@@ -31,4 +31,7 @@ public class User extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

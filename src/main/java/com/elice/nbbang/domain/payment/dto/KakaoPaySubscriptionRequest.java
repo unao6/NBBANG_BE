@@ -49,15 +49,15 @@ public class KakaoPaySubscriptionRequest {
     @JsonProperty("payload")
     private String payload;
 
-    public static KakaoPaySubscriptionRequest fromProperties(KakaoPayProperties properties, Payment payment) {
+    public static KakaoPaySubscriptionRequest fromProperties(KakaoPayProperties properties, String partnerOrderId, String partnerUserId, int price, String sid) {
         return KakaoPaySubscriptionRequest.builder()
             .cid(properties.getSubscriptionCid())
-            .sid(payment.getSid())
-            .partnerOrderId(payment.getPartnerOrderId())
-            .partnerUserId(payment.getPartnerUserId())
+            .sid(sid)
+            .partnerOrderId(partnerOrderId)
+            .partnerUserId(partnerUserId)
             .itemName(properties.getItemName())
             .quantity(properties.getQuantity())
-            .totalAmount(properties.getTotalAmount())
+            .totalAmount(price)
             .taxFreeAmount(properties.getTaxFreeAmount())
             .build();
     }

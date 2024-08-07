@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 import kr.co.bootpay.Bootpay;
+import kr.co.bootpay.model.request.Cancel;
 import kr.co.bootpay.model.request.SubscribePayload;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,18 +33,35 @@ public class BootPayService {
         try {
             HashMap<String, Object> res = bootpay.lookupBillingKey(receiptId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getKey success: " + res);
+                System.out.println("getKey success");
             } else {
-                System.out.println("getKey false: " + res);
+                System.out.println("getKey false");
             }
 
             return res.get("billing_key").toString();
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("에러 발생");
+        }
+    }
+
+    //빌링키 삭제
+    public void deleteBillingKey(String billingKey) throws Exception {
+        bootpay.getAccessToken();
+
+        try {
+            HashMap<String, Object> res = bootpay.destroyBillingKey(billingKey);
+            JSONObject json = new JSONObject(res);
+
+            if (res.get("error_code") == null) {
+                System.out.println("destroyBillingKey success");
+            } else {
+                System.out.println("destroyBillingKey false");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -66,12 +84,11 @@ public class BootPayService {
         try {
             HashMap<String, Object> res = bootpay.reserveSubscribe(payload);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("reserveSubscribe success: " + res);
+                System.out.println("reserveSubscribe success");
             } else {
-                System.out.println("reserveSubscribe false: " + res);
+                System.out.println("reserveSubscribe false");
             }
 
             return res.get("reserve_id").toString();
@@ -81,41 +98,63 @@ public class BootPayService {
         }
     }
 
-    //예약 결제 조회
-    public String reserveLookup(String reserveId) throws Exception {
+    //예약된 결제 조회
+    public HashMap<String, Object> reserveLookup(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
             HashMap<String, Object> res = bootpay.reserveSubscribeLookup(reserveId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getReceipt success: " + res);
+                System.out.println("getReceipt success");
             } else {
-                System.out.println("getReceipt false: " + res);
+                System.out.println("getReceipt false");
             }
 
-            return res.get("status").toString();
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("status", res.get("status"));
+            response.put("receipt_id", res.get("receipt_id"));
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("에러 발생");
         }
     }
 
-    //예약 결제 취소
+    //예약된 결제 취소
     public void reserveDelete(String reserveId) throws Exception {
         bootpay.getAccessToken();
 
         try {
             HashMap<String, Object> res = bootpay.reserveCancelSubscribe(reserveId);
             JSONObject json = new JSONObject(res);
-            System.out.printf("JSON: %s", json);
 
             if (res.get("error_code") == null) {
-                System.out.println("getReceipt success: " + res);
+                System.out.println("getReceipt success");
             } else {
-                System.out.println("getReceipt false: " + res);
+                System.out.println("getReceipt false");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //완료된 결제 취소
+    public void cancelPayment(String id, Double cancelAmount) throws Exception {
+        bootpay.getAccessToken();
+
+        try {
+            Cancel cancel = new Cancel();
+            cancel.receiptId = id;
+            cancel.cancelPrice = cancelAmount;
+
+            HashMap<String, Object> res = bootpay.receiptCancel(cancel);
+
+            if (res.get("error_code") == null) {
+                System.out.println("receiptCancel success");
+            } else {
+                System.out.println("receiptCancel false");
             }
         } catch (Exception e) {
             e.printStackTrace();

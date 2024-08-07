@@ -1,6 +1,5 @@
 package com.elice.nbbang.domain.party.repository;
 
-import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
 import java.util.List;

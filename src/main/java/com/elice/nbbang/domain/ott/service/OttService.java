@@ -1,13 +1,15 @@
 package com.elice.nbbang.domain.ott.service;
 
-import com.elice.nbbang.domain.ott.dto.OttCreateRequest;
-import com.elice.nbbang.domain.ott.dto.OttResponse;
-import com.elice.nbbang.domain.ott.dto.OttUpdateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttCreateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
+import com.elice.nbbang.domain.ott.controller.dto.OttUpdateRequest;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.DuplicateOttName;
 import com.elice.nbbang.domain.ott.exception.InvalidOttCapacity;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
+import com.elice.nbbang.domain.ott.service.dto.OttCreateServiceRequest;
+import com.elice.nbbang.domain.ott.service.dto.OttUpdateServiceRequest;
 import com.elice.nbbang.global.exception.ErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +26,11 @@ public class OttService {
     private final OttRepository ottRepository;
 
 
-    public Long createOtt(final OttCreateRequest ottCreateRequest) {
-        validateOttName(ottCreateRequest.name());
-        validateOttCapacity(ottCreateRequest.capacity());
+    public Long createOtt(final OttCreateServiceRequest request) {
+        validateOttName(request.name());
+        validateOttCapacity(request.capacity());
 
-        final Ott ott = Ott.of(ottCreateRequest.name(), ottCreateRequest.price(), ottCreateRequest.capacity());
+        final Ott ott = Ott.of(request.name(), request.price(), request.capacity());
         ottRepository.save(ott);
 
         return ott.getId();
@@ -51,11 +53,11 @@ public class OttService {
         return new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity());
     }
 
-    public void updateOtt(final OttUpdateRequest ottUpdateRequest) {
-        final Ott ott = ottRepository.findById(ottUpdateRequest.ottId())
+    public void updateOtt(final OttUpdateServiceRequest request) {
+        final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
-        ott.updateOtt(ottUpdateRequest.name(), ottUpdateRequest.price(), ottUpdateRequest.capacity());
+        ott.updateOtt(request.name(), request.price(), request.capacity());
 
         ottRepository.save(ott);
     }

@@ -4,6 +4,7 @@ import com.elice.nbbang.domain.user.dto.CustomUserDetails;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,13 +21,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        User userData = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
 
-        if (userData != null) {
-
-            return new CustomUserDetails(userData);
+        if (user.isDeleted()) {
+            throw new DisabledException("이미 탈퇴된 계정입니다.");
         }
 
-        return null;
+        return new CustomUserDetails(user);
     }
 }

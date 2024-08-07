@@ -17,11 +17,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Getter
@@ -49,6 +51,7 @@ public class Payment extends BaseTimeEntity {
 
     private Integer amount;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
@@ -66,6 +69,8 @@ public class Payment extends BaseTimeEntity {
 
     private LocalDateTime refundDate;
 
+    private int installmentNumber;
+
     private String cardCompany;
 
     private Integer refundAmount;
@@ -77,6 +82,8 @@ public class Payment extends BaseTimeEntity {
     private String billingKey;
 
     private String reserveId;
+
+    private String receiptId;
 
     public Payment(User user, String partnerUserId, String partnerOrderId, PaymentType paymentType, Integer amount,
         PaymentStatus status, LocalDateTime paymentCreatedAt, String cid, String tid) {
@@ -97,17 +104,19 @@ public class Payment extends BaseTimeEntity {
         this.paymentApprovedAt = approvedAt;
     }
 
-    //todo 정보수정해야함
-    public void updateRefundPayment(PaymentStatus status, String refundDate, String cardCompany, Integer refundAmount) {
-        this.status = status;
-        this.refundDate = LocalDateTime.parse(refundDate);
-        this.cardCompany = cardCompany;
-        this.refundAmount = refundAmount;
-    }
-
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
         this.status = status;
         this.paymentSubscribedAt = paymentSubscribedAt;
+    }
+    public void updateRefundPayment(PaymentStatus status, Integer refundAmount, LocalDateTime refundDate) {
+        this.status = status;
+        this.refundAmount = refundAmount;
+        this.refundDate = refundDate;
+    }
+
+    public void updateCompletePayment(PaymentStatus status, String receiptId) {
+        this.status = status;
+        this.receiptId = receiptId;
     }
 
     public PaymentReserve toPaymentReserve() {

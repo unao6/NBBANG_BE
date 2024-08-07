@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
 
+    //AuthenticationManager Bean 등록
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -47,49 +49,58 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> cors
-                .configurationSource(new CorsConfigurationSource() {
-                    @Override
-                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                        CorsConfiguration configuration = new CorsConfiguration();
+                .cors(cors -> cors
+                        .configurationSource(new CorsConfigurationSource() {
+                            @Override
+                            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                                CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                        configuration.setAllowCredentials(true);
-                        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-                        configuration.setMaxAge(3600L);
-                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+                                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                configuration.setAllowCredentials(true);
+                                configuration.setAllowedHeaders(Arrays.asList("access", "Cache-Control", "Content-Type"));
+                                configuration.setMaxAge(3600L);
+                                configuration.setExposedHeaders(List.of("access"));
 
-                        return configuration;
-                    }
-                }));
+                                return configuration;
+                            }
+                        }));
+
+        //csrf disable
+        http
+                .csrf((auth) -> auth.disable());
+        //From 로그인 방식 disable
+        http
+                .formLogin((auth) -> auth.disable());
+        //http basic 인증 방식 disable
+        http
+                .httpBasic((auth) -> auth.disable());
+        //경로별 인가 작업
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/api/users/sign-up", "/login", "/",
+                                "/api/users/check-email", "/api/users/check-nickname",
+                                "/api/users/email-certification", "/api/users/check-certification",
+                                "/api/users/phone-certification", "/api/users/phone-check",
+                                "/api/users/refresh-token", "api/admin/is-admin/{email}",
+                                "/api/admin/make-admin/{email}").permitAll()  // 특정 경로 허용
+                        .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")  // USER 역할 필요
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")  // ADMIN 역할 필요
+                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용
+                        .anyRequest().permitAll()  // 그 외 모든 요청은 인증 필요
+                );
 
         http
-            .csrf((auth) -> auth.disable());
+                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         http
-            .formLogin((auth) -> auth.disable());
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
         http
-            .httpBasic((auth) -> auth.disable());
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
+        //세션 설정
         http
-            .authorizeHttpRequests((auth) -> auth
-                .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/user-login", "/api/users/check-email", "/api/users/email-certification", "/api/users/user-info").permitAll()
-                .requestMatchers("'/api/users/**").hasRole("USER")
-                .requestMatchers("'/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/reissue").permitAll()
-                .requestMatchers("/api/**").permitAll()
-                .anyRequest().authenticated()
-            );
-
-        http
-            .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
-        http
-            .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
-        http
-            .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
-
-        http
-            .sessionManagement((session) -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .sessionManagement((session) -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
