@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -65,7 +63,8 @@ public class UserService {
         if (user == null) {
             throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
         }
+        boolean isAdmin = user.getRole() == UserRole.ROLE_ADMIN;
 
-        return new UserResponse(user.getId(), user.getEmail(), user.getNickname(), user.getRole());
+        return new UserResponse(user.getId(), user.getEmail(), user.getNickname(), user.getRole(), user.getPhoneNumber(), isAdmin);
     }
 }

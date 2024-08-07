@@ -64,7 +64,7 @@ public class PartyMatchService {
             return false;
         }
 
-        addPartyMatchingQueue(setKey, listKey, requestString);
+        addPartyMatchingQueue(setKey, listKey, requestString, duplicatedString);
         return true;
     }
 
