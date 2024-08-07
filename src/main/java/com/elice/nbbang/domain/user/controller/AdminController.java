@@ -28,13 +28,6 @@ public class AdminController {
         return ResponseEntity.ok(inactiveUsers);
     }
 
-    // 회원 탈퇴
-    @DeleteMapping("/delete-account/{email}")
-    public ResponseEntity<String> deleteUser(@PathVariable String email) {
-        userService.deleteUser(email);
-        return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
-    }
-
     // 회원 복구
     @PutMapping("/restore-account/{email}")
     public ResponseEntity<String> restoreUser(@PathVariable String email) {

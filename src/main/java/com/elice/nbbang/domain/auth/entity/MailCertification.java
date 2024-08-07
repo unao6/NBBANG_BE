@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.user.entity;
+package com.elice.nbbang.domain.auth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

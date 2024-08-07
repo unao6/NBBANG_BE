@@ -5,7 +5,6 @@ import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -101,5 +100,6 @@ public class Card extends BaseTimeEntity {
         this.interestFreeInstall = cardInfo.getInterestFreeInstall();
         this.cardItemCode = cardInfo.getCardItemCode();
         this.installmentType = cardInfo.getInstallmentType();
+        this.paymentType = PaymentType.KAKAOPAY;
     }
 }

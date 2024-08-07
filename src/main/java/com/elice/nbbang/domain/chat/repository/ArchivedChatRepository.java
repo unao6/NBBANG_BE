@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ArchivedChatRepository extends JpaRepository<ArchivedChats, Long> {
     Page<ArchivedChats> findAll(Pageable pageable);
+    boolean existsByChatId(Long chatId);
 }

@@ -56,7 +56,7 @@ public class Party extends BaseTimeEntity {
 
     @Builder
     public Party(Ott ott, String ottAccountId,
-        String ottAccountPassword, PartyStatus partyStatus, User leader) {
+                 String ottAccountPassword, PartyStatus partyStatus, User leader) {
         this.ott = ott;
         this.ottAccountId = ottAccountId;
         this.ottAccountPassword = ottAccountPassword;
