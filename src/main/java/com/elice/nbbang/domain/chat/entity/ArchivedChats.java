@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "archived_chats", uniqueConstraints = @UniqueConstraint(columnNames = "chatId"))
 public class ArchivedChats {
     @Id
     @Column(name="archived_id")

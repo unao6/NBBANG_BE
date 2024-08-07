@@ -52,4 +52,10 @@ public class ChatController{
         List<Message> messages = chatService.getChatMessages(chatId);
         return ResponseEntity.ok(new ChatResponse(chatId, messages));
     }
+
+    @DeleteMapping("/empty")
+    public void deleteEmptyChat() {
+        chatService.deleteEmptyChat();
+    }
+
 }

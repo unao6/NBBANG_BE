@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "chat")
 public class Chat {
     @Id
     @Column(name="chat_id")

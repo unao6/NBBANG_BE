@@ -27,8 +27,11 @@ public class ChatListResponse {
 
         // 마지막 메세지 가져오기
         List<Message> messages = chat.getMessages();
-        Message lastMessageObj = messages.get(messages.size() - 1); // 마지막 메시지
-
-        this.lastMessage = String.format("%s: %s", lastMessageObj.getNickname(), lastMessageObj.getText());
+        if (messages != null && !messages.isEmpty()) {
+            Message lastMessageObj = messages.get(messages.size() - 1); // 마지막 메시지
+            this.lastMessage = String.format("%s: %s", lastMessageObj.getNickname(), lastMessageObj.getText());
+        } else {
+            this.lastMessage = "No messages available";
+        }
     }
 }

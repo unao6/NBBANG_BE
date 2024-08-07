@@ -46,15 +46,14 @@ public class WebSocketController {
     }
 
     @MessageMapping("/chat/send/{chatId}")
-    @SendTo("/queue/messages/{chatId}")
-    public void sendMessage(MessageRequest messageRequest) {
+    @SendTo("/topic/messages/{chatId}")
+    public Message sendMessage(MessageRequest messageRequest) {
         Long chatId = messageRequest.getChatId();
         Long userId = messageRequest.getUserId();
         Message message = messageRequest.getMessage();
 
-        // Use a more informative check for existing chat
-        chatId = chatService.getOrCreateChat(chatId);
-
         chatService.sendMessage(chatId, userId, message);
+
+        return message;
     }
 }
