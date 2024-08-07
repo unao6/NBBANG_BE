@@ -23,26 +23,6 @@ public class ChatController{
     private final UserUtil userUtil;
     private final UserService userService;
 
-
-    // '상담 시작' 버튼으로 채팅을 시작 -> 웹소켓 연결 및 chatId, 기존메세지 반환
-//    @PostMapping("/start")
-//    public ResponseEntity<ChatResponse> startChat() {
-//        String userEmail = userUtil.getAuthenticatedUserEmail();
-//        if (userEmail == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 인증되지 않은 경우
-//        }
-//
-//        // 이메일을 통해 사용자 조회
-//        User user = userService.findByEmail(userEmail);
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 사용자가 존재하지 않는 경우
-//        }
-//
-//        Long chatId = chatService.startChat(user.getId());
-//        List<Message> messages = chatId != -1 ? chatService.getChatMessages(chatId) : new ArrayList<>();
-//        return ResponseEntity.ok(new ChatResponse(chatId, messages));
-//    }
-
     @PostMapping("/start")
     public ResponseEntity<ChatResponse> startChat() {
         String userEmail = userUtil.getAuthenticatedUserEmail();
@@ -50,6 +30,7 @@ public class ChatController{
 
         Long chatId = chatService.getOrCreateChat(user.getId());
         List<Message> messages = chatService.getChatMessages(chatId);
+
         return ResponseEntity.ok(new ChatResponse(chatId, messages));
     }
 
