@@ -7,11 +7,14 @@ import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
 import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
+import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
+import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.domain.user.service.UserUtilService;
 import com.elice.nbbang.global.util.UserUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,9 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final BootPayService bootPayService;
     private final UserUtil userUtil;
     private final UserRepository userRepository;
+    private final UserUtilService userUtilService;
+    private final CardRepository cardRepository;
 
     public static final int FEE = 500;
     public static final int SETTLEMENT_FEE = 200;
@@ -107,10 +111,21 @@ public class PaymentService {
 
     //payment 생성
     @Transactional(readOnly = false)
-    public Payment createPayment(PaymentReserve reserve, String reserveId) {
+    public Payment createPayment(PaymentReserve reserve, String reserveId, int amount) {
+        Payment existingPayment = paymentRepository.findFirstByOttIdAndBillingKeyOrderByPaymentCreatedAtDesc(reserve.getOtt().getId(),
+            reserve.getBillingKey()).orElse(null);
+
+        User user = (existingPayment != null) ? existingPayment.getUser() : userUtilService.getUserByEmail();
+
+        Card card = cardRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+
         Payment payment = Payment.builder()
+            .user(user)
+            .cardCompany(card.getCardCompany())
             .billingKey(reserve.getBillingKey())
-            .amount(reserve.getAmount())
+            .amount(amount)
+            .ottId(reserve.getOtt().getId())
             .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
             .paymentType(PaymentType.CARD)
             .status(PaymentStatus.RESERVE_COMPLETED)
@@ -122,8 +137,8 @@ public class PaymentService {
 
     //payment 상태변경(예약 취소)
     @Transactional(readOnly = false)
-    public void deletePayment(String id) {
-        Payment payment = paymentRepository.findByReserveId(id).orElse(null);
+    public void deletePayment(String reserveId) {
+        Payment payment = paymentRepository.findByReserveId(reserveId).orElse(null);
         Payment updatedPayment = payment.toBuilder()
             .status(PaymentStatus.RESERVE_CANCELLED)
             .build();
@@ -132,71 +147,14 @@ public class PaymentService {
 
     //payment 상태변경(결제 취소)
     @Transactional(readOnly = false)
-    public void cancelPayment(String id, Double amount) {
+    public void cancelPayment(String id, Double cancelAmount) {
         Payment payment = paymentRepository.findByReceiptId(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
             .status(PaymentStatus.CANCELED)
-            .refundAmount(amount.intValue())
+            .refundAmount(cancelAmount.intValue())
             .refundDate(LocalDateTime.now())
             .build();
         paymentRepository.save(updatedPayment);
-    }
-
-    //payment 조회
-    public Payment getPaymentByReserveId(String id) {
-        return paymentRepository.findByReserveId(id).orElse(null);
-    }
-
-    //예약완료된 payment를 List로 반환
-    public List<String> getAllReservedPayment() {
-        List<Payment> paymentList = paymentRepository.findAllByStatus(PaymentStatus.RESERVE_COMPLETED);
-
-        List<String> reserveIds = paymentList.stream()
-                                            .map(Payment::getReserveId)
-                                            .collect(Collectors.toList());
-
-        return reserveIds;
-    }
-
-    //예약완료된 payment를 주기마다 조회
-    //@Scheduled(fixedRate = 60000)
-    @Transactional(readOnly = false)
-    public void scheduledLookupReservation() {
-        List<String> reserveIds = getAllReservedPayment();
-
-        for (String id : reserveIds) {
-            lookupReservation(id);
-        }
-    }
-
-    //정기결제 예약
-    @Transactional(readOnly = false)
-    public void lookupReservation(String id) {
-        try {
-            HashMap<String, Object> response = bootPayService.reserveLookup(id);
-
-            if (response.get("status").toString().equals("1")) {
-                Payment payment = getPaymentByReserveId(id);
-                payment.updateCompletePayment(PaymentStatus.COMPLETED, response.get("receipt_id").toString());
-                paymentRepository.save(payment);
-
-                //정기결제 30일 후 새로운 정기결제 예약
-                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
-                Payment newPayment = payment.toBuilder()
-                    .paymentSubscribedAt(newPaymentTime)
-                    .build();
-
-                String newReserveId = bootPayService.reservePayment(payment.getBillingKey(), payment.getAmount(), newPaymentTime);
-                PaymentReserve paymentReserve = newPayment.toPaymentReserve();
-                createPayment(paymentReserve, newReserveId);
-            } else if (response.get("status").toString().equals("3")) {
-                Payment payment = getPaymentByReserveId(id);
-                payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
-                paymentRepository.save(payment);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     //userId 반환하는 메서드

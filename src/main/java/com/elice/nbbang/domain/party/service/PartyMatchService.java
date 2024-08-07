@@ -10,7 +10,9 @@ import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
+import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.payment.service.AccountService;
@@ -45,7 +47,7 @@ public class PartyMatchService {
     private final RedisTemplate<String, String> redisTemplate;
     private final PaymentRepository paymentRepository;
     private final AccountService accountService;
-    private final RestTemplate restTemplate;
+    private final BootPayService bootPayService;
 
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
@@ -100,6 +102,20 @@ public class PartyMatchService {
             Party party = availableParty.get();
             if (type.equals(MatchingType.MATCHING)) {
                 // 카드 결제 서비스 로직여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
+                if (card.getPaymentType() == PaymentType.CARD) { // 카드 결제
+                    PaymentReserve reserve = PaymentReserve.builder()
+                        .billingKey(card.getBillingKey())
+                        .ott(ott)
+                        .paymentSubscribedAt(LocalDateTime.now())
+                        .build();
+                    try {
+                        bootPayService.reservePayment(reserve);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else { // 카카오페이 결제
+
+                }
                 // PartyMember 를 처음 생성하는 것
                 log.info("결제 시도");
                 addPartyMemberToParty(party, ott, user, capacity);
