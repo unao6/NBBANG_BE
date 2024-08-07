@@ -102,7 +102,7 @@ public class AccountService {
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
 
         Party party = partyRepository.findById(id).get();
-        Long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity()) - SETTLEMENT_FEE;
+        Long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - SETTLEMENT_FEE;
 
         Long leaderId = party.getLeader().getId();
 
