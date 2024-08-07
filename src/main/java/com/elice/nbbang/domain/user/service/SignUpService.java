@@ -1,15 +1,15 @@
 package com.elice.nbbang.domain.user.service;
 
-import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-import com.elice.nbbang.domain.user.entity.MailCertification;
+import com.elice.nbbang.domain.auth.entity.MailCertification;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
-import com.elice.nbbang.domain.user.provider.CertificationNumber;
-import com.elice.nbbang.domain.user.provider.UserEmailProvider;
-import com.elice.nbbang.domain.user.repository.MailRepository;
+import com.elice.nbbang.domain.auth.provider.CertificationNumber;
+import com.elice.nbbang.domain.auth.provider.UserEmailProvider;
+import com.elice.nbbang.domain.auth.repository.MailRepository;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

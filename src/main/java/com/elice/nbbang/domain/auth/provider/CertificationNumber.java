@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.user.provider;
+package com.elice.nbbang.domain.auth.provider;
 
 public class CertificationNumber {
 

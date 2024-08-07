@@ -1,7 +1,7 @@
 package com.elice.nbbang.domain.user.controller;
 
-import com.elice.nbbang.domain.user.dto.ChangePhoneNumberRequest;
-import com.elice.nbbang.domain.user.dto.UserResponse;
+import com.elice.nbbang.domain.user.dto.request.ChangePhoneNumberRequest;
+import com.elice.nbbang.domain.user.dto.reponse.UserResponse;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
