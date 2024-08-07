@@ -4,6 +4,8 @@ import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,4 +62,6 @@ public interface PartyRepository extends JpaRepository<Party, Long> {
             " where p.id = :partyId")
     Party findPartyAndPartyMemberByPartyId(@Param("partyId") Long partyId);
 
+    //settlementDate가 현재 시간보다 이전인 Party 리스트 반환
+    List<Party> findBySettlementDateBefore(LocalDateTime date);
 }
