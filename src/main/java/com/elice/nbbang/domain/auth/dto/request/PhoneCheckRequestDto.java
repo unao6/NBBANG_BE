@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PhoneCheckRequestDto {
+
     private String phoneNumber;
     private String randomNumber;
+
 }

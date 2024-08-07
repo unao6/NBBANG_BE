@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.user.dto;
 
-import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +23,9 @@ public class CustomUserDetails implements UserDetails {
         this.user.setNickname(userSignUpDto.getNickname());
 
         // PhoneCerfiticationRequestDto 객체로부터 phoneNumber를 추출
-        PhoneCerfiticationRequestDto phoneCerfiticationRequestDto = userSignUpDto.getPhoneCerfiticationRequestDto();
-        if (phoneCerfiticationRequestDto != null) {
-            this.user.setPhoneNumber(phoneCerfiticationRequestDto.getPhoneNumber());
+        PhoneCertificationRequestDto phoneCertificationRequestDto = userSignUpDto.getPhoneCertificationRequestDto();
+        if (phoneCertificationRequestDto != null) {
+            this.user.setPhoneNumber(phoneCertificationRequestDto.getPhoneNumber());
         } else {
             this.user.setPhoneNumber(null); // phoneCerfiticationRequestDto가 없을 경우 null로 설정
         }
@@ -37,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collection = new ArrayList<>();
         collection.add(new SimpleGrantedAuthority(user.getRole().name()));
+
         return collection;
     }
 

@@ -29,6 +29,7 @@ public class AdminService {
     // 사용자가 관리자 역할을 가지고 있는지 확인하는 메서드
     public boolean isAdmin(String email) {
         User user = userRepository.findByEmail(email);
+
         return user != null && user.getRole().equals(UserRole.ROLE_ADMIN);
     }
 
