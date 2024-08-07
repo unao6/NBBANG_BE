@@ -24,6 +24,12 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    // 헤더 표시 구분하려고 추가
+    public boolean isAdmin(String email) {
+        User user = userRepository.findByEmail(email);
+        return user != null && user.getRole() == UserRole.ROLE_ADMIN;
+    }
+
     public boolean isEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
     }
