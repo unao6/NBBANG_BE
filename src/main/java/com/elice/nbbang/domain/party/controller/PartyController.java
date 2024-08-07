@@ -75,3 +75,6 @@ public class PartyController {
         return ResponseEntity.noContent().build();
     }
 }
+
+
+
