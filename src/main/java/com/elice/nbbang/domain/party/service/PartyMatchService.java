@@ -10,9 +10,13 @@ import com.elice.nbbang.domain.party.entity.PartyStatus;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
+import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
+import com.elice.nbbang.domain.payment.service.AccountService;
+import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -29,6 +33,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Transactional
@@ -43,7 +48,9 @@ public class PartyMatchService {
     private final PartyMemberRepository partyMemberRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final PaymentRepository paymentRepository;
-    private final UserUtil userUtil;
+    private final AccountService accountService;
+    private final BootPayService bootPayService;
+
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
@@ -64,7 +71,7 @@ public class PartyMatchService {
             return false;
         }
 
-        addPartyMatchingQueue(setKey, listKey, requestString);
+        addPartyMatchingQueue(setKey, listKey, requestString, duplicatedString);
         return true;
     }
 
@@ -99,7 +106,21 @@ public class PartyMatchService {
         if (availableParty.isPresent()) {
             Party party = availableParty.get();
             if (type.equals(MatchingType.MATCHING)) {
-                // 카드 결제 서비스 로직 여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
+                // 카드 결제 서비스 로직여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
+                if (card.getPaymentType() == PaymentType.CARD) { // 카드 결제
+                    PaymentReserve reserve = PaymentReserve.builder()
+                        .billingKey(card.getBillingKey())
+                        .ott(ott)
+                        .paymentSubscribedAt(LocalDateTime.now())
+                        .build();
+                    try {
+                        bootPayService.reservePayment(reserve);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else { // 카카오페이 결제
+
+                }
                 // PartyMember 를 처음 생성하는 것
                 log.info("결제 시도");
                 addPartyMemberToParty(party, ott, user, capacity);
@@ -124,6 +145,9 @@ public class PartyMatchService {
     public void partyBreakup(final Long partyId) {
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new NoSuchElementException("조회된 파티가 없습니다."));
+
+        // 파티장 부분정산 실행
+        accountService.caculatePartialSettlement(party);
 
         // 파티 멤버 삭제 및 대기 큐에 추가
         List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
@@ -151,8 +175,8 @@ public class PartyMatchService {
         redisTemplate.opsForList().leftPush("waiting:" + ottId, createRequestValue(userId, type, ottId));
     }
 
-    private void addPartyMatchingQueue(String setKey, String listKey, String requestString) {
-        redisTemplate.opsForSet().add(setKey, requestString);
+    private void addPartyMatchingQueue(String setKey, String listKey, String requestString, String duplicatedString) {
+        redisTemplate.opsForSet().add(setKey, duplicatedString);
         redisTemplate.opsForList().rightPush(listKey, requestString);
     }
 

@@ -14,15 +14,18 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "archived_chats", uniqueConstraints = @UniqueConstraint(columnNames = "chatId"))
 public class ArchivedChats {
     @Id
     @Column(name="archived_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
+    private Long chatId;
 
     @Convert(converter = MessageConverter.class)
     @Column(nullable = false, columnDefinition = "json")

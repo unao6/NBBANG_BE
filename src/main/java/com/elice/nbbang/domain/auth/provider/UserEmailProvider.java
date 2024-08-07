@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.user.provider;
+package com.elice.nbbang.domain.auth.provider;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;

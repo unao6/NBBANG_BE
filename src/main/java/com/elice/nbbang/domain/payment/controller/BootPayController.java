@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,7 +39,6 @@ public class BootPayController {
     @PostMapping("/card")
     public ResponseEntity<Map<String, String>> registerCard(@RequestBody CardPaymentRequest request) {
         Map<String, String> response = new HashMap<>();
-
         try {
             String billingKey = bootPayService.getBillingKey(request.getReceiptId());
             cardService.registerCard(request, billingKey);
@@ -61,9 +61,7 @@ public class BootPayController {
     @PostMapping("/reserve")
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
-            paymentService.createPayment(reserve, reserveId);
+            bootPayService.reservePayment(reserve);
 
             return ResponseEntity.ok("Payment reservation successful");
         } catch (Exception e) {
@@ -77,6 +75,7 @@ public class BootPayController {
     public ResponseEntity<String> lookupReservation(@PathVariable("reserveId") String id) {
         try {
             bootPayService.reserveLookup(id);
+
             return ResponseEntity.ok("Reservation lookup successful");
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,7 +92,7 @@ public class BootPayController {
     public ResponseEntity<String> cancelReservation(@PathVariable("reserveId") String id) {
         try {
             bootPayService.reserveDelete(id);
-            paymentService.deletePayment(id);
+
             return ResponseEntity.ok("Reservation cancel successful");
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,7 +109,7 @@ public class BootPayController {
     public ResponseEntity<Void> refundPayment(@PathVariable("receiptId") String id, @RequestBody PaymentRefundDTO dto) {
         try {
             bootPayService.cancelPayment(id, dto.getAmount());
-            paymentService.cancelPayment(id, dto.getAmount());
+
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();

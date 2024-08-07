@@ -2,9 +2,9 @@ package com.elice.nbbang.domain.payment.entity;
 
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionApproveResponse;
 import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -62,6 +62,10 @@ public class Card extends BaseTimeEntity {
     //카드 타입(신용/체크 등)
     private String cardType;
 
+    //지불 타입(카카오페이, 카드)
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
+
     //할부 개월 수
     private String installMonth;
 
@@ -76,6 +80,9 @@ public class Card extends BaseTimeEntity {
 
     //카드 상품 코드
     private String cardItemCode;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 
     //할부 유형 2가지 (CARD_INSTALLMENT(업종 무이자),SHARE_INSTALLMENT(분담 무이자))
     //디폴트 세팅
@@ -96,5 +103,6 @@ public class Card extends BaseTimeEntity {
         this.interestFreeInstall = cardInfo.getInterestFreeInstall();
         this.cardItemCode = cardInfo.getCardItemCode();
         this.installmentType = cardInfo.getInstallmentType();
+        this.paymentType = PaymentType.KAKAOPAY;
     }
 }

@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.user.dto;
 
+import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,15 @@ public class CustomUserDetails implements UserDetails {
         this.user.setEmail(userSignUpDto.getEmail());
         this.user.setPassword(userSignUpDto.getPassword());
         this.user.setNickname(userSignUpDto.getNickname());
-//        this.user.setPhoneNumber(userSignUpDto.getPhoneNumber());
+
+        // PhoneCerfiticationRequestDto 객체로부터 phoneNumber를 추출
+        PhoneCerfiticationRequestDto phoneCerfiticationRequestDto = userSignUpDto.getPhoneCerfiticationRequestDto();
+        if (phoneCerfiticationRequestDto != null) {
+            this.user.setPhoneNumber(phoneCerfiticationRequestDto.getPhoneNumber());
+        } else {
+            this.user.setPhoneNumber(null); // phoneCerfiticationRequestDto가 없을 경우 null로 설정
+        }
+
         this.user.setRole(UserRole.ROLE_USER); // 기본 역할 설정
     }
 

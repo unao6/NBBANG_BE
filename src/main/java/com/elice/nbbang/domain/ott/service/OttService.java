@@ -53,8 +53,8 @@ public class OttService {
         return new OttResponse(ott.getId(), ott.getName(), ott.getPrice(), ott.getCapacity());
     }
 
-    public void updateOtt(final OttUpdateServiceRequest request) {
-        final Ott ott = ottRepository.findById(request.ottId())
+    public void updateOtt(final Long ottId, final OttUpdateServiceRequest request) {
+        final Ott ott = ottRepository.findById(ottId)
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
         ott.updateOtt(request.name(), request.price(), request.capacity());
