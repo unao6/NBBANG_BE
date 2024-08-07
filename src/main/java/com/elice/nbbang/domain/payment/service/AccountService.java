@@ -33,8 +33,6 @@ public class AccountService {
     private final PartyRepository partyRepository;
     private final PaymentRepository paymentRepository;
 
-    private static final Long SETTLEMENT_FEE = 200L;
-
     //계좌 조회
     public Account getAccount() {
         User user = userUtilService.getUserByEmail();
@@ -98,20 +96,20 @@ public class AccountService {
         Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
 
-        Long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - SETTLEMENT_FEE;
+        int amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - PaymentService.SETTLEMENT_FEE;
         Long leaderId = party.getLeader().getId();
 
         Account userAccount = accountRepository.findByUserId(leaderId)
             .orElseThrow(() -> new IllegalArgumentException("유저 계좌가 존재하지 않습니다."));
 
         //서비스 계좌의 잔액 -, 유저 계좌의 잔액 +, 파티의 정산일 +1달
-        serviceAccount.decreaseBalance(amount);
-        userAccount.increaseBalance(amount);
+        serviceAccount.decreaseBalance((long) amount);
+        userAccount.increaseBalance((long) amount);
         party.plusSettlement();
 
         //Payment 추가
         Payment payment = Payment.builder()
-            .amount(amount.intValue())
+            .amount(amount)
             .ottId(party.getOtt().getId())
             .user(party.getLeader())
             .bankName(userAccount.getBankName())
@@ -123,7 +121,7 @@ public class AccountService {
     //파티장 부분 정산
     @Transactional(readOnly = false)
     public void caculatePartialSettlement(Party party) {
-        long amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - SETTLEMENT_FEE;
+        int amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - PaymentService.SETTLEMENT_FEE;
         long daysUntilSettlement = ChronoUnit.DAYS.between(LocalDateTime.now(), party.getSettlementDate());
         long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());
 

@@ -14,6 +14,7 @@ import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.payment.service.AccountService;
+import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -28,6 +29,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Transactional
@@ -43,6 +45,8 @@ public class PartyMatchService {
     private final RedisTemplate<String, String> redisTemplate;
     private final PaymentRepository paymentRepository;
     private final AccountService accountService;
+    private final RestTemplate restTemplate;
+
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?

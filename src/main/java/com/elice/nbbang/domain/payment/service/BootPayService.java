@@ -72,7 +72,7 @@ public class BootPayService {
         SubscribePayload payload = new SubscribePayload();
         payload.billingKey = billingKey;
         payload.orderName = ORDER_NAME;
-        payload.price = amount;
+        payload.price = amount + PaymentService.FEE;
         payload.orderId = "" + (System.currentTimeMillis() / 1000);
 
         Date date = Date.from(paymentTime.atZone(ZoneId.of("UTC")).minusHours(9).toInstant());

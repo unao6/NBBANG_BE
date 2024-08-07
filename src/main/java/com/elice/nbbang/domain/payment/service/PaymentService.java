@@ -39,7 +39,8 @@ public class PaymentService {
     private final UserUtil userUtil;
     private final UserRepository userRepository;
 
-    private static final int FEE = 500;
+    public static final int FEE = 500;
+    public static final int SETTLEMENT_FEE = 200;
 
     /**
      * 모든 Payments 조회
