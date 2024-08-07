@@ -123,17 +123,12 @@ public class AccountService {
     //파티장 부분 정산
     @Transactional(readOnly = false)
     public void caculatePartialSettlement(Party party) {
-        int amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - PaymentService.SETTLEMENT_FEE;
+        int amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1));
         long daysUntilSettlement = ChronoUnit.DAYS.between(LocalDateTime.now(), party.getSettlementDate());
         long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());
 
-        System.out.println("정산까지 남은일자: " + daysUntilSettlement);
-        System.out.println("총 정산일자: " + totalSettlement);
-
-        double ratio = daysUntilSettlement / totalSettlement;
-        long partialAmount = Math.round(amount * ratio);
-
-        System.out.println("잔여 정산금액: " + partialAmount);
+        double ratio = (double) daysUntilSettlement / totalSettlement;
+        long partialAmount = (long) Math.max((amount * ratio) - PaymentService.SETTLEMENT_FEE, 0);
 
         Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
@@ -144,5 +139,15 @@ public class AccountService {
             serviceAccount.decreaseBalance(partialAmount);
             userAccount.increaseBalance(partialAmount);
         }
+
+        //Payment 추가
+        Payment payment = Payment.builder()
+            .amount((int) partialAmount)
+            .ottId(party.getOtt().getId())
+            .user(party.getLeader())
+            .bankName(userAccount.getBankName())
+            .status(PaymentStatus.PARTIAL_SETTLEMENT_COMPLETED)
+            .build();
+        paymentRepository.save(payment);
     }
 }
