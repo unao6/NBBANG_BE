@@ -30,6 +30,7 @@ public class WebSocketController {
         try {
             String email = jwtUtil.getEmail(token);
             User user = userService.findByEmail(email);
+            logger.info("User authenticated: {}", user.getEmail());
 
             if (user != null) {
                 // Save user information in session

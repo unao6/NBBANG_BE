@@ -81,7 +81,6 @@ public class Card extends BaseTimeEntity {
     //카드 상품 코드
     private String cardItemCode;
 
-
     //할부 유형 2가지 (CARD_INSTALLMENT(업종 무이자),SHARE_INSTALLMENT(분담 무이자))
     //디폴트 세팅
     private String installmentType="CARD_INSTALLMENT";
