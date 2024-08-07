@@ -2,8 +2,9 @@ package com.elice.nbbang.domain.user.service;
 
 
 import com.elice.nbbang.domain.auth.dto.OAuth2Response;
-import com.elice.nbbang.domain.user.dto.PhoneCheckRequestDto;
-import com.elice.nbbang.domain.user.dto.UserResponse;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.service.MessageService;
+import com.elice.nbbang.domain.user.dto.reponse.UserResponse;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.exception.UserNotFoundException;

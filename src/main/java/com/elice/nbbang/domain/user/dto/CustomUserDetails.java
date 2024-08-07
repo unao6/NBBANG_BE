@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.user.dto;
 
+import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;

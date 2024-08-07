@@ -1,7 +1,6 @@
-package com.elice.nbbang.domain.user.dto;
+package com.elice.nbbang.domain.user.dto.reponse;
 
 import com.elice.nbbang.domain.user.entity.UserRole;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
