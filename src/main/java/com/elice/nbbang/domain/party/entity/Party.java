@@ -63,7 +63,7 @@ public class Party extends BaseTimeEntity {
         this.ottAccountPassword = ottAccountPassword;
         this.partyStatus = partyStatus;
         this.leader = leader;
-        this.settlementDate = getCreatedAt().plusMonths(1);
+        this.settlementDate = LocalDateTime.now().plusMonths(1);
     }
 
     public void updatePartyOttAccount(PartyUpdateServiceRequest request) {
