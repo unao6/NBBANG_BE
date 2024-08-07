@@ -83,7 +83,7 @@ public class SecurityConfig {
                                 "/api/users/email-certification", "/api/users/check-certification",
                                 "/api/users/phone-certification", "/api/users/phone-check",
                                 "/api/users/refresh-token", "api/admin/is-admin/{email}",
-                                "/api/admin/make-admin/{email}").permitAll()  // 특정 경로 허용
+                                "/api/users/user-info", "/api/admin/make-admin/{email}").permitAll()  // 특정 경로 허용
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")  // ADMIN 역할 필요
                         .requestMatchers("/reissue").permitAll()
                         .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용

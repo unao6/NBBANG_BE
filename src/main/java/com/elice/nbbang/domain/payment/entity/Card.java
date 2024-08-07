@@ -62,6 +62,10 @@ public class Card extends BaseTimeEntity {
     //카드 타입(신용/체크 등)
     private String cardType;
 
+    //지불 타입(카카오페이, 카드)
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
+
     //할부 개월 수
     private String installMonth;
 

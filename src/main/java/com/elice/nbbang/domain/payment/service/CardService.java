@@ -5,6 +5,7 @@ import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
 import com.elice.nbbang.domain.payment.dto.CardRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
@@ -38,7 +39,7 @@ public class CardService {
 
         Card userCard = userCardOptional.get();
 
-        if (userCard.getIssuerCorp() == null) { // 일반 카드
+        if (userCard.getPaymentType() == PaymentType.CARD) { // 일반 카드
             return CardInfoResponse.builder()
                 .cardCompany(userCard.getCardCompany())
                 .cardNumber(userCard.getCardNumber())
@@ -66,6 +67,7 @@ public class CardService {
                 .cardNumber(request.getCardNumber())
                 .cardCompany(request.getCardCompany())
                 .cardStatus(CardStatus.AVAILABLE)
+                .paymentType(PaymentType.CARD)
                 .build();
             cardRepository.save(card);
             return card;
@@ -77,6 +79,7 @@ public class CardService {
             .cardNumber(request.getCardNumber())
             .cardCompany(request.getCardCompany())
             .cardStatus(CardStatus.AVAILABLE)
+            .paymentType(PaymentType.CARD)
             .build();
         cardRepository.save(card);
         return card;

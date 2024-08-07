@@ -118,13 +118,4 @@ public class Payment extends BaseTimeEntity {
         this.status = status;
         this.receiptId = receiptId;
     }
-
-    public PaymentReserve toPaymentReserve() {
-        PaymentReserve paymentReserve = new PaymentReserve();
-        paymentReserve.setBillingKey(this.getBillingKey());
-        paymentReserve.setAmount(this.getAmount());
-        paymentReserve.setPaymentSubscribedAt(this.getPaymentSubscribedAt());
-
-        return paymentReserve;
-    }
 }
