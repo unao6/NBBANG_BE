@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/check-email", "/api/users/check-nickname", "/api/users/email-certification", "/api/users/check-certification", "/api/users/phone-certification", "/api/users/phone-check", "/api/auth/google", "/api/auth/google/callback", "/api/auth/google/success").permitAll()
+                        .requestMatchers("/api/users/sign-up", "/login", "/", "/api/users/check-email", "/api/users/check-nickname", "/api/users/email-certification", "/api/users/check-certification", "/api/users/phone-certification", "/api/users/phone-check", "/api/auth/google", "/api/auth/google/callback", "/api/auth/google/success","/api/auth/tok").permitAll()
                         .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_USER")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")
                         .requestMatchers("/reissue").permitAll()
@@ -82,7 +82,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setExposedHeaders(List.of("Authorization","access"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
