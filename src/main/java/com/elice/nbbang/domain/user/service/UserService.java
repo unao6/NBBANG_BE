@@ -30,9 +30,9 @@ public class UserService {
     }
 
     // 휴대폰 번호 변경
-    public boolean changePhoneNumber(String email, String newPhoneNumber, String verificationCode) {
+    public boolean changePhoneNumber(String email, String newPhoneNumber, String randomNumber) {
         // 인증 코드 확인
-        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, verificationCode);
+        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, randomNumber);
         String verificationResult = messageService.verifySms(phoneCheckRequestDto);
 
         // verificationResult를 확인하여 인증 성공 여부 결정

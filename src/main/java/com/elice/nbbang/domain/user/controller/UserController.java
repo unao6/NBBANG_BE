@@ -26,7 +26,10 @@ public class UserController {
     @PutMapping("/change-phone-number")
     public ResponseEntity<?> changePhoneNumber(@RequestBody ChangePhoneNumberRequest request) {
         String email = userUtil.getAuthenticatedUserEmail();
-        boolean isChanged = userService.changePhoneNumber(email, request.getNewPhoneNumber(), request.getVerificationCode());
+        System.out.println("Authenticated user email: " + email);
+        System.out.println("New phone number: " + request.getNewPhoneNumber());
+        System.out.println("Verification code: " + request.getRandomNumber());
+        boolean isChanged = userService.changePhoneNumber(email, request.getNewPhoneNumber(), request.getRandomNumber());
         if (isChanged) {
             return ResponseEntity.ok("휴대폰 번호가 성공적으로 변경되었습니다.");
         } else {
