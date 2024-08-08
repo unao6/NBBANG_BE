@@ -28,9 +28,9 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Account> createAccount(@RequestBody AccountRegisterDTO dto) {
-        Account account = accountService.registerAccount(dto);
-        return ResponseEntity.ok(account);
+    public ResponseEntity<AccountInfoResponse> createAccount(@RequestBody AccountRegisterDTO dto) {
+        AccountInfoResponse accountInfoResponse = accountService.registerAccount(dto);
+        return ResponseEntity.ok(accountInfoResponse);
     }
 
     @DeleteMapping("/delete")

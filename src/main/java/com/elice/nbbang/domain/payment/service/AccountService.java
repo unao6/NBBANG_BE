@@ -52,7 +52,7 @@ public class AccountService {
 
     //유저 계좌 등록
     @Transactional(readOnly = false)
-    public Account registerAccount(AccountRegisterDTO dto) {
+    public AccountInfoResponse registerAccount(AccountRegisterDTO dto) {
         User user = userUtilService.getUserByEmail();
 
         Account existingAccount = accountRepository.findByUserId(user.getId()).orElse(null);
@@ -69,7 +69,12 @@ public class AccountService {
             .balance(0L)
             .build();
         accountRepository.save(account);
-        return account;
+
+        AccountInfoResponse accountInfoResponse = AccountInfoResponse.builder()
+            .accountNumber(dto.getAccountNumber())
+            .bankName(account.getBankName())
+            .build();
+        return accountInfoResponse;
     }
 
     //계좌 삭제
