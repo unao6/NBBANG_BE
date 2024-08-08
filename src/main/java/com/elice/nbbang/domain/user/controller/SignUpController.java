@@ -1,7 +1,11 @@
 package com.elice.nbbang.domain.user.controller;
 
 import com.elice.nbbang.domain.user.dto.*;
-import com.elice.nbbang.domain.user.service.MessageService;
+import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.service.MessageService;
 import com.elice.nbbang.domain.user.service.SignUpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -75,17 +79,17 @@ public class SignUpController {
     }
 
     @PostMapping("/phone-certification")
-    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCerfiticationRequestDto requestDto) {
+    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCertificationRequestDto requestDto) {
         String response = messageService.sendSMS(requestDto);
+
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * SMS 인증번호 검증
-     */
+    // SMS 인증번호 검증
     @PostMapping("/phone-check")
     public ResponseEntity<String> phoneCheck(@RequestBody PhoneCheckRequestDto requestDto) {
         String response = messageService.verifySms(requestDto);
+
         return ResponseEntity.ok(response);
     }
 }

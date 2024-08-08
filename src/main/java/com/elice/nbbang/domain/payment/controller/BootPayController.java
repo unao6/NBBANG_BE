@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.CardService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
+import com.elice.nbbang.global.config.EncryptUtils;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class BootPayController {
 
     private final BootPayService bootPayService;
     private final CardService cardService;
-    private final PaymentService paymentService;
+    private final EncryptUtils encryptUtils;
 
     /*
      * 카드 등록 API
@@ -41,6 +42,7 @@ public class BootPayController {
         Map<String, String> response = new HashMap<>();
         try {
             String billingKey = bootPayService.getBillingKey(request.getReceiptId());
+
             cardService.registerCard(request, billingKey);
             response.put("message", "register completed");
             response.put("status", "success");
@@ -61,9 +63,7 @@ public class BootPayController {
     @PostMapping("/reserve")
     public ResponseEntity<String> reservePayment(@RequestBody PaymentReserve reserve) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            String reserveId = bootPayService.reservePayment(reserve.getBillingKey(), reserve.getAmount(), reserve.getPaymentSubscribedAt());
-            paymentService.createPayment(reserve, reserveId);
+            bootPayService.reservePayment(reserve);
 
             return ResponseEntity.ok("Payment reservation successful");
         } catch (Exception e) {
@@ -77,6 +77,7 @@ public class BootPayController {
     public ResponseEntity<String> lookupReservation(@PathVariable("reserveId") String id) {
         try {
             bootPayService.reserveLookup(id);
+
             return ResponseEntity.ok("Reservation lookup successful");
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,7 +94,7 @@ public class BootPayController {
     public ResponseEntity<String> cancelReservation(@PathVariable("reserveId") String id) {
         try {
             bootPayService.reserveDelete(id);
-            paymentService.deletePayment(id);
+
             return ResponseEntity.ok("Reservation cancel successful");
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,7 +111,7 @@ public class BootPayController {
     public ResponseEntity<Void> refundPayment(@PathVariable("receiptId") String id, @RequestBody PaymentRefundDTO dto) {
         try {
             bootPayService.cancelPayment(id, dto.getAmount());
-            paymentService.cancelPayment(id, dto.getAmount());
+
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();

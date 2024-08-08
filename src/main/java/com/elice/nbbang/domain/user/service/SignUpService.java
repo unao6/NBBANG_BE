@@ -1,15 +1,15 @@
 package com.elice.nbbang.domain.user.service;
 
-import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-import com.elice.nbbang.domain.user.entity.MailCertification;
+import com.elice.nbbang.domain.auth.entity.MailCertification;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
-import com.elice.nbbang.domain.user.provider.CertificationNumber;
-import com.elice.nbbang.domain.user.provider.UserEmailProvider;
-import com.elice.nbbang.domain.user.repository.MailRepository;
+import com.elice.nbbang.domain.auth.provider.CertificationNumber;
+import com.elice.nbbang.domain.auth.provider.UserEmailProvider;
+import com.elice.nbbang.domain.auth.repository.MailRepository;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,7 +26,6 @@ public class SignUpService {
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();
-
         if (userRepository.existsByEmail(email)) {
             return false;
         }
@@ -39,9 +38,9 @@ public class SignUpService {
             return false;
         }
 
-        // PhoneCerfiticationRequestDto 객체로부터 phoneNumber를 추출
-        PhoneCerfiticationRequestDto phoneCerfiticationRequestDto = userSignUpDto.getPhoneCerfiticationRequestDto();
-        String phoneNumber = phoneCerfiticationRequestDto != null ? phoneCerfiticationRequestDto.getPhoneNumber() : null;
+        // PhoneCertificationRequestDto 객체로부터 phoneNumber를 추출
+        PhoneCertificationRequestDto phoneCertificationRequestDto = userSignUpDto.getPhoneCertificationRequestDto();
+        String phoneNumber = phoneCertificationRequestDto != null ? phoneCertificationRequestDto.getPhoneNumber() : null;
 
         User user = User.builder()
                 .email(email)
@@ -52,6 +51,7 @@ public class SignUpService {
                 .build();
 
         userRepository.save(user);
+
         return true;
     }
 
@@ -84,7 +84,6 @@ public class SignUpService {
     public boolean checkCertification(CheckCertificationRequestDto checkCertificationRequestDto) {
         String email = checkCertificationRequestDto.getEmail();
         String certificationNumber = checkCertificationRequestDto.getCertificationNumber();
-
 
         MailCertification mailCertification = mailRepository.findByEmail(email);
 

@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.user.repository;
+package com.elice.nbbang.domain.auth.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -9,6 +9,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Repository
 public class SmsCertification {
+
     private final String PREFIX = "sms:"; // key값이 중복되지 않도록 상수 선언
     private final int LIMIT_TIME = 3 * 60; // 인증번호 유효 시간
 
