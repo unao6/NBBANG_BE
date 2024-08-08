@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.user.dto;
 
-import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -13,6 +13,6 @@ public class UserSignUpDto {
     private String email;
     private String password;
     private String nickname;
-    private PhoneCerfiticationRequestDto phoneCerfiticationRequestDto;
+    private PhoneCertificationRequestDto phoneCertificationRequestDto;
 
 }

@@ -23,4 +23,5 @@ public class MailCertification {
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
     private boolean verified = false;
+
 }
