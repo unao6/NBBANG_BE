@@ -36,6 +36,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.elice.nbbang.domain.party.entity.PartyStatus.*;
 import static com.elice.nbbang.domain.payment.entity.enums.PaymentType.*;
 
 
@@ -101,10 +102,10 @@ public class PartyMatchService {
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("조회된 유저가 없습니다."));
 
-        final List<Party> partyByOtt = partyRepository.findAvailablePartyByOtt(ottId, PartyStatus.AVAILABLE);
+        final List<Party> partyByOtt = partyRepository.findAvailablePartyByOtt(ottId, AVAILABLE);
 
         Optional<Party> availableParty = partyByOtt.stream()
-                .filter(party -> party.getPartyMembers().size() < ott.getCapacity())
+                .filter(party -> party.getPartyMembers().size() < ott.getCapacity() - 1)
                 .findFirst();
         /*
         * type 이 REMATCHING 이면 결제 하지말고 가능한 파티하고만 매칭
@@ -118,8 +119,9 @@ public class PartyMatchService {
                     PaymentReserve reserve = PaymentReserve.builder()
                         .billingKey(card.getBillingKey())
                         .ott(ott)
-                        .paymentSubscribedAt(LocalDateTime.now())
+                        .paymentSubscribedAt(LocalDateTime.now().plusMinutes(1))
                         .build();
+                    log.info("reserve : {}", reserve);
                     try {
                         bootPayService.reservePayment(reserve);
                     } catch (Exception e) {
@@ -135,12 +137,15 @@ public class PartyMatchService {
             } else {
                 // 원래 있는 PartyMember 에서 새로운 Party 를 부여하는 메서드
                 PartyMember partyMember = partyMemberRepository.findPartyMemberByOttIdAndUserId(
-                        ott.getId(), user.getId());
+                        ott.getId(),
+                        user.getId()
+                );
+
+                partyMember.setParty(party);
                 /*
                 * int 형으로 날짜 일수 차이를 계산
                 * 일수 차이 -> 결제 로직에 넣어주기
                 * */
-                partyMember.setParty(party);
             }
         } else {
             return CompletableFuture.completedFuture(false);
@@ -155,17 +160,20 @@ public class PartyMatchService {
 
         Party party = partyRepository.findByPartyIdAndUserId(partyId, user.getId())
                 .orElseThrow(() -> new PartyNotFoundException(ErrorCode.NOT_FOUND_PARTY));
+        log.info("파티 해체 : {}", party.getOtt().getName());
 
         // 파티장 부분정산 실행
-        accountService.caculatePartialSettlement(party);
 
         // 파티 멤버 삭제 및 대기 큐에 추가
         List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
 
         for (PartyMember member : partyMembers) {
+            log.info("파티원 큐에 넣어주기 : {}", member.getUser().getNickname());
             addPartyPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
             member.withdrawParty();
         }
+        accountService.caculatePartialSettlement(party);
+
         partyRepository.delete(party);
 
         // 추가적인 로직 (예: 사용자에게 알림 보내기 등)
@@ -173,11 +181,11 @@ public class PartyMatchService {
     }
 
     private void addPartyMemberToParty(final Party party, final Ott ott, final User user, final int capacity) {
-
-        PartyMember partyMember = PartyMember.of(user, party, ott, LocalDateTime.now());
-
-        party.changeStatus(capacity);
-        partyMemberRepository.save(partyMember);
+        if (party.getPartyStatus().equals(AVAILABLE)) {
+            PartyMember partyMember = PartyMember.of(user, party, ott, LocalDateTime.now());
+            party.changeStatus(capacity);
+            partyMemberRepository.save(partyMember);
+        }
     }
 
     private void addPartyPriorityQueue(Long ottId, MatchingType type, Long userId) {
