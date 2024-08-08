@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @EnableEncryptableProperties
@@ -20,7 +21,7 @@ public class EncryptUtils {
     private final StringEncryptor encryptor;
 
     @Autowired
-    public EncryptUtils(@Qualifier("jasyptStringEncryptor") StringEncryptor encryptor) {
+    public EncryptUtils(@Qualifier("jasyptStringEncryptor") @Lazy StringEncryptor encryptor) {
         this.encryptor = encryptor;
     }
 
@@ -32,6 +33,7 @@ public class EncryptUtils {
         return encryptor.decrypt(encryptedText);
     }
 
+    @Lazy
     @Bean("jasyptStringEncryptor")
     public StringEncryptor stringEncryptor() {
 
