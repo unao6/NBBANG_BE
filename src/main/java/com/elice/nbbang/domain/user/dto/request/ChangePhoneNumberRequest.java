@@ -6,6 +6,6 @@ import lombok.Data;
 public class ChangePhoneNumberRequest {
 
     private String newPhoneNumber;
-    private String verificationCode;
+    private String randomNumber;
 
 }
