@@ -6,7 +6,6 @@ import com.elice.nbbang.global.jwt.JWTFilter;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import com.elice.nbbang.global.jwt.LoginFilter;
 import com.elice.nbbang.domain.auth.service.CustomOAuth2UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

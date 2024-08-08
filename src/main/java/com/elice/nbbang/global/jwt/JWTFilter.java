@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.user.entity.UserRole;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,19 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 헤더에서 access키에 담긴 토큰을 꺼냄
+        // 헤더에서 access 키에 담긴 토큰을 꺼냄
         String accessToken = request.getHeader("access");
-        log.info("JWTFilter - Extracted Access Token: {}", accessToken);
+        log.info("JWTFilter - Extracted Access Token from Header: {}", accessToken);
+
+        // 헤더에서 토큰이 없다면 쿠키에서 꺼냄
+        if (accessToken == null) {
+            accessToken = Arrays.stream(request.getCookies())
+                    .filter(cookie -> "jwtToken".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+            log.info("JWTFilter - Extracted Access Token from Cookie: {}", accessToken);
+        }
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
@@ -57,11 +68,11 @@ public class JWTFilter extends OncePerRequestFilter {
             jwtUtil.isExpired(accessToken);
             log.info("JWTFilter - Access Token is valid");
         } catch (ExpiredJwtException e) {
-            //response body
+            // response body
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
 
-            //response status code
+            // response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -71,11 +82,11 @@ public class JWTFilter extends OncePerRequestFilter {
         log.info("JWTFilter - Token Category: {}", category);
 
         if (!category.equals("access")) {
-            //response body
+            // response body
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
 
-            //response status code
+            // response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
