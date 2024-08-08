@@ -115,13 +115,11 @@ public class PaymentService {
         Payment existingPayment = paymentRepository.findFirstByOttIdAndBillingKeyOrderByPaymentCreatedAtDesc(reserve.getOtt().getId(),
             reserve.getBillingKey()).orElse(null);
 
-        User user = (existingPayment != null) ? existingPayment.getUser() : userUtilService.getUserByEmail();
-
-        Card card = cardRepository.findByUserId(user.getId())
+        Card card = cardRepository.findByUserId(reserve.getUser().getId())
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
 
         Payment payment = Payment.builder()
-            .user(user)
+            .user(reserve.getUser())
             .cardCompany(card.getCardCompany())
             .billingKey(reserve.getBillingKey())
             .amount(amount)
