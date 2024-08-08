@@ -56,6 +56,7 @@ public class PartyMatchService {
     private final AccountService accountService;
     private final BootPayService bootPayService;
     private final EncryptUtils encryptUtils;
+    private final UserUtil userUtil;
 
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
