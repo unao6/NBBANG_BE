@@ -125,6 +125,7 @@ public class PartyService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PartyAdminResponse> getPartiesByEmail(String email, Pageable pageable) {
         Page<Party> partiesByEmail = partyRepository.findByEmail(email, pageable);
 
