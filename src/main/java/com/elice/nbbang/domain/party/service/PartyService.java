@@ -10,8 +10,11 @@ import com.elice.nbbang.domain.party.controller.dto.MyPartyResponse;
 import com.elice.nbbang.domain.party.controller.dto.PartyAdminResponse;
 import com.elice.nbbang.domain.party.controller.dto.PartyDetailResponse;
 import com.elice.nbbang.domain.party.entity.Party;
+import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.exception.DuplicateParty;
+import com.elice.nbbang.domain.party.exception.PartyMemberNotFoundException;
 import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
+import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
 public class PartyService {
 
     private final PartyRepository partyRepository;
+    private final PartyMemberRepository partyMemberRepository;
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
     private final UserUtil userUtil;
@@ -154,5 +158,21 @@ public class PartyService {
         return new PartyDetailResponse(party, isLeader);
 
 
+    }
+
+    public void withdrawParty(final Long partyId) {
+        log.info("party 탈퇴 시도");
+        String email = userUtil.getAuthenticatedUserEmail();
+        final User user = userRepository.findByEmail(email);
+
+        List<PartyMember> partyMemberByPartyId = partyMemberRepository.findPartyMemberByPartyId(partyId);
+
+        PartyMember partyMember = partyMemberByPartyId.stream()
+                .filter(pm -> pm.getId().equals(user.getId()))
+                .findFirst()
+                .orElseThrow(() -> new PartyMemberNotFoundException(ErrorCode.NOT_FOUND_PARTY_MEMBER));
+
+        partyMemberRepository.delete(partyMember);
+        log.info("party 탈퇴 성공");
     }
 }
