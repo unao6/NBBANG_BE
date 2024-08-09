@@ -44,7 +44,6 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final UserUtilService userUtilService;
     private final CardRepository cardRepository;
-    private final BootPayService bootPayService;
 
     public static final int FEE = 500;
     public static final int SETTLEMENT_FEE = 200;
@@ -77,7 +76,6 @@ public class PaymentService {
     }
 
     /**
-     * 카카오 페이 사용
      * 환불 신청 시 환불 금액, 결제 상태, 환불 요청일 업데이트 실제 환불이 진행되진 않음.
      */
     @Transactional(readOnly = false)
@@ -104,15 +102,6 @@ public class PaymentService {
 
             // Payment 객체의 상태 업데이트
             payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
-
-            //부트페이 로직 호출
-            if (payment.getPaymentType() == PaymentType.CARD) {
-                try {
-                    bootPayService.cancelPayment(payment.getReceiptId(), (double) refundAmount);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
 
             // 변경사항을 데이터베이스에 저장
             paymentRepository.save(payment);
@@ -142,13 +131,9 @@ public class PaymentService {
         paymentRepository.save(payment);
     }
 
-
     //payment 생성
     @Transactional(readOnly = false)
     public Payment createPayment(PaymentReserve reserve, String reserveId, int amount) {
-        Payment existingPayment = paymentRepository.findFirstByOttIdAndBillingKeyOrderByPaymentCreatedAtDesc(reserve.getOtt().getId(),
-            reserve.getBillingKey()).orElse(null);
-
         Card card = cardRepository.findByUserId(reserve.getUser().getId())
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
 
