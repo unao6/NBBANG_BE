@@ -2,7 +2,6 @@ package com.elice.nbbang.domain.payment.service;
 
 import com.elice.nbbang.domain.payment.dto.CardInfoResponse;
 import com.elice.nbbang.domain.payment.dto.CardPaymentRequest;
-import com.elice.nbbang.domain.payment.dto.CardRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.CardStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
@@ -10,6 +9,7 @@ import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.domain.user.service.UserUtilService;
+import com.elice.nbbang.global.config.EncryptUtils;
 import com.elice.nbbang.global.exception.CustomException;
 import com.elice.nbbang.global.exception.ErrorCode;
 import com.elice.nbbang.global.util.UserUtil;
@@ -25,9 +25,8 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final BootPayService bootPayService;
-    private final UserUtil userUtil;
-    private final UserRepository userRepository;
     private final UserUtilService userUtilService;
+    private final EncryptUtils encryptUtils;
 
     public CardInfoResponse getCardInfo(Long userId) {
         Optional<Card> userCardOptional = cardRepository.findByUserId(userId);
@@ -40,9 +39,11 @@ public class CardService {
         Card userCard = userCardOptional.get();
 
         if (userCard.getPaymentType() == PaymentType.CARD) { // 일반 카드
+            String decryptedCardNumber = encryptUtils.decrypt(userCard.getCardNumber());
+
             return CardInfoResponse.builder()
                 .cardCompany(userCard.getCardCompany())
-                .cardNumber(userCard.getCardNumber())
+                .cardNumber(decryptedCardNumber)
                 .build();
         } else { // 카카오페이
             return CardInfoResponse.builder()
@@ -57,30 +58,24 @@ public class CardService {
     public Card registerCard(CardPaymentRequest request, String billingKey) {
         User user = userUtilService.getUserByEmail();
 
+        String encryptedBillingKey = encryptUtils.encrypt(billingKey);
+        String encryptedCardNumber = encryptUtils.encrypt(request.getCardNumber());
+
         Card existingCard = cardRepository.findByUserId(user.getId()).orElse(null);
         if (existingCard != null) {
             cardRepository.delete(existingCard);
             cardRepository.flush();
-            Card card = Card.builder()
-                .user(user)
-                .billingKey(billingKey)
-                .cardNumber(request.getCardNumber())
-                .cardCompany(request.getCardCompany())
-                .cardStatus(CardStatus.AVAILABLE)
-                .paymentType(PaymentType.CARD)
-                .build();
-            cardRepository.save(card);
-            return card;
         }
 
         Card card = Card.builder()
             .user(user)
-            .billingKey(billingKey)
-            .cardNumber(request.getCardNumber())
+            .billingKey(encryptedBillingKey)
+            .cardNumber(encryptedCardNumber)
             .cardCompany(request.getCardCompany())
             .cardStatus(CardStatus.AVAILABLE)
             .paymentType(PaymentType.CARD)
             .build();
+
         cardRepository.save(card);
         return card;
     }
@@ -91,7 +86,8 @@ public class CardService {
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
         //발급받은 빌링키 취소
         try {
-            bootPayService.deleteBillingKey(card.getBillingKey());
+            String decryptedBillingKey = encryptUtils.decrypt(card.getBillingKey());
+            bootPayService.deleteBillingKey(decryptedBillingKey);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -19,12 +19,14 @@ public class AdminController {
     @GetMapping("/active")
     public ResponseEntity<List<User>> getAllActiveUsers() {
         List<User> activeUsers = adminService.getAllActiveUsers();
+
         return ResponseEntity.ok(activeUsers);
     }
 
     @GetMapping("/inactive")
     public ResponseEntity<List<User>> getAllInactiveUsers() {
         List<User> inactiveUsers = adminService.getAllInactiveUsers();
+
         return ResponseEntity.ok(inactiveUsers);
     }
 
@@ -32,6 +34,7 @@ public class AdminController {
     @PutMapping("/restore-account/{email}")
     public ResponseEntity<String> restoreUser(@PathVariable String email) {
         adminService.restoreUser(email);
+
         return ResponseEntity.ok("계정이 복구되었습니다.");
     }
 
@@ -39,6 +42,7 @@ public class AdminController {
     @PutMapping("/make-admin/{email}")
     public ResponseEntity<String> makeAdmin(@PathVariable String email) {
         adminService.makeAdmin(email);
+
         return ResponseEntity.ok("User has been promoted to admin.");
     }
 
@@ -46,6 +50,7 @@ public class AdminController {
     @GetMapping("/is-admin/{email}")
     public ResponseEntity<Boolean> isAdmin(@PathVariable String email) {
         boolean isAdmin = adminService.isAdmin(email);
+
         return ResponseEntity.ok(isAdmin);
     }
 }

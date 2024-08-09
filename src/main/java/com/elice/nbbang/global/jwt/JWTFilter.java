@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.user.entity.UserRole;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +18,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private static final List<String> EXCLUDE_URLS = Arrays.asList(
+            "/api/auth/google",
+            "/api/auth/google/callback",
+            "/api/auth/google/success"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -35,16 +43,19 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 리프레시 토큰 요청의 경우 accessToken 체크를 하지 않음
-        if ("/api/users/refresh-token".equals(request.getRequestURI())) {
-            log.info("JWTFilter - Skipping Access Token check for URI: /api/users/refresh-token");
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         // 헤더에서 access키에 담긴 토큰을 꺼냄
         String accessToken = request.getHeader("access");
-        log.info("JWTFilter - Extracted Access Token: {}", accessToken);
+        log.info("JWTFilter - Extracted Access Token from Header: {}", accessToken);
+
+        // 헤더에서 토큰이 없다면 쿠키에서 꺼냄
+        if (accessToken == null) {
+            accessToken = Arrays.stream(request.getCookies())
+                    .filter(cookie -> "jwtToken".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+            log.info("JWTFilter - Extracted Access Token from Cookie: {}", accessToken);
+        }
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
@@ -57,11 +68,11 @@ public class JWTFilter extends OncePerRequestFilter {
             jwtUtil.isExpired(accessToken);
             log.info("JWTFilter - Access Token is valid");
         } catch (ExpiredJwtException e) {
-            //response body
+            // response body
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
 
-            //response status code
+            // response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -71,11 +82,11 @@ public class JWTFilter extends OncePerRequestFilter {
         log.info("JWTFilter - Token Category: {}", category);
 
         if (!category.equals("access")) {
-            //response body
+            // response body
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
 
-            //response status code
+            // response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -100,4 +111,9 @@ public class JWTFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        log.info("Checking if request URI should be excluded from JWT filter: {}", request.getRequestURI());
+        return EXCLUDE_URLS.contains(request.getRequestURI());
+    }
 }

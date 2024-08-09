@@ -2,7 +2,7 @@ package com.elice.nbbang.domain.user.service;
 
 import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
 import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import com.elice.nbbang.domain.auth.entity.MailCertification;
 import com.elice.nbbang.domain.user.entity.User;
@@ -26,7 +26,6 @@ public class SignUpService {
 
     public boolean signUpProcess(UserSignUpDto userSignUpDto) {
         String email = userSignUpDto.getEmail();
-
         if (userRepository.existsByEmail(email)) {
             return false;
         }
@@ -39,9 +38,9 @@ public class SignUpService {
             return false;
         }
 
-        // PhoneCerfiticationRequestDto 객체로부터 phoneNumber를 추출
-        PhoneCerfiticationRequestDto phoneCerfiticationRequestDto = userSignUpDto.getPhoneCerfiticationRequestDto();
-        String phoneNumber = phoneCerfiticationRequestDto != null ? phoneCerfiticationRequestDto.getPhoneNumber() : null;
+        // PhoneCertificationRequestDto 객체로부터 phoneNumber를 추출
+        PhoneCertificationRequestDto phoneCertificationRequestDto = userSignUpDto.getPhoneCertificationRequestDto();
+        String phoneNumber = phoneCertificationRequestDto != null ? phoneCertificationRequestDto.getPhoneNumber() : null;
 
         User user = User.builder()
                 .email(email)
@@ -52,6 +51,7 @@ public class SignUpService {
                 .build();
 
         userRepository.save(user);
+
         return true;
     }
 
@@ -84,7 +84,6 @@ public class SignUpService {
     public boolean checkCertification(CheckCertificationRequestDto checkCertificationRequestDto) {
         String email = checkCertificationRequestDto.getEmail();
         String certificationNumber = checkCertificationRequestDto.getCertificationNumber();
-
 
         MailCertification mailCertification = mailRepository.findByEmail(email);
 

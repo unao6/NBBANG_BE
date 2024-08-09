@@ -2,6 +2,7 @@ package com.elice.nbbang.domain.payment.service;
 
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
+import com.elice.nbbang.domain.payment.dto.AccountInfoResponse;
 import com.elice.nbbang.domain.payment.dto.AccountRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Account;
 import com.elice.nbbang.domain.payment.entity.Payment;
@@ -11,6 +12,7 @@ import com.elice.nbbang.domain.payment.repository.AccountRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserUtilService;
+import com.elice.nbbang.global.config.EncryptUtils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -29,42 +31,47 @@ public class AccountService {
     private final UserUtilService userUtilService;
     private final PartyRepository partyRepository;
     private final PaymentRepository paymentRepository;
+    private final EncryptUtils encryptUtils;
 
     //계좌 조회
-    public Account getAccount() {
+    public AccountInfoResponse getAccount() {
         User user = userUtilService.getUserByEmail();
         Account account = accountRepository.findByUserId(user.getId())
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 계좌가 없습니다."));
-        return account;
+
+        String decryptedAccountNumber = encryptUtils.decrypt(account.getAccountNumber());
+        AccountInfoResponse accountInfoResponse = AccountInfoResponse.builder()
+            .bankName(account.getBankName())
+            .accountNumber(decryptedAccountNumber)
+            .build();
+        return accountInfoResponse;
     }
 
     //유저 계좌 등록
     @Transactional(readOnly = false)
-    public Account registerAccount(AccountRegisterDTO dto) {
+    public AccountInfoResponse registerAccount(AccountRegisterDTO dto) {
         User user = userUtilService.getUserByEmail();
 
         Account existingAccount = accountRepository.findByUserId(user.getId()).orElse(null);
         if (existingAccount != null) {
             accountRepository.delete(existingAccount);
             accountRepository.flush();
-            Account account = Account.builder()
-                .user(user)
-                .accountNumber(dto.getAccountNumber())
-                .bankName(dto.getBankName())
-                .balance(0L)
-                .build();
-            accountRepository.save(account);
-            return account;
         }
 
+        String encryptedAccountNumber = encryptUtils.encrypt(dto.getAccountNumber());
         Account account = Account.builder()
             .user(user)
-            .accountNumber(dto.getAccountNumber())
+            .accountNumber(encryptedAccountNumber)
             .bankName(dto.getBankName())
             .balance(0L)
             .build();
         accountRepository.save(account);
-        return account;
+
+        AccountInfoResponse accountInfoResponse = AccountInfoResponse.builder()
+            .accountNumber(dto.getAccountNumber())
+            .bankName(account.getBankName())
+            .build();
+        return accountInfoResponse;
     }
 
     //계좌 삭제
@@ -122,13 +129,8 @@ public class AccountService {
         long daysUntilSettlement = ChronoUnit.DAYS.between(LocalDateTime.now(), party.getSettlementDate());
         long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());
 
-        System.out.println("정산까지 남은일자: " + daysUntilSettlement);
-        System.out.println("총 정산일자: " + totalSettlement);
-
-        double ratio = daysUntilSettlement / totalSettlement;
-        long partialAmount = Math.round(amount * ratio);
-
-        System.out.println("잔여 정산금액: " + partialAmount);
+        double ratio = (double) daysUntilSettlement / totalSettlement;
+        long partialAmount = (long) Math.max((amount * ratio) - PaymentService.SETTLEMENT_FEE, 0);
 
         Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));
@@ -139,5 +141,15 @@ public class AccountService {
             serviceAccount.decreaseBalance(partialAmount);
             userAccount.increaseBalance(partialAmount);
         }
+
+        //Payment 추가
+        Payment payment = Payment.builder()
+            .amount((int) partialAmount)
+            .ottId(party.getOtt().getId())
+            .user(party.getLeader())
+            .bankName(userAccount.getBankName())
+            .status(PaymentStatus.PARTIAL_SETTLEMENT_COMPLETED)
+            .build();
+        paymentRepository.save(payment);
     }
 }
