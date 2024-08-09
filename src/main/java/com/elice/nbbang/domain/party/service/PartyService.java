@@ -21,6 +21,7 @@ import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
+import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
@@ -51,6 +52,7 @@ public class PartyService {
     private final UserUtil userUtil;
     private final PaymentService paymentService;
     private final CardRepository cardRepository;
+    private final BootPayService bootPayService;
 
     public Long createParty(final PartyCreateServiceRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
@@ -185,6 +187,10 @@ public class PartyService {
             log.info("카카오 페이 환불 시작");
             paymentService.getRefundAmount(user.getId(), partyMember.getOtt().getId());
             log.info("카카오 페이 환불 성공");
+        } else {
+            log.info("부트 페이 환불 시작");
+            bootPayService.refundPayment(user.getId(), partyMember.getOtt().getId());
+            log.info("부트 페이 환불 성공");
         }
 
         partyMemberRepository.delete(partyMember);

@@ -16,9 +16,9 @@ import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.service.AccountService;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.KakaoPayService;
+import com.elice.nbbang.domain.payment.service.PaymentService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
-import com.elice.nbbang.global.config.EncryptUtils;
 import com.elice.nbbang.global.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -55,7 +55,7 @@ public class PartyMatchService {
     private final AccountService accountService;
     private final BootPayService bootPayService;
     private final UserUtil userUtil;
-    private final EncryptUtils encryptUtils;
+    private final PaymentService paymentService;
 
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
@@ -138,6 +138,12 @@ public class PartyMatchService {
                         user.getId()
                 );
                 int rematchingDay = getRematchingDay(partyMember);
+
+                if (card.getPaymentType().equals(CARD)) {
+                    bootPayService.updatePayment(userId, ottId, rematchingDay);
+                } else {
+                    paymentService.updatePaymentSubscribedAt(userId, ottId, rematchingDay);
+                }
 
                 partyMember.setParty(party);
 
