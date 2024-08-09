@@ -84,7 +84,7 @@ public class ChatService {
 //    }
 
     // 메시지 전송
-    public Chat sendMessage(Long chatId, Long userId, Message message) {
+    public Chat sendMessage(Long chatId, Message message) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         chat.getMessages().add(message);
         chat.setLastRepliedAt(LocalDateTime.now());

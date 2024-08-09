@@ -21,11 +21,7 @@ public class NotificationController {
 
     @PostMapping("/email")
     public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
-        boolean isSent = notificationEmailProvider.sendEmail(
-                emailRequest.getEmail(),
-                emailRequest.getSubject(),
-                emailRequest.getMessage()
-        );
+        boolean isSent = notificationEmailProvider.sendEmail(emailRequest);
 
         if (isSent) {
             return ResponseEntity.ok("이메일 발송 성공");
