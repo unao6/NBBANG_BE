@@ -1,7 +1,5 @@
 package com.elice.nbbang.domain.payment.service;
 
-import com.elice.nbbang.domain.ott.entity.Ott;
-import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.payment.dto.AccountRegisterDTO;
@@ -13,13 +11,12 @@ import com.elice.nbbang.domain.payment.repository.AccountRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.UserUtilService;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,7 +117,7 @@ public class AccountService {
 
     //파티장 부분 정산
     @Transactional(readOnly = false)
-    public void caculatePartialSettlement(Party party) {
+    public void calculatePartialSettlement(Party party) {
         int amount = (party.getOtt().getPrice() / party.getOtt().getCapacity() * (party.getOtt().getCapacity() - 1)) - PaymentService.SETTLEMENT_FEE;
         long daysUntilSettlement = ChronoUnit.DAYS.between(LocalDateTime.now(), party.getSettlementDate());
         long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());

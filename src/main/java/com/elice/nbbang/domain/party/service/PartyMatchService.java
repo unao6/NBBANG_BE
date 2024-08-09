@@ -13,9 +13,7 @@ import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
-import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
-import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.payment.service.AccountService;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.KakaoPayService;
@@ -157,7 +155,7 @@ public class PartyMatchService {
                 .orElseThrow(() -> new PartyNotFoundException(ErrorCode.NOT_FOUND_PARTY));
 
         // 파티장 부분정산 실행
-        accountService.caculatePartialSettlement(party);
+        accountService.calculatePartialSettlement(party);
 
         // 파티 멤버 삭제 및 대기 큐에 추가
         List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
