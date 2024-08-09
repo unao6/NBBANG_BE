@@ -28,20 +28,15 @@ public class WebSocketController {
     @MessageMapping("/auth")
     public void authenticate(@Payload String token, SimpMessageHeaderAccessor headerAccessor) {
         try {
+            logger.debug("Received token: {}", token);
             String email = jwtUtil.getEmail(token);
             User user = userService.findByEmail(email);
+            logger.info("User authenticated: {}", user.getEmail());
 
-            if (user != null) {
-                // Save user information in session
-                headerAccessor.getSessionAttributes().put("user", user);
-                logger.info("User authenticated: {}", user.getEmail());
-            } else {
-                logger.warn("Invalid user for token");
-                // Handle connection termination or error
-            }
+            headerAccessor.getSessionAttributes().put("user", user);
+
         } catch (Exception e) {
             logger.error("Error during authentication", e);
-            // Handle connection termination or error
         }
     }
 

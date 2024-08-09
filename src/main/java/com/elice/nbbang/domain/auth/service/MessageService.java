@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.auth.service;
 
-import com.elice.nbbang.domain.auth.dto.request.PhoneCerfiticationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
 import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
 import com.elice.nbbang.domain.auth.repository.SmsCertification;
 import com.elice.nbbang.global.config.MessageProperties;
@@ -17,6 +17,7 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class MessageService {
+
     private final SmsCertification smsCertification;
     private final MessageProperties messageProperties;
 
@@ -38,11 +39,12 @@ public class MessageService {
         params.put("app_version", "test app 1.2");
         params.put("to", to);
         params.put("text", randomNum);
+
         return params;
     }
 
     // 인증번호 전송하기
-    public String sendSMS(PhoneCerfiticationRequestDto phoneCerfiticationRequestDto) {
+    public String sendSMS(PhoneCertificationRequestDto phoneCertificationRequestDto) {
         Message coolsms = new Message(messageProperties.getApikey(), messageProperties.getApisecret());
 
         // 랜덤한 인증 번호 생성
@@ -50,7 +52,7 @@ public class MessageService {
         System.out.println(randomNum);
 
         // 발신 정보 설정
-        HashMap<String, String> params = makeParams(phoneCerfiticationRequestDto.getPhoneNumber(), randomNum);
+        HashMap<String, String> params = makeParams(phoneCertificationRequestDto.getPhoneNumber(), randomNum);
         params.put("text", "N/BBANG 휴대폰인증 메시지 : 인증번호는" + "["+randomNum+"]" + "입니다.");
 
         try {
@@ -65,8 +67,7 @@ public class MessageService {
         }
 
         // DB에 발송한 인증번호 저장
-        smsCertification.createSmsCertification(phoneCerfiticationRequestDto.getPhoneNumber(),randomNum);
-
+        smsCertification.createSmsCertification(phoneCertificationRequestDto.getPhoneNumber(),randomNum);
 
         return "문자 전송이 완료되었습니다.";
     }

@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
+import com.elice.nbbang.global.config.EncryptUtils;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,13 +34,16 @@ public class BootPayService {
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
     private final OttRepository ottRepository;
+    private final EncryptUtils encryptUtils;
 
     public BootPayService(@Value("${bootpay.applicationId}") String applicationId,
-        @Value("${bootpay.privateKey}") String privateKey, PaymentService paymentService, PaymentRepository paymentRepository, OttRepository ottRepository) {
+        @Value("${bootpay.privateKey}") String privateKey, PaymentService paymentService, PaymentRepository paymentRepository,
+        OttRepository ottRepository, EncryptUtils encryptUtils) {
         this.bootpay = new Bootpay(applicationId, privateKey);
         this.paymentService = paymentService;
         this.paymentRepository = paymentRepository;
         this.ottRepository = ottRepository;
+        this.encryptUtils = encryptUtils;
     }
 
     //빌링키 조회
@@ -88,14 +92,15 @@ public class BootPayService {
 
         Ott ott = reserve.getOtt();
         int amount = (ott.getPrice() / ott.getCapacity()) + PaymentService.FEE;
+        String decryptedBillingKey = encryptUtils.decrypt(reserve.getBillingKey());
 
         SubscribePayload payload = new SubscribePayload();
-        payload.billingKey = reserve.getBillingKey();
+        payload.billingKey = decryptedBillingKey;
         payload.orderName = ORDER_NAME;
         payload.price = amount;
         payload.orderId = "" + (System.currentTimeMillis() / 1000);
 
-        Date date = Date.from(reserve.getPaymentSubscribedAt().atZone(ZoneId.of("UTC")).minusHours(9).toInstant());
+        Date date = Date.from(reserve.getPaymentSubscribedAt().atZone(ZoneId.of("UTC")).minusHours(9).plusMinutes(1).toInstant());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -109,9 +114,10 @@ public class BootPayService {
                 System.out.println("reserveSubscribe success");
 
                 String reserveId = res.get("reserve_id").toString();
+
                 paymentService.createPayment(reserve, reserveId, amount);
             } else {
-                System.out.println("reserveSubscribe false");
+                System.out.println("reserveSubscribe false" + res);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -166,12 +172,12 @@ public class BootPayService {
 
     //완료된 결제 취소
     @Transactional(readOnly = false)
-    public void cancelPayment(String id, Double cancelAmount) throws Exception {
+    public void cancelPayment(String receiptId, Double cancelAmount) throws Exception {
         bootpay.getAccessToken();
 
         try {
             Cancel cancel = new Cancel();
-            cancel.receiptId = id;
+            cancel.receiptId = encryptUtils.decrypt(receiptId);
             cancel.cancelPrice = cancelAmount;
 
             HashMap<String, Object> res = bootpay.receiptCancel(cancel);
@@ -179,7 +185,7 @@ public class BootPayService {
             if (res.get("error_code") == null) {
                 System.out.println("receiptCancel success");
 
-                paymentService.cancelPayment(id, cancelAmount);
+                paymentService.cancelPayment(receiptId, cancelAmount);
             } else {
                 System.out.println("receiptCancel false");
             }
@@ -205,7 +211,7 @@ public class BootPayService {
     }
 
     //예약완료된 payment를 주기마다 조회
-    @Scheduled(fixedRate = 60000)
+    //@Scheduled(fixedRate = 60000)
     @Transactional(readOnly = false)
     public void scheduledLookupReservation() {
         List<String> reserveIds = getAllReservedPayment();
@@ -215,7 +221,7 @@ public class BootPayService {
         }
     }
 
-    //정기결제 예약
+    //구독일이 지난 결제 진행, 다음회차 정기결제 예약
     @Transactional(readOnly = false)
     public void lookupReservation(String id) {
         try {
@@ -223,7 +229,11 @@ public class BootPayService {
 
             if (response.get("status").toString().equals("1")) {
                 Payment payment = getPaymentByReserveId(id);
-                payment.updateCompletePayment(PaymentStatus.COMPLETED, response.get("receipt_id").toString());
+
+                String receiptId = response.get("receipt_id").toString();
+                String encryptedReceiptId = encryptUtils.encrypt(receiptId);
+
+                payment.updateCompletePayment(PaymentStatus.COMPLETED, LocalDateTime.now(), encryptedReceiptId);
                 paymentRepository.save(payment);
 
                 //정기결제 30일 후 새로운 정기결제 예약
@@ -234,6 +244,7 @@ public class BootPayService {
 
                 PaymentReserve reserve = PaymentReserve.builder()
                     .billingKey(payment.getBillingKey())
+                    .user(payment.getUser())
                     .ott(ott)
                     .paymentSubscribedAt(newPaymentTime)
                     .build();

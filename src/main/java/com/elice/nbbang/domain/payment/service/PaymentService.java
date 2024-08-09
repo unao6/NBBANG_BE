@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.payment.service;
 
+import static com.elice.nbbang.global.exception.ErrorCode.PAYMENT_NOT_FOUND;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
@@ -15,6 +16,7 @@ import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.domain.user.service.UserUtilService;
+import com.elice.nbbang.global.exception.CustomException;
 import com.elice.nbbang.global.util.UserUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +44,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final UserUtilService userUtilService;
     private final CardRepository cardRepository;
+    private final BootPayService bootPayService;
 
     public static final int FEE = 500;
     public static final int SETTLEMENT_FEE = 200;
@@ -74,6 +77,7 @@ public class PaymentService {
     }
 
     /**
+     * 카카오 페이 사용
      * 환불 신청 시 환불 금액, 결제 상태, 환불 요청일 업데이트 실제 환불이 진행되진 않음.
      */
     @Transactional(readOnly = false)
@@ -91,7 +95,7 @@ public class PaymentService {
 
             // 결제 승인일로부터 환불 신청일까지의 일수 계산
             LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
-            LocalDate currentDate = LocalDate.of(2024, 8, 20); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
+            LocalDate currentDate = LocalDate.now(); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
             long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
 
             // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
@@ -101,11 +105,41 @@ public class PaymentService {
             // Payment 객체의 상태 업데이트
             payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
 
+            //부트페이 로직 호출
+            if (payment.getPaymentType() == PaymentType.CARD) {
+                try {
+                    bootPayService.cancelPayment(payment.getReceiptId(), (double) refundAmount);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             // 변경사항을 데이터베이스에 저장
             paymentRepository.save(payment);
         } else {
-            throw new NoSuchElementException("해당 사용자와 OTT ID에 대한 결제 내역이 없습니다.");
+            throw new CustomException(PAYMENT_NOT_FOUND);
         }
+    }
+
+    /**
+     * 재매칭 시 다음 결제일 수정 로직
+     */
+    @Transactional(readOnly = false)
+    public void updatePaymentSubscribedAt(Long userId, Long ottId, int delayDate) {
+        Optional<Payment> paymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+
+        Payment payment = paymentOptional.orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+
+        LocalDateTime currentSubscribedAt = payment.getPaymentSubscribedAt();
+
+        // 현재 결제일에 delayDate만큼 더함
+        LocalDateTime updatedSubscribedAt = currentSubscribedAt.plusDays(delayDate);
+
+        // 수정된 결제일을 설정
+        payment.updatePaymentSubscribedAt(updatedSubscribedAt);
+
+        // 변경 사항 저장
+        paymentRepository.save(payment);
     }
 
 
@@ -115,13 +149,11 @@ public class PaymentService {
         Payment existingPayment = paymentRepository.findFirstByOttIdAndBillingKeyOrderByPaymentCreatedAtDesc(reserve.getOtt().getId(),
             reserve.getBillingKey()).orElse(null);
 
-        User user = (existingPayment != null) ? existingPayment.getUser() : userUtilService.getUserByEmail();
-
-        Card card = cardRepository.findByUserId(user.getId())
+        Card card = cardRepository.findByUserId(reserve.getUser().getId())
             .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
 
         Payment payment = Payment.builder()
-            .user(user)
+            .user(reserve.getUser())
             .cardCompany(card.getCardCompany())
             .billingKey(reserve.getBillingKey())
             .amount(amount)
@@ -150,9 +182,8 @@ public class PaymentService {
     public void cancelPayment(String id, Double cancelAmount) {
         Payment payment = paymentRepository.findByReceiptId(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
-            .status(PaymentStatus.CANCELED)
+            .status(PaymentStatus.REFUNDED_COMPLETED)
             .refundAmount(cancelAmount.intValue())
-            .refundDate(LocalDateTime.now())
             .build();
         paymentRepository.save(updatedPayment);
     }

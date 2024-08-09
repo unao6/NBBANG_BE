@@ -25,7 +25,8 @@ public enum ErrorCode {
     MESSAGE_SEND_ERROR(500, "메세지 전송 중 오류가 발생했습니다."),
 
     //Payment
-    CARD_NOT_FOUND(404, "등록된 카드가 없습니다.");
+    CARD_NOT_FOUND(404, "등록된 카드가 없습니다."),
+    PAYMENT_NOT_FOUND(404, "결제 정보를 찾을 수 없습니다.");
 
     private final int status;
     private final String message;

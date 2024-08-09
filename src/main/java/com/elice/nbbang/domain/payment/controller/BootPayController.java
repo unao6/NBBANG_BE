@@ -6,6 +6,7 @@ import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.CardService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
+import com.elice.nbbang.global.config.EncryptUtils;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class BootPayController {
 
     private final BootPayService bootPayService;
     private final CardService cardService;
-    private final PaymentService paymentService;
+    private final EncryptUtils encryptUtils;
 
     /*
      * 카드 등록 API
@@ -41,6 +42,7 @@ public class BootPayController {
         Map<String, String> response = new HashMap<>();
         try {
             String billingKey = bootPayService.getBillingKey(request.getReceiptId());
+
             cardService.registerCard(request, billingKey);
             response.put("message", "register completed");
             response.put("status", "success");

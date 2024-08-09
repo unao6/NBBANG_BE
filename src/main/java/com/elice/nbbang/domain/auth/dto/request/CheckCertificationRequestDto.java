@@ -9,4 +9,5 @@ public class CheckCertificationRequestDto {
 
     private String email;
     private String certificationNumber;
+
 }

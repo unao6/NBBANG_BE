@@ -18,6 +18,7 @@ import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.global.config.EncryptUtils;
 import com.elice.nbbang.global.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -54,6 +55,8 @@ public class PartyMatchService {
     private final AccountService accountService;
     private final BootPayService bootPayService;
     private final UserUtil userUtil;
+    private final EncryptUtils encryptUtils;
+
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
@@ -112,7 +115,8 @@ public class PartyMatchService {
                     PaymentReserve reserve = PaymentReserve.builder()
                         .billingKey(card.getBillingKey())
                         .ott(ott)
-                        .paymentSubscribedAt(LocalDateTime.now().plusMinutes(1))
+                        .user(user)
+                        .paymentSubscribedAt(LocalDateTime.now())
                         .build();
                     log.info("reserve : {}", reserve);
                     try {
