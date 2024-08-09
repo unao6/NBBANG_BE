@@ -216,25 +216,30 @@ public class BootPayService {
                 Payment payment = getPaymentByReserveId(id);
 
                 String receiptId = response.get("receipt_id").toString();
-                String encryptedReceiptId = encryptUtils.encrypt(receiptId);
+                if (receiptId != null) {
+                    String encryptedReceiptId = encryptUtils.encrypt(receiptId);
 
-                payment.updateCompletePayment(PaymentStatus.COMPLETED, LocalDateTime.now(), encryptedReceiptId);
-                paymentRepository.save(payment);
+                    payment.updateCompletePayment(PaymentStatus.COMPLETED, LocalDateTime.now(), encryptedReceiptId);
+                    paymentRepository.save(payment);
 
-                //정기결제 30일 후 새로운 정기결제 예약
-                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
+                    //정기결제 30일 후 새로운 정기결제 예약
+                    LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
 
-                Ott ott = ottRepository.findById(payment.getOttId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Ott입니다."));
+                    Ott ott = ottRepository.findById(payment.getOttId())
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Ott입니다."));
 
-                PaymentReserve reserve = PaymentReserve.builder()
-                    .billingKey(payment.getBillingKey())
-                    .user(payment.getUser())
-                    .ott(ott)
-                    .paymentSubscribedAt(newPaymentTime)
-                    .build();
+                    PaymentReserve reserve = PaymentReserve.builder()
+                        .billingKey(payment.getBillingKey())
+                        .user(payment.getUser())
+                        .ott(ott)
+                        .paymentSubscribedAt(newPaymentTime)
+                        .build();
 
-                reservePayment(reserve);
+                    reservePayment(reserve);
+                } else {
+                    //receiptId가 반환되지 않을 시 = 결제 실패 시 payment 상태 업데이트
+                    payment.updateFailurePayment(PaymentStatus.FAILED);
+                }
             } else if (response.get("status").toString().equals("3")) {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
