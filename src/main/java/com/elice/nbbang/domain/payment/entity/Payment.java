@@ -103,9 +103,11 @@ public class Payment extends BaseTimeEntity {
         this.sid = sid;
         this.paymentApprovedAt = approvedAt;
     }
-
     public void updateSubscribtionPayment(PaymentStatus status, LocalDateTime paymentSubscribedAt) {
         this.status = status;
+        this.paymentSubscribedAt = paymentSubscribedAt;
+    }
+    public void updatePaymentSubscribedAt(LocalDateTime paymentSubscribedAt){
         this.paymentSubscribedAt = paymentSubscribedAt;
     }
     public void updateRefundPayment(PaymentStatus status, Integer refundAmount, LocalDateTime refundDate) {
