@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.party.entity.MatchingType;
 import com.elice.nbbang.domain.party.entity.Party;
 import com.elice.nbbang.domain.party.entity.PartyMember;
 import com.elice.nbbang.domain.party.entity.PartyStatus;
+import com.elice.nbbang.domain.party.exception.PartyNotFoundException;
 import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyMatchServiceRequest;
@@ -17,8 +18,10 @@ import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.payment.service.AccountService;
 import com.elice.nbbang.domain.payment.service.BootPayService;
+import com.elice.nbbang.domain.payment.service.KakaoPayService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.global.config.EncryptUtils;
 import com.elice.nbbang.global.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +36,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+
+import static com.elice.nbbang.domain.payment.entity.enums.PaymentType.*;
+
 
 @Slf4j
 @Transactional
@@ -47,16 +52,18 @@ public class PartyMatchService {
     private final CardRepository cardRepository;
     private final PartyMemberRepository partyMemberRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    private final PaymentRepository paymentRepository;
+    private final KakaoPayService kakaoPayService;
     private final AccountService accountService;
     private final BootPayService bootPayService;
     private final UserUtil userUtil;
+    private final EncryptUtils encryptUtils;
 
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
     * 있다면 처리를 어떻게 해야할까?
     * */
     public boolean addPartyMatchingQueue(final PartyMatchServiceRequest request) {
+        log.info("addPartyMatchingQueue : {}", "Redis 큐에 넣기");
         final Ott ott = ottRepository.findById(request.ottId())
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
@@ -69,10 +76,12 @@ public class PartyMatchService {
         String setKey = "waiting_set:" + ott.getId();
 
         if (isDuplicateMatching(setKey, duplicatedString)) {
+            log.info("중복된 레디스");
             return false;
         }
 
         addPartyMatchingQueue(setKey, listKey, requestString, duplicatedString);
+        log.info("레디스 큐 넣기 성공");
         return true;
     }
 
@@ -81,7 +90,7 @@ public class PartyMatchService {
     * 동시성 문제 해결?
     * */
     @Async("threadPoolTaskExecutor")
-    public CompletableFuture<Boolean> partyMatch(final Long userId, final MatchingType type, final Long ottId) {
+    public CompletableFuture<Boolean> partyMatch(final Long userId, final MatchingType type, final Long ottId) throws Exception {
         final Ott ott = ottRepository.findById(ottId)
                 .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
 
@@ -108,10 +117,11 @@ public class PartyMatchService {
             Party party = availableParty.get();
             if (type.equals(MatchingType.MATCHING)) {
                 // 카드 결제 서비스 로직여기서 시도하고 결제가 완료되면 Party, PartyMember 관계 맺기
-                if (card.getPaymentType() == PaymentType.CARD) { // 카드 결제
+                if (card.getPaymentType().equals(CARD)) { // 카드 결제
                     PaymentReserve reserve = PaymentReserve.builder()
                         .billingKey(card.getBillingKey())
                         .ott(ott)
+                        .user(user)
                         .paymentSubscribedAt(LocalDateTime.now())
                         .build();
                     try {
@@ -120,10 +130,11 @@ public class PartyMatchService {
                         e.printStackTrace();
                     }
                 } else { // 카카오페이 결제
+                    log.info("결제 시도");
+                    kakaoPayService.subscription(userId, ottId);
+                    log.info("결제 성공");
 
                 }
-                // PartyMember 를 처음 생성하는 것
-                log.info("결제 시도");
                 addPartyMemberToParty(party, ott, user, capacity);
             } else {
                 // 원래 있는 PartyMember 에서 새로운 Party 를 부여하는 메서드
@@ -144,8 +155,10 @@ public class PartyMatchService {
 
     @Transactional
     public void partyBreakup(final Long partyId) {
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new NoSuchElementException("조회된 파티가 없습니다."));
+        User user = getAuthenticatedUser();
+
+        Party party = partyRepository.findByPartyIdAndUserId(partyId, user.getId())
+                .orElseThrow(() -> new PartyNotFoundException(ErrorCode.NOT_FOUND_PARTY));
 
         // 파티장 부분정산 실행
         accountService.caculatePartialSettlement(party);
@@ -155,7 +168,7 @@ public class PartyMatchService {
 
         for (PartyMember member : partyMembers) {
             addPartyPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
-            member.removeParty();
+            member.withdrawParty();
         }
         partyRepository.delete(party);
 

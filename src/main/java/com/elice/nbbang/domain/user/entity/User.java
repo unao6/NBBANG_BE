@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.user.entity;
 
+import com.elice.nbbang.domain.auth.entity.Auth;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,6 +33,10 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(name = "deleted", nullable = false)
+    @Column(name = "deleted")
     private boolean deleted = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Auth auth;
+
 }

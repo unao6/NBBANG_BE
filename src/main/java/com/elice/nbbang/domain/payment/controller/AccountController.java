@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.payment.controller;
 
+import com.elice.nbbang.domain.payment.dto.AccountInfoResponse;
 import com.elice.nbbang.domain.payment.dto.AccountRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Account;
 import com.elice.nbbang.domain.payment.service.AccountService;
@@ -21,15 +22,15 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping("/info")
-    public ResponseEntity<Account> getAccount() {
-        Account account = accountService.getAccount();
-        return ResponseEntity.ok(account);
+    public ResponseEntity<AccountInfoResponse> getAccount() {
+        AccountInfoResponse accountInfoResponse = accountService.getAccount();
+        return ResponseEntity.ok(accountInfoResponse);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Account> createAccount(@RequestBody AccountRegisterDTO dto) {
-        Account account = accountService.registerAccount(dto);
-        return ResponseEntity.ok(account);
+    public ResponseEntity<AccountInfoResponse> createAccount(@RequestBody AccountRegisterDTO dto) {
+        AccountInfoResponse accountInfoResponse = accountService.registerAccount(dto);
+        return ResponseEntity.ok(accountInfoResponse);
     }
 
     @DeleteMapping("/delete")

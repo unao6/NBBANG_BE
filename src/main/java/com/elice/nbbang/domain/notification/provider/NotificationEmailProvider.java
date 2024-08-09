@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.notification.email.provider;
+package com.elice.nbbang.domain.notification.provider;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

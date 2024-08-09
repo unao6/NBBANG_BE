@@ -1,39 +1,41 @@
 package com.elice.nbbang.domain.auth.dto;
 
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
 public class CustomOAuth2User implements OAuth2User {
 
-    private final UserSignUpDto userSignUpDto;
+    private final OAuth2User oAuth2User;
+    private final String jwtToken;
 
-    public CustomOAuth2User(UserSignUpDto userSignUpDto) {
-        this.userSignUpDto = userSignUpDto;
+    public CustomOAuth2User(OAuth2User oAuth2User, String jwtToken) {
+        this.oAuth2User = oAuth2User;
+        this.jwtToken = jwtToken;
+    }
+
+    public String getJwtToken() {
+        return jwtToken;
     }
 
     @Override
     public Map<String, Object> getAttributes() {
-        return null; // 필요에 따라 구현
+        return oAuth2User.getAttributes();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> collection = new ArrayList<>();
-        collection.add((GrantedAuthority) () -> "ROLE_USER");
-        return collection;
+        return oAuth2User.getAuthorities();
     }
 
     @Override
     public String getName() {
-        return userSignUpDto.getNickname();
+        return oAuth2User.getName();
     }
 
     public String getEmail() {
-        return userSignUpDto.getEmail();
+        return oAuth2User.getAttribute("email");
     }
 }

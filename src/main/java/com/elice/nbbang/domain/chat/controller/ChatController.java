@@ -23,6 +23,7 @@ public class ChatController{
     private final UserUtil userUtil;
     private final UserService userService;
 
+
     @PostMapping("/start")
     public ResponseEntity<ChatResponse> startChat() {
         String userEmail = userUtil.getAuthenticatedUserEmail();
