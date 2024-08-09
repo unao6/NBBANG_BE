@@ -3,9 +3,13 @@ package com.elice.nbbang.domain.chat.controller;
 import com.elice.nbbang.domain.chat.dto.Message;
 import com.elice.nbbang.domain.chat.dto.MessageRequest;
 import com.elice.nbbang.domain.chat.service.ChatService;
+import com.elice.nbbang.domain.notification.controller.NotificationController;
+import com.elice.nbbang.domain.notification.dto.SmsRequest;
 import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
+import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +48,9 @@ public class WebSocketController {
     @SendTo("/topic/messages/{chatId}")
     public Message sendMessage(MessageRequest messageRequest) {
         Long chatId = messageRequest.getChatId();
-        Long userId = messageRequest.getUserId();
         Message message = messageRequest.getMessage();
 
-        chatService.sendMessage(chatId, userId, message);
+        chatService.sendMessage(chatId, message);
 
         return message;
     }
