@@ -116,8 +116,9 @@ public class Payment extends BaseTimeEntity {
         this.refundDate = refundDate;
     }
 
-    public void updateCompletePayment(PaymentStatus status, String receiptId) {
+    public void updateCompletePayment(PaymentStatus status, LocalDateTime paymentApprovedAt, String receiptId) {
         this.status = status;
+        this.paymentApprovedAt = paymentApprovedAt;
         this.receiptId = receiptId;
     }
 }
