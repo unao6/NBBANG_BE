@@ -42,6 +42,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final UserUtilService userUtilService;
     private final CardRepository cardRepository;
+    private final BootPayService bootPayService;
 
     public static final int FEE = 500;
     public static final int SETTLEMENT_FEE = 200;
@@ -91,7 +92,7 @@ public class PaymentService {
 
             // 결제 승인일로부터 환불 신청일까지의 일수 계산
             LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
-            LocalDate currentDate = LocalDate.of(2024, 8, 20); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
+            LocalDate currentDate = LocalDate.now(); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
             long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
 
             // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
@@ -101,13 +102,21 @@ public class PaymentService {
             // Payment 객체의 상태 업데이트
             payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
 
+            //부트페이 로직 호출
+            if (payment.getPaymentType() == PaymentType.CARD) {
+                try {
+                    bootPayService.cancelPayment(payment.getReceiptId(), (double) refundAmount);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             // 변경사항을 데이터베이스에 저장
             paymentRepository.save(payment);
         } else {
             throw new NoSuchElementException("해당 사용자와 OTT ID에 대한 결제 내역이 없습니다.");
         }
     }
-
 
     //payment 생성
     @Transactional(readOnly = false)
@@ -148,9 +157,8 @@ public class PaymentService {
     public void cancelPayment(String id, Double cancelAmount) {
         Payment payment = paymentRepository.findByReceiptId(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
-            .status(PaymentStatus.CANCELED)
+            .status(PaymentStatus.REFUNDED_COMPLETED)
             .refundAmount(cancelAmount.intValue())
-            .refundDate(LocalDateTime.now())
             .build();
         paymentRepository.save(updatedPayment);
     }

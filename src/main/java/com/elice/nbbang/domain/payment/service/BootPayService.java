@@ -221,7 +221,7 @@ public class BootPayService {
         }
     }
 
-    //정기결제 예약
+    //구독일이 지난 결제 진행, 다음회차 정기결제 예약
     @Transactional(readOnly = false)
     public void lookupReservation(String id) {
         try {
@@ -233,7 +233,7 @@ public class BootPayService {
                 String receiptId = response.get("receipt_id").toString();
                 String encryptedReceiptId = encryptUtils.encrypt(receiptId);
 
-                payment.updateCompletePayment(PaymentStatus.COMPLETED, encryptedReceiptId);
+                payment.updateCompletePayment(PaymentStatus.COMPLETED, LocalDateTime.now(), encryptedReceiptId);
                 paymentRepository.save(payment);
 
                 //정기결제 30일 후 새로운 정기결제 예약
