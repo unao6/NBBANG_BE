@@ -24,7 +24,11 @@ public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> 
     PartyMember findPartyMemberByOttIdAndUserId(@Param("ottId") Long ottId, @Param("userId") Long userId);
 
 
-    @Query("select pm from PartyMember pm join fetch pm.party where pm.party.id = :partyId")
+    @Query("select pm" +
+            " from PartyMember pm" +
+            " join fetch pm.party" +
+            " join fetch pm.ott" +
+            " where pm.party.id = :partyId")
     List<PartyMember> findPartyMemberByPartyId(Long partyId);
 
 }

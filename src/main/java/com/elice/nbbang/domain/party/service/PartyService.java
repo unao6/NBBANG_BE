@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.party.service;
 
 import static com.elice.nbbang.domain.party.entity.PartyStatus.*;
+import static com.elice.nbbang.domain.payment.entity.enums.PaymentType.*;
 
 import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
 import com.elice.nbbang.domain.ott.entity.Ott;
@@ -18,7 +19,9 @@ import com.elice.nbbang.domain.party.repository.PartyMemberRepository;
 import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
-import com.elice.nbbang.domain.payment.service.KakaoPayService;
+import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.repository.CardRepository;
+import com.elice.nbbang.domain.payment.service.PaymentService;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.exception.ErrorCode;
@@ -31,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -45,7 +49,8 @@ public class PartyService {
     private final OttRepository ottRepository;
     private final UserRepository userRepository;
     private final UserUtil userUtil;
-    private final KakaoPayService kakaoPayService;
+    private final PaymentService paymentService;
+    private final CardRepository cardRepository;
 
     public Long createParty(final PartyCreateServiceRequest request) {
         final Ott ott = ottRepository.findById(request.ottId())
@@ -166,12 +171,21 @@ public class PartyService {
         String email = userUtil.getAuthenticatedUserEmail();
         final User user = userRepository.findByEmail(email);
 
+        Card card = cardRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("조회된 카드가 없습니다."));
+
         List<PartyMember> partyMemberByPartyId = partyMemberRepository.findPartyMemberByPartyId(partyId);
 
         PartyMember partyMember = partyMemberByPartyId.stream()
                 .filter(pm -> pm.getId().equals(user.getId()))
                 .findFirst()
                 .orElseThrow(() -> new PartyMemberNotFoundException(ErrorCode.NOT_FOUND_PARTY_MEMBER));
+
+        if (card.getPaymentType().equals(KAKAOPAY)) {
+            log.info("카카오 페이 환불 시작");
+            paymentService.getRefundAmount(user.getId(), partyMember.getOtt().getId());
+            log.info("카카오 페이 환불 성공");
+        }
 
         partyMemberRepository.delete(partyMember);
         log.info("party 탈퇴 성공");

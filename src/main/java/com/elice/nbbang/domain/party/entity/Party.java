@@ -71,7 +71,7 @@ public class Party extends BaseTimeEntity {
     }
 
     public void changeStatus(int capacity) {
-        if (capacity == partyMembers.size()) {
+        if (capacity == partyMembers.size() - 1) {
             this.partyStatus = PartyStatus.FULL;
         }
     }
