@@ -1,5 +1,6 @@
 package com.elice.nbbang.domain.auth.entity;
 
+import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,9 +18,6 @@ public class Auth extends BaseTimeEntity {
     @Column(name = "auth_id")
     private Long authId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "provider")
     private Provider provider;
@@ -33,8 +31,12 @@ public class Auth extends BaseTimeEntity {
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
+
     // Enum type for provider
     public enum Provider {
-        GOOGLE, FACEBOOK, GITHUB // 필요한 다른 provider 값 추가 가능
+        GOOGLE // 필요 시 다른 provider 추가 가능
     }
 }

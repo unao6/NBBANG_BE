@@ -52,7 +52,7 @@ public class AuthController {
         response.addCookie(jwtCookie);
 
         // 클라이언트로 리다이렉트
-        response.sendRedirect("http://localhost:3000");
+        response.sendRedirect("http://localhost:3000/redirect");
     }
 
     @GetMapping("/token")
