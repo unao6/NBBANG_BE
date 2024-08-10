@@ -1,6 +1,8 @@
 package com.elice.nbbang.domain.party.repository;
 
 import com.elice.nbbang.domain.party.entity.PartyMember;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,5 +33,12 @@ public interface PartyMemberRepository extends JpaRepository<PartyMember, Long> 
             " where pm.party.id = :partyId")
     List<PartyMember> findPartyMemberByPartyId(Long partyId);
 
+    @Query("select pm from PartyMember pm " +
+            "join pm.ott o " +
+            "join pm.user u " +
+            "where pm.expirationDate >= :startOfDay and pm.expirationDate <= :endOfDay")
+    List<PartyMember> findPartyMembersByExpirationDate(
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
 }
 
