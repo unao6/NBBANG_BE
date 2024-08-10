@@ -3,10 +3,8 @@ package com.elice.nbbang.domain.payment.service;
 import static com.elice.nbbang.global.exception.ErrorCode.PAYMENT_NOT_FOUND;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
-import com.elice.nbbang.domain.ott.entity.Ott;
-import com.elice.nbbang.domain.ott.repository.OttRepository;
+
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
-import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
@@ -21,16 +19,12 @@ import com.elice.nbbang.global.util.UserUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import com.elice.nbbang.domain.payment.dto.PaymentRegisterDTO;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,30 +43,35 @@ public class PaymentService {
     public static final int SETTLEMENT_FEE = 200;
 
     /**
-     * 모든 Payments 조회
+     * 모든 Payments 조회 page 적용
      */
-    public List<PaymentDto> getAllPayments() {
-        return paymentRepository.findAllByOrderByPaymentCreatedAtDesc().stream()
-            .map(PaymentDto::fromEntity)
-            .collect(Collectors.toList());
+    public Page<PaymentDto> getAllPayments(Pageable pageable) {
+        return paymentRepository.findAllByOrderByPaymentCreatedAtDesc(pageable)
+            .map(PaymentDto::fromEntity);
     }
 
     /**
      * userId로 Payments 조회
      */
-    public List<PaymentDto> getPaymentsByUserId(Long userId) {
-        return paymentRepository.findByUserIdOrderByPaymentCreatedAtDesc(userId).stream()
-            .map(PaymentDto::fromEntity)
-            .collect(Collectors.toList());
+    public Page<PaymentDto> getPaymentsByPartnerUserId(String partnerUserId, Pageable pageable) {
+        return paymentRepository.findByPartnerUserIdContainingOrderByPaymentCreatedAtDesc(partnerUserId, pageable)
+            .map(PaymentDto::fromEntity);
+    }
+
+    /**
+     * TID로 Payments 조회
+     */
+    public Page<PaymentDto> getPaymentsByTid(String tid, Pageable pageable) {
+        return paymentRepository.findByTidContainingOrderByPaymentCreatedAtDesc(tid, pageable)
+            .map(PaymentDto::fromEntity);
     }
 
     /**
      * 상태별 Payments 조회
      */
-    public List<PaymentDto> getPaymentsByStatus(PaymentStatus status) {
-        return paymentRepository.findByStatusOrderByPaymentCreatedAtDesc(status).stream()
-            .map(PaymentDto::fromEntity)
-            .collect(Collectors.toList());
+    public Page<PaymentDto> getPaymentsByStatus(PaymentStatus status, Pageable pageable) {
+        return paymentRepository.findByStatusOrderByPaymentCreatedAtDesc(status, pageable)
+            .map(PaymentDto::fromEntity);
     }
 
     /**
