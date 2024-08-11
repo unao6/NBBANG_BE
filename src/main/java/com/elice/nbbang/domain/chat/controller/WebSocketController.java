@@ -44,10 +44,9 @@ public class WebSocketController {
     @SendTo("/topic/messages/{chatId}")
     public Message sendMessage(MessageRequest messageRequest) {
         Long chatId = messageRequest.getChatId();
-        Long userId = messageRequest.getUserId();
         Message message = messageRequest.getMessage();
 
-        chatService.sendMessage(chatId, userId, message);
+        chatService.sendMessage(chatId, message);
 
         return message;
     }

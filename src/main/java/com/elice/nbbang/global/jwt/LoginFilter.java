@@ -26,7 +26,7 @@ import java.util.Iterator;
 @Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
-    private static final long ACCESS_TOKEN_EXPIRATION_MS = 86400000L; // 10 minutes
+    private static final long ACCESS_TOKEN_EXPIRATION_MS = 600000L; // 10 minutes
     private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
 
     private final AuthenticationManager authenticationManager;

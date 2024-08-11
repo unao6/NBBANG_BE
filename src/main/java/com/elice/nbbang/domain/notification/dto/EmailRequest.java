@@ -1,4 +1,4 @@
-package com.elice.nbbang.domain.notification.email.dto;
+package com.elice.nbbang.domain.notification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

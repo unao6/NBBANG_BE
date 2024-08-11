@@ -42,6 +42,8 @@ public class PartyMember extends BaseTimeEntity {
 
     private LocalDateTime expirationDate;
 
+    private LocalDateTime breakUpDate;
+
     public static PartyMember of(User user, Party party, Ott ott, LocalDateTime joinDate) {
 
         PartyMember partyMember = new PartyMember();
@@ -59,6 +61,9 @@ public class PartyMember extends BaseTimeEntity {
         if (!party.getPartyMembers().contains(this)) {
             party.getPartyMembers().add(this);
         }
+    }
+    public void addBreakUpDate(LocalDateTime breakUpDate) {
+        this.breakUpDate = breakUpDate;
     }
 
     public void withdrawParty() {

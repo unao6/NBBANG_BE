@@ -59,6 +59,7 @@ dependencies {
 
     // SMS
     implementation 'net.nurigo:javaSDK:2.2'
+    implementation 'net.nurigo:sdk:4.3.0'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
