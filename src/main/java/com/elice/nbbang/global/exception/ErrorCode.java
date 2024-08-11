@@ -16,6 +16,9 @@ public enum ErrorCode {
     NOT_FOUND_PARTY(404, "조회된 Party가 없습니다."),
     DUPLICATE_PARTY(400, "이미 이용중인 OTT 입니다."),
 
+    //PartyMember
+    NOT_FOUND_PARTY_MEMBER(404, "PartyMember 찾을 수 없습니다."),
+
     //Chat
     CHAT_NOT_FOUND(404, "채팅을 찾을 수 없습니다."),
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다."),

@@ -19,6 +19,7 @@ import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.global.config.EncryptUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -53,6 +54,7 @@ public class KakaoPayService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final OttRepository ottRepository;
+    private final EncryptUtils encryptUtils;
 
     /**
      * 1.결제준비 (카드 등록을 위한)
@@ -125,7 +127,7 @@ public class KakaoPayService {
     /**
      * 2.결제승인 (카드 등록을 위한)
      * tid와 pg_token을 파라미터로 전달받아 데이터 세팅 후 카카오페이에 요청
-     * sid 확보, 상태변경
+     * sid 확보, 상태변경, 암호화
      */
     public void approveSubscription(String tid, String pgToken) throws Exception {
         log.info("2.결제 승인 요청 시작. tid: {}, pgToken: {}", tid, pgToken);
@@ -178,8 +180,13 @@ public class KakaoPayService {
                     log.info("2-3 기존 카드 정보가 있다면 삭제.");
                 }
 
+                // 카드 정보 암호화
+                log.info("2-4. 카드 정보 암호화 전 sid: {}", kakaoResponse.getSid());
+                String encryptedSid = encryptUtils.encrypt(kakaoResponse.getSid());
+                log.info("2-4. 카드 정보 암호화 후 sid: {}", encryptedSid);
+
                 // 카드 정보 저장
-                Card card = new Card(user, kakaoResponse.getCardInfo(), kakaoResponse.getSid());
+                Card card = new Card(user, kakaoResponse.getCardInfo(), encryptedSid);
                 cardRepository.save(card);
                 log.info("2-4. 카드 정보 저장");
 
@@ -326,6 +333,9 @@ public class KakaoPayService {
         }
         Card card = cardOptional.get();
         String sid = card.getSid();
+        log.info("2-5. 카드 정보 복호화 전 sid: {}", sid);
+        String decryptedSid = encryptUtils.decrypt(sid);
+        log.info("2-5. 카드 정보 복호화 후 sid: {}", decryptedSid);
 
         // User 정보 가져와서 partnerUserId 세팅
         User user = userRepository.findById(userId)
@@ -360,7 +370,7 @@ public class KakaoPayService {
             //헤더 세팅
             setHeaders(httpPost, kakaoPayProperties.getSecretKey());
 
-            String json = objectMapper.writeValueAsString(KakaoPaySubscriptionRequest.fromProperties(kakaoPayProperties, partnerOrderId, partnerUserId, price, sid));
+            String json = objectMapper.writeValueAsString(KakaoPaySubscriptionRequest.fromProperties(kakaoPayProperties, partnerOrderId, partnerUserId, price, decryptedSid));
             log.info("4-1.정기결제 요청 json: {}", json);
 
             StringEntity entity = new StringEntity(json);

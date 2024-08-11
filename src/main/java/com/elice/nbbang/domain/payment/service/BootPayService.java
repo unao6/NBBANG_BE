@@ -1,19 +1,28 @@
 package com.elice.nbbang.domain.payment.service;
 
+import static com.elice.nbbang.global.exception.ErrorCode.PAYMENT_NOT_FOUND;
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 import com.elice.nbbang.domain.ott.entity.Ott;
+import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.global.config.EncryptUtils;
+import com.elice.nbbang.global.exception.CustomException;
+import com.elice.nbbang.global.exception.ErrorCode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import kr.co.bootpay.Bootpay;
@@ -170,30 +179,6 @@ public class BootPayService {
         }
     }
 
-    //완료된 결제 취소
-    @Transactional(readOnly = false)
-    public void cancelPayment(String receiptId, Double cancelAmount) throws Exception {
-        bootpay.getAccessToken();
-
-        try {
-            Cancel cancel = new Cancel();
-            cancel.receiptId = encryptUtils.decrypt(receiptId);
-            cancel.cancelPrice = cancelAmount;
-
-            HashMap<String, Object> res = bootpay.receiptCancel(cancel);
-
-            if (res.get("error_code") == null) {
-                System.out.println("receiptCancel success");
-
-                paymentService.cancelPayment(receiptId, cancelAmount);
-            } else {
-                System.out.println("receiptCancel false");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     //payment 조회
     public Payment getPaymentByReserveId(String id) {
         return paymentRepository.findByReserveId(id).orElse(null);
@@ -221,7 +206,7 @@ public class BootPayService {
         }
     }
 
-    //정기결제 예약
+    //구독일이 지난 결제 진행, 다음회차 정기결제 예약
     @Transactional(readOnly = false)
     public void lookupReservation(String id) {
         try {
@@ -231,30 +216,130 @@ public class BootPayService {
                 Payment payment = getPaymentByReserveId(id);
 
                 String receiptId = response.get("receipt_id").toString();
-                String encryptedReceiptId = encryptUtils.encrypt(receiptId);
+                if (receiptId != null) {
+                    String encryptedReceiptId = encryptUtils.encrypt(receiptId);
 
-                payment.updateCompletePayment(PaymentStatus.COMPLETED, encryptedReceiptId);
-                paymentRepository.save(payment);
+                    payment.updateCompletePayment(PaymentStatus.COMPLETED, LocalDateTime.now(), encryptedReceiptId);
+                    paymentRepository.save(payment);
 
-                //정기결제 30일 후 새로운 정기결제 예약
-                LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
+                    //정기결제 30일 후 새로운 정기결제 예약
+                    LocalDateTime newPaymentTime = payment.getPaymentSubscribedAt().plusMonths(1);
 
-                Ott ott = ottRepository.findById(payment.getOttId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Ott입니다."));
+                    Ott ott = ottRepository.findById(payment.getOttId())
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Ott입니다."));
 
-                PaymentReserve reserve = PaymentReserve.builder()
-                    .billingKey(payment.getBillingKey())
-                    .user(payment.getUser())
-                    .ott(ott)
-                    .paymentSubscribedAt(newPaymentTime)
-                    .build();
+                    PaymentReserve reserve = PaymentReserve.builder()
+                        .billingKey(payment.getBillingKey())
+                        .user(payment.getUser())
+                        .ott(ott)
+                        .paymentSubscribedAt(newPaymentTime)
+                        .build();
 
-                reservePayment(reserve);
+                    reservePayment(reserve);
+                } else {
+                    //receiptId가 반환되지 않을 시 = 결제 실패 시 payment 상태 업데이트
+                    payment.updateFailurePayment(PaymentStatus.FAILED);
+                }
             } else if (response.get("status").toString().equals("3")) {
                 Payment payment = getPaymentByReserveId(id);
                 payment.updateSubscribtionPayment(PaymentStatus.FAILED, payment.getPaymentSubscribedAt());
                 paymentRepository.save(payment);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //파티원 환불 로직
+    @Transactional(readOnly = false)
+    public void refundPayment(Long userId, Long ottId) {
+        Optional<Payment> paymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+        log.info("환불 시작합니다~~~");
+        log.info("userId: " + userId + ", ottId: " + ottId);
+
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+
+            // 결제 금액 가져오기
+            int paymentAmount = payment.getAmount();
+            double dayPrice = (double) paymentAmount / 30; // 일일 가격 계산
+
+            // 결제 승인일로부터 환불 신청일까지의 일수 계산
+            LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
+            LocalDate currentDate = LocalDate.now(); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
+            long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
+
+            // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
+            double amountUsed = dayPrice * daysUsed + PaymentService.FEE;
+            int refundAmount = (int) Math.max(0, paymentAmount - amountUsed); // 환불 금액이 음수가 되지 않도록 함.
+
+            // Payment 객체의 상태 업데이트
+            payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
+
+            //부트페이 로직 호출
+            try {
+                cancelPayment(payment.getReceiptId(), (double) refundAmount);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // 변경사항을 데이터베이스에 저장
+            paymentRepository.save(payment);
+        } else {
+            throw new CustomException(PAYMENT_NOT_FOUND);
+        }
+    }
+
+    //완료된 결제 취소
+    @Transactional(readOnly = false)
+    public void cancelPayment(String receiptId, Double cancelAmount) throws Exception {
+        bootpay.getAccessToken();
+
+        try {
+            Cancel cancel = new Cancel();
+            cancel.receiptId = encryptUtils.decrypt(receiptId);
+            cancel.cancelPrice = cancelAmount;
+
+            HashMap<String, Object> res = bootpay.receiptCancel(cancel);
+
+            if (res.get("error_code") == null) {
+                System.out.println("receiptCancel success");
+
+                paymentService.cancelPayment(receiptId, cancelAmount);
+            } else {
+                System.out.println("receiptCancel false");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 재매칭 시 다음 결제일 수정 로직(예약 결제 취소 후 재예약)
+     */
+    @Transactional(readOnly = false)
+    public void updatePayment(Long userId, Long ottId, int delayDate) {
+        Payment payment = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentSubscribedAtDesc(userId, ottId)
+            .orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+
+        try {
+            reserveDelete(payment.getReserveId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Ott ott = ottRepository.findById(ottId)
+            .orElseThrow(() -> new OttNotFoundException(ErrorCode.NOT_FOUND_OTT));
+
+        PaymentReserve reserve = PaymentReserve.builder()
+            .billingKey(payment.getBillingKey())
+            .ott(ott)
+            .user(payment.getUser())
+            .paymentSubscribedAt(payment.getPaymentSubscribedAt().plusDays(delayDate))
+            .build();
+
+        try {
+            reservePayment(reserve);
         } catch (Exception e) {
             e.printStackTrace();
         }

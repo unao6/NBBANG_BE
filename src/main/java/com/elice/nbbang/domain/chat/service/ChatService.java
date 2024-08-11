@@ -13,8 +13,6 @@ import com.elice.nbbang.domain.chat.exception.ChatNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,7 +84,7 @@ public class ChatService {
 //    }
 
     // 메시지 전송
-    public Chat sendMessage(Long chatId, Long userId, Message message) {
+    public Chat sendMessage(Long chatId, Message message) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
         chat.getMessages().add(message);
         chat.setLastRepliedAt(LocalDateTime.now());

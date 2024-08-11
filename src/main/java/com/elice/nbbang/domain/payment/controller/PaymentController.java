@@ -4,12 +4,12 @@ import com.elice.nbbang.domain.payment.dto.KakaoPayCancelRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.service.PaymentService;
-import com.elice.nbbang.domain.user.entity.User;
-import com.elice.nbbang.domain.user.repository.UserRepository;
-import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.util.UserUtil;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,36 +30,52 @@ public class PaymentController {
     private final UserUtil userUtil;
 
     /**
-     * 모든 Payments 조회
+     * 모든 Payments 조회 (페이지네이션 적용)
      */
     @GetMapping("/list")
-    public ResponseEntity<List<PaymentDto>> getPayments() {
-        List<PaymentDto> payments = paymentService.getAllPayments();
+    public ResponseEntity<Page<PaymentDto>> getPayments(
+        @PageableDefault(size = 10) Pageable pageable) {
+        Page<PaymentDto> payments = paymentService.getAllPayments(pageable);
         return ResponseEntity.ok(payments);
     }
 
     /**
      * userId로 Payments 조회
      */
-    @GetMapping("/list/")
-    public ResponseEntity<List<PaymentDto>> getUserPayments() {
-        String email = userUtil.getAuthenticatedUserEmail();
-        if (email == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        Long userId = paymentService.getAuthenticatedUserId();
+    @GetMapping("/list/user/{partner_user_id}")
+    public ResponseEntity<Page<PaymentDto>> getPaymentsByPartnerUserId(
+        @PathVariable("partner_user_id") String partnerUserId,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PaymentDto> payments = paymentService.getPaymentsByPartnerUserId(partnerUserId, pageable);
+        return ResponseEntity.ok(payments);
+    }
 
-
-        List<PaymentDto> userPayments = paymentService.getPaymentsByUserId(userId);
-        return ResponseEntity.ok(userPayments);
+    /**
+     * TID로 Payments 조회
+     */
+    @GetMapping("/list/tid/{tid}")
+    public ResponseEntity<Page<PaymentDto>> getPaymentsByTid(
+        @PathVariable("tid") String tid,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PaymentDto> payments = paymentService.getPaymentsByTid(tid, pageable);
+        return ResponseEntity.ok(payments);
     }
 
     /**
      * PaymentStatus 상태별 Payments 조회
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<PaymentDto>> getPaymentsByStatus(@PathVariable PaymentStatus status) {
-        List<PaymentDto> payments = paymentService.getPaymentsByStatus(status);
+    public ResponseEntity<Page<PaymentDto>> getPaymentsByStatus(
+        @PathVariable PaymentStatus status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PaymentDto> payments = paymentService.getPaymentsByStatus(status, pageable);
         return ResponseEntity.ok(payments);
     }
 

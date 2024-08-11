@@ -67,6 +67,12 @@ public class PartyController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("party-withdraw/{partyId}")
+    public ResponseEntity<Void> partyWithdraw(@PathVariable Long partyId) {
+        partyService.withdrawParty(partyId);
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/party/{partyId}")
     public ResponseEntity<Void> updatePartyOttAccount(@PathVariable Long partyId,
                                                       @RequestBody PartyUpdateRequest request) {
