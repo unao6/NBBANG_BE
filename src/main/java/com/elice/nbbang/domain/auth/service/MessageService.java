@@ -85,6 +85,6 @@ public class MessageService {
     private boolean isVerify(PhoneCheckRequestDto requestDto) {
         return !(smsCertification.hasKey(requestDto.getPhoneNumber()) &&
                 smsCertification.getSmsCertification(requestDto.getPhoneNumber())
-                        .equals(requestDto.getVerificationCode()));
+                        .equals(requestDto.getRandomNumber()));
     }
 }

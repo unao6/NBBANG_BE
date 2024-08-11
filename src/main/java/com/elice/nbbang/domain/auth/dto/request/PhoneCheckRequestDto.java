@@ -11,6 +11,6 @@ import net.minidev.json.JSONUtil;
 public class PhoneCheckRequestDto {
 
     private String phoneNumber;
-    private String verificationCode;
+    private String randomNumber;
 
 }
