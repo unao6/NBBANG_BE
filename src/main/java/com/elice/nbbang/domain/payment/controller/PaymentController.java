@@ -1,9 +1,15 @@
 package com.elice.nbbang.domain.payment.controller;
 
+import static com.elice.nbbang.global.exception.ErrorCode.NOT_FOUND_PARTY;
+
+import com.elice.nbbang.domain.party.entity.Party;
+import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.payment.dto.KakaoPayCancelRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.service.PaymentService;
+import com.elice.nbbang.global.exception.CustomException;
 import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PartyRepository partyRepository;
     private final UserUtil userUtil;
 
     /**
@@ -81,12 +88,36 @@ public class PaymentController {
 
     /**
      * PaymentId로 결제 취소 요청
+     * todo: 미사용중 아직 체크중
      */
     @PostMapping("/{paymentId}/refund")
     public ResponseEntity<Void> requestRefund(
         @PathVariable Long paymentId,
         @RequestBody KakaoPayCancelRequest request) {
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 환불 정보 조회
+     */
+    @GetMapping("/refund/{partyId}/info")
+    public ResponseEntity<PaymentRefundDTO> getRefundInfo(@PathVariable Long partyId) {
+        String email = userUtil.getAuthenticatedUserEmail();
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long userId = paymentService.getAuthenticatedUserId();
+
+        // partyId를 통해 Party 엔티티를 조회
+        Party party = partyRepository.findById(partyId)
+            .orElseThrow(() -> new CustomException(NOT_FOUND_PARTY));
+
+        // Party 엔티티에서 ottId를 가져옴
+        Long ottId = party.getOtt().getId();
+
+        PaymentRefundDTO paymentRefundDTO = paymentService.getRefundInfo(userId, ottId);
+        return ResponseEntity.ok(paymentRefundDTO);
     }
 
     /**

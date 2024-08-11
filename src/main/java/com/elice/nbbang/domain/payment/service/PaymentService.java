@@ -5,6 +5,7 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
@@ -75,7 +76,49 @@ public class PaymentService {
     }
 
     /**
+     * 환불 정보 반환 메소드
+     */
+    private PaymentRefundDTO calculateRefund(Payment payment) {
+        int paymentAmount = payment.getAmount();
+        double rawDayPrice = (double) paymentAmount / 30; // 일일 가격 계산 (소수점 포함)
+
+        // 1일 이용금액 계산 (소수점 이하 절삭)
+        int oneDayPrice = (int) Math.floor(rawDayPrice);
+
+        LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
+        LocalDate currentDate = LocalDate.of(2024, 8, 30); // <<테스트날짜임
+        long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
+
+        // 사용된 금액 계산 (소수점 이하 절삭)
+        double rawAmountUsed = oneDayPrice * daysUsed + FEE;
+        int amountUsed = (int) Math.floor(rawAmountUsed); // 소수점 이하 절삭
+
+        // 환불 금액 계산 (음수가 되지 않도록 함)
+        int refundAmount = Math.max(0, paymentAmount - amountUsed);
+
+        return new PaymentRefundDTO(paymentAmount, refundAmount, oneDayPrice, paymentApprovedDate, currentDate, daysUsed, FEE, amountUsed);
+    }
+
+    /**
+     * 환불 Info 조회
+     */
+    public PaymentRefundDTO getRefundInfo(Long userId, Long ottId) {
+        Optional<Payment> paymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
+        log.info("환불 정보 확인하는 메소드");
+        log.info("userId: " + userId + ", ottId: " + ottId);
+
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+            return calculateRefund(payment);
+        } else {
+            throw new CustomException(PAYMENT_NOT_FOUND);
+        }
+    }
+
+
+    /**
      * 환불 신청 시 환불 금액, 결제 상태, 환불 요청일 업데이트 실제 환불이 진행되진 않음.
+     * todo: 메소드 이름을 approveRefund로 바꾸고싶은데....
      */
     @Transactional(readOnly = false)
     public void getRefundAmount(Long userId, Long ottId) {
@@ -85,22 +128,10 @@ public class PaymentService {
 
         if (paymentOptional.isPresent()) {
             Payment payment = paymentOptional.get();
-
-            // 결제 금액 가져오기
-            int paymentAmount = payment.getAmount();
-            double dayPrice = (double) paymentAmount / 30; // 일일 가격 계산
-
-            // 결제 승인일로부터 환불 신청일까지의 일수 계산
-            LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
-            LocalDate currentDate = LocalDate.now(); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
-            long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
-
-            // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
-            double amountUsed = dayPrice * daysUsed + FEE;
-            int refundAmount = (int) Math.max(0, paymentAmount - amountUsed); // 환불 금액이 음수가 되지 않도록 함.
+            PaymentRefundDTO refundDTO = calculateRefund(payment);
 
             // Payment 객체의 상태 업데이트
-            payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
+            payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundDTO.getRefundAmount(), LocalDateTime.now());
 
             // 변경사항을 데이터베이스에 저장
             paymentRepository.save(payment);
