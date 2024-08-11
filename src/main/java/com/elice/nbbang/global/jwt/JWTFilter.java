@@ -50,7 +50,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 헤더에서 토큰이 없다면 쿠키에서 꺼냄
         if (accessToken == null) {
             accessToken = Arrays.stream(request.getCookies())
-                    .filter(cookie -> "jwtToken".equals(cookie.getName()))
+                    .filter(cookie -> "access".equals(cookie.getName()))
                     .map(Cookie::getValue)
                     .findFirst()
                     .orElse(null);

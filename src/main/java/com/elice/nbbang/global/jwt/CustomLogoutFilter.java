@@ -99,5 +99,13 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         response.addCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
+
+        // Access 토큰 Cookie 값 삭제
+        Cookie accessTokenCookie = new Cookie("access", null);
+        accessTokenCookie.setMaxAge(0);
+        accessTokenCookie.setPath("/");
+        response.addCookie(accessTokenCookie);
+
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 }

@@ -55,6 +55,37 @@ public class UserService {
         return true;
     }
 
+    // 휴대폰 번호 추가
+    public boolean addPhoneNumberAfterSocialLogin(String email, String newPhoneNumber, String randomNumber) {
+        // 인증 코드 확인
+        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, randomNumber);
+        String verificationResult = messageService.verifySms(phoneCheckRequestDto);
+
+        // 인증 성공 여부 결정
+        boolean isVerified = "success".equalsIgnoreCase(verificationResult); // "success"가 반환되는 경우 인증 성공
+
+        if (!isVerified) {
+            throw new IllegalArgumentException("휴대폰 인증이 완료되지 않았습니다.");
+        }
+
+        // 유저 정보 가져오기
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 휴대폰 번호가 이미 있는지 확인
+        if (user.getPhoneNumber() != null) {
+            throw new IllegalStateException("이미 등록된 휴대폰 번호가 있습니다.");
+        }
+
+        // 휴대폰 번호 저장
+        user.setPhoneNumber(newPhoneNumber);
+        userRepository.save(user);
+
+        return true;
+    }
+
     // 회원 탈퇴
     public void deleteUser(String email) {
         User user = userRepository.findByEmail(email);
@@ -62,7 +93,6 @@ public class UserService {
         user.setDeleted(true);
         userRepository.save(user);
     }
-
 
     public User findOrCreateUser(OAuth2Response oAuth2Response) {
         User user = userRepository.findByEmail(oAuth2Response.getEmail());
