@@ -3,6 +3,7 @@ package com.elice.nbbang.domain.auth.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.minidev.json.JSONUtil;
 
 @Getter
 @NoArgsConstructor
@@ -10,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class PhoneCheckRequestDto {
 
     private String phoneNumber;
-    private String randomNumber;
+    private String verificationCode;
 
 }
