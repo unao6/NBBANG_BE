@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -56,30 +58,16 @@ public class UserService {
     }
 
     // 휴대폰 번호 추가
-    public boolean addPhoneNumberAfterSocialLogin(String email, String newPhoneNumber, String randomNumber) {
-        // 인증 코드 확인
-        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, randomNumber);
-        String verificationResult = messageService.verifySms(phoneCheckRequestDto);
+    public boolean addPhoneNumberAfterSocialLogin(String email, String newPhoneNumber) {
+        // Optional을 사용하여 User 객체를 안전하게 가져옴
+        User user = Optional.ofNullable(userRepository.findByEmail(email))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 인증 성공 여부 결정
-        boolean isVerified = "success".equalsIgnoreCase(verificationResult); // "success"가 반환되는 경우 인증 성공
-
-        if (!isVerified) {
-            throw new IllegalArgumentException("휴대폰 인증이 완료되지 않았습니다.");
-        }
-
-        // 유저 정보 가져오기
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
-        }
-
-        // 휴대폰 번호가 이미 있는지 확인
+        // 기존에 휴대폰 번호가 있는지 확인 후 업데이트
         if (user.getPhoneNumber() != null) {
-            throw new IllegalStateException("이미 등록된 휴대폰 번호가 있습니다.");
+            throw new IllegalArgumentException("Phone number already exists");
         }
 
-        // 휴대폰 번호 저장
         user.setPhoneNumber(newPhoneNumber);
         userRepository.save(user);
 

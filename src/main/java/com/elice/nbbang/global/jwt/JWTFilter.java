@@ -48,14 +48,7 @@ public class JWTFilter extends OncePerRequestFilter {
         log.info("JWTFilter - Extracted Access Token from Header: {}", accessToken);
 
         // 헤더에서 토큰이 없다면 쿠키에서 꺼냄
-        if (accessToken == null) {
-            accessToken = Arrays.stream(request.getCookies())
-                    .filter(cookie -> "access".equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findFirst()
-                    .orElse(null);
-            log.info("JWTFilter - Extracted Access Token from Cookie: {}", accessToken);
-        }
+
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
