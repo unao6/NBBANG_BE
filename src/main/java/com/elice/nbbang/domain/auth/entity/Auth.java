@@ -31,8 +31,8 @@ public class Auth extends BaseTimeEntity {
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     // Enum type for provider

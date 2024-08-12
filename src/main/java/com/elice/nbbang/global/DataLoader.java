@@ -72,66 +72,66 @@
 //            .build());
 //
 //        // 초기 파티 데이터 설정
-//        Party party1 = partyRepository.save(Party.builder()
-//            .ott(disneyPlus)
-//            .ottAccountId("netflix_user@example.com")
-//            .ottAccountPassword("netflixpass")
-//            .partyStatus(PartyStatus.AVAILABLE)
-//            .leader(user1)
-//            .build());
-//
-//        Party party2 = partyRepository.save(Party.builder()
-//            .ott(chatGpt)
-//            .ottAccountId("disney_user@example.com")
-//            .ottAccountPassword("disneypass")
-//            .partyStatus(PartyStatus.AVAILABLE)
-//            .leader(user2)
-//            .build());
-//
-//        Party party3 = partyRepository.save(Party.builder()
-//            .ott(tving)
-//            .ottAccountId("prime_user@example.com")
-//            .ottAccountPassword("primepass")
-//            .partyStatus(PartyStatus.AVAILABLE)
-//            .leader(user2)
-//            .build());
-//
-//        // 초기 파티 멤버 데이터 설정
-//        partyMemberRepository.save(PartyMember.of(user1, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
-//        partyMemberRepository.save(PartyMember.of(user2, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
-//        partyMemberRepository.save(PartyMember.of(adminUser, party2, chatGpt, LocalDateTime.of(2024, 8, 1, 0, 0)));
-//        partyMemberRepository.save(PartyMember.of(user1, party3, tving, LocalDateTime.of(2024, 8, 1, 0, 0)));
-//
-//        // 서비스계좌 생성
-//        Account account = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT).orElse(null);
-//        if (account == null) {
-//            Account serviceAccount = Account.builder()
-//                .user(adminUser)
-//                .accountNumber("1111")
-//                .bankName("국민")
-//                .accountType(AccountType.SERVICE_ACCOUNT)
-//                .balance(500000000L)
-//                .build();
-//            accountRepository.save(serviceAccount);
-//        }
-//
-//        // 초기 계좌 데이터 설정
-//        Account account1 = accountRepository.save(
-//            Account.builder()
-//                .user(user1)
-//                .accountNumber("1234")
-//                .bankName("우리")
-//                .balance(50000L)
-//                .build()
-//        );
-//
-//        Account account2 = accountRepository.save(
-//            Account.builder()
-//                .user(user2)
-//                .accountNumber("5678")
-//                .bankName("국민")
-//                .balance(0L)
-//                .build()
-//        );
+////        Party party1 = partyRepository.save(Party.builder()
+////            .ott(disneyPlus)
+////            .ottAccountId("netflix_user@example.com")
+////            .ottAccountPassword("netflixpass")
+////            .partyStatus(PartyStatus.AVAILABLE)
+////            .leader(user1)
+////            .build());
+////
+////        Party party2 = partyRepository.save(Party.builder()
+////            .ott(chatGpt)
+////            .ottAccountId("disney_user@example.com")
+////            .ottAccountPassword("disneypass")
+////            .partyStatus(PartyStatus.AVAILABLE)
+////            .leader(user2)
+////            .build());
+////
+////        Party party3 = partyRepository.save(Party.builder()
+////            .ott(tving)
+////            .ottAccountId("prime_user@example.com")
+////            .ottAccountPassword("primepass")
+////            .partyStatus(PartyStatus.AVAILABLE)
+////            .leader(user2)
+////            .build());
+////
+////        // 초기 파티 멤버 데이터 설정
+////        partyMemberRepository.save(PartyMember.of(user1, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
+////        partyMemberRepository.save(PartyMember.of(user2, party1, disneyPlus, LocalDateTime.of(2024, 8, 1, 0, 0)));
+////        partyMemberRepository.save(PartyMember.of(adminUser, party2, chatGpt, LocalDateTime.of(2024, 8, 1, 0, 0)));
+////        partyMemberRepository.save(PartyMember.of(user1, party3, tving, LocalDateTime.of(2024, 8, 1, 0, 0)));
+////
+////        // 서비스계좌 생성
+////        Account account = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT).orElse(null);
+////        if (account == null) {
+////            Account serviceAccount = Account.builder()
+////                .user(adminUser)
+////                .accountNumber("1111")
+////                .bankName("국민")
+////                .accountType(AccountType.SERVICE_ACCOUNT)
+////                .balance(500000000L)
+////                .build();
+////            accountRepository.save(serviceAccount);
+////        }
+////
+////        // 초기 계좌 데이터 설정
+////        Account account1 = accountRepository.save(
+////            Account.builder()
+////                .user(user1)
+////                .accountNumber("1234")
+////                .bankName("우리")
+////                .balance(50000L)
+////                .build()
+////        );
+////
+////        Account account2 = accountRepository.save(
+////            Account.builder()
+////                .user(user2)
+////                .accountNumber("5678")
+////                .bankName("국민")
+////                .balance(0L)
+////                .build()
+////        );
 //    }
 //}

@@ -4,6 +4,8 @@ import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.AdminService;
 import com.elice.nbbang.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,17 +19,13 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("/active")
-    public ResponseEntity<List<User>> getAllActiveUsers() {
-        List<User> activeUsers = adminService.getAllActiveUsers();
-
-        return ResponseEntity.ok(activeUsers);
+    public Page<User> getActiveUsers(Pageable pageable) {
+        return adminService.getAllActiveUsers(pageable);
     }
 
     @GetMapping("/inactive")
-    public ResponseEntity<List<User>> getAllInactiveUsers() {
-        List<User> inactiveUsers = adminService.getAllInactiveUsers();
-
-        return ResponseEntity.ok(inactiveUsers);
+    public Page<User> getInactiveUsers(Pageable pageable) {
+        return adminService.getAllInactiveUsers(pageable);
     }
 
     // 회원 복구
