@@ -1,6 +1,6 @@
 package com.elice.nbbang.domain.user.controller;
 
-import com.elice.nbbang.domain.user.dto.request.ChangePhoneNumberRequest;
+import com.elice.nbbang.domain.user.dto.request.PhoneNumberChangeRequestDto;
 import com.elice.nbbang.domain.user.dto.reponse.UserResponse;
 import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.util.UserUtil;
@@ -24,17 +24,11 @@ public class UserController {
 
     // 휴대폰 번호 변경
     @PutMapping("/change-phone-number")
-    public ResponseEntity<?> changePhoneNumber(@RequestBody ChangePhoneNumberRequest request) {
+    public ResponseEntity<String> changePhoneNumber(@RequestBody PhoneNumberChangeRequestDto requestDto) {
         String email = userUtil.getAuthenticatedUserEmail();
-        System.out.println("Authenticated user email: " + email);
-        System.out.println("New phone number: " + request.getNewPhoneNumber());
-        System.out.println("Verification code: " + request.getRandomNumber());
-        boolean isChanged = userService.changePhoneNumber(email, request.getNewPhoneNumber(), request.getRandomNumber());
-        if (isChanged) {
-            return ResponseEntity.ok("휴대폰 번호가 성공적으로 변경되었습니다.");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("휴대폰 번호 변경에 실패했습니다.");
-        }
+
+        userService.changePhoneNumber(email, requestDto);
+        return ResponseEntity.ok("휴대폰 번호가 성공적으로 변경되었습니다.");
     }
 
     // 회원 탈퇴
