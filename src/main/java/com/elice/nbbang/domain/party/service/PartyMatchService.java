@@ -1,5 +1,8 @@
 package com.elice.nbbang.domain.party.service;
 
+import com.elice.nbbang.domain.notification.dto.SmsRequest;
+import com.elice.nbbang.domain.notification.provider.NotificationEmailProvider;
+import com.elice.nbbang.domain.notification.provider.NotificationSmsProvider;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
@@ -56,6 +59,8 @@ public class PartyMatchService {
     private final BootPayService bootPayService;
     private final UserUtil userUtil;
     private final PaymentService paymentService;
+    private final NotificationSmsProvider notificationSmsProvider;
+    private final NotificationEmailProvider notificationEmailProvider;
 
     /*
     * 많은 수의 사용자가 동시에 자동 매칭을 시켯을 때 동시성 문제가 없나?
@@ -131,6 +136,12 @@ public class PartyMatchService {
 
                 }
                 addPartyMemberToParty(party, ott, user, capacity);
+                SmsRequest smsRequest = new SmsRequest(
+                        user.getPhoneNumber(),
+                        "[N/BBANG]\n" + ott.getName() + " 매칭이 완료되었습니다.\nMy 파티에서 공유계정을 확인하세요!"
+                );
+                notificationSmsProvider.sendSms(smsRequest);
+
             } else {
                 // 원래 있는 PartyMember 에서 새로운 Party 를 부여하는 메서드
                 PartyMember partyMember = partyMemberRepository.findPartyMemberByOttIdAndUserId(
@@ -146,6 +157,12 @@ public class PartyMatchService {
                 }
 
                 partyMember.setParty(party);
+
+                SmsRequest smsRequest = new SmsRequest(
+                        user.getPhoneNumber(),
+                        "[N/BBANG]\n" + ott.getName() + " 재매칭이 완료되었습니다.\nMy 파티에서 공유계정을 확인하세요!"
+                );
+                notificationSmsProvider.sendSms(smsRequest);
 
             }
         } else {
@@ -172,10 +189,20 @@ public class PartyMatchService {
         List<PartyMember> partyMembers = partyMemberRepository.findByPartyIdWithPartyAndUser(partyId);
 
         for (PartyMember member : partyMembers) {
+            log.info("member breakUpDate : {}", member.getBreakUpDate());
             log.info("파티원 큐에 넣어주기 : {}", member.getUser().getNickname());
-            addPartyPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
             member.addBreakUpDate(LocalDateTime.now());
+            log.info("member newBreakUpDate : {}", member.getBreakUpDate());
+
             member.withdrawParty();
+            addPartyPriorityQueue(party.getOtt().getId(), MatchingType.REMATCHING, member.getUser().getId());
+
+            SmsRequest smsRequest = new SmsRequest(
+                    member.getUser().getPhoneNumber(),
+                    "[N/BBANG]\n" + member.getOtt().getName() + "파티가 해체되었습니다.\n재매칭 완료 시 문자로 알려드릴게요!"
+            );
+            notificationSmsProvider.sendSms(smsRequest);
+
         }
         log.info("파티장 부분 정산");
         accountService.calculatePartialSettlement(party);
