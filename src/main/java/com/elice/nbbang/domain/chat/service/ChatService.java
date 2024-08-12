@@ -70,6 +70,11 @@ public class ChatService {
     @Transactional
     public Chat sendMessage(Long chatId, Message message) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(ChatNotFoundException::new);
+
+        if(message.getNickname().equals("System")) {
+            return chat;
+        }
+
         chat.getMessages().add(message);
         chat.setLastRepliedAt(LocalDateTime.now());
 
