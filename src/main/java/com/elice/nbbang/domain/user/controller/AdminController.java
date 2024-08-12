@@ -2,13 +2,10 @@ package com.elice.nbbang.domain.user.controller;
 
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.service.AdminService;
-import com.elice.nbbang.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,7 +13,6 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
-    private final UserService userService;
 
     @GetMapping("/active")
     public Page<User> getActiveUsers(Pageable pageable) {
