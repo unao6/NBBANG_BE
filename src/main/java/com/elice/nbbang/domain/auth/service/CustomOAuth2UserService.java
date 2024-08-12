@@ -44,7 +44,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user = User.builder()
                     .email(email)
                     .nickname(name)
-                    .role(UserRole.ROLE_USER)
                     .password("")  // 비밀번호는 필요 없음
                     .phoneNumber("") // 필요한 경우 설정
                     .role(UserRole.ROLE_USER) // 여기서 ROLE_USER를 설정
