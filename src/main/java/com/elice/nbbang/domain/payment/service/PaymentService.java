@@ -78,7 +78,7 @@ public class PaymentService {
     /**
      * 환불 정보 반환 메소드
      */
-    private PaymentRefundDTO calculateRefund(Payment payment) {
+    protected PaymentRefundDTO calculateRefund(Payment payment) {
         int paymentAmount = payment.getAmount();
         double rawDayPrice = (double) paymentAmount / 30; // 일일 가격 계산 (소수점 포함)
 
