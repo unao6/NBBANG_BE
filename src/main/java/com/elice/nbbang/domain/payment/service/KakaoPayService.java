@@ -1,5 +1,7 @@
 package com.elice.nbbang.domain.payment.service;
 
+import static com.elice.nbbang.domain.payment.service.PaymentService.FEE;
+
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
@@ -275,7 +277,7 @@ public class KakaoPayService {
         }
         Ott ott = ottOptional.get();
         //가격 분할
-        int price = ott.getPrice()/ott.getCapacity();
+        int price = ott.getPrice()/ott.getCapacity() + FEE;
 
         //Card 정보 가져와서 sid 세팅
         Optional<Card> cardOptional = cardRepository.findByUserId(userId);
