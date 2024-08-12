@@ -1,6 +1,7 @@
 package com.elice.nbbang.domain.auth.service;
 import com.elice.nbbang.domain.auth.entity.Auth;
 import com.elice.nbbang.domain.auth.repository.AuthRepository;
+import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
 import com.elice.nbbang.domain.user.entity.User;
@@ -45,6 +46,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .nickname(name)
                     .password("")  // 비밀번호는 필요 없음
                     .phoneNumber("") // 필요한 경우 설정
+                    .role(UserRole.ROLE_USER) // 여기서 ROLE_USER를 설정
                     .build();
         } else {
             user.setNickname(name);
