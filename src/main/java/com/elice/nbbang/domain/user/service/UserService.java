@@ -32,6 +32,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    // 휴대폰 번호 변경
     public void changePhoneNumber(String email, PhoneNumberChangeRequestDto requestDto) {
         // 유저 정보 가져오기
         Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
@@ -42,7 +43,6 @@ public class UserService {
 
         User user = optionalUser.get();
 
-        // 휴대폰 번호 변경 (인증은 이미 완료되었으므로 다시 검증하지 않음)
         user.setPhoneNumber(requestDto.getNewPhoneNumber());
         userRepository.save(user);
     }

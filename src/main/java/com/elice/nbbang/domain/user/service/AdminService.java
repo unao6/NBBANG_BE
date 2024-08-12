@@ -36,7 +36,7 @@ public class AdminService {
         return user != null && user.getRole().equals(UserRole.ROLE_ADMIN);
     }
 
-    // 탈퇴 안한 회원만 조회 (페이지네이션 적용)
+    // 탈퇴 안한 회원만 조회
     public Page<User> getAllActiveUsers(Pageable pageable) {
         return userRepository.findAllByDeletedFalse(pageable);
     }
