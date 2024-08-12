@@ -80,7 +80,7 @@ public class PaymentService {
      */
     protected PaymentRefundDTO calculateRefund(Payment payment) {
         int paymentAmount = payment.getAmount();
-        int netPaymentAmount = paymentAmount - FEE; // 수수료를 뺀 실제 OTT 이용 요금
+        double netPaymentAmount = paymentAmount - FEE; // 수수료를 뺀 실제 OTT 이용 요금
 
         LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
         LocalDate currentDate = LocalDate.of(2024, 8, 30); // 테스트 날짜
@@ -88,21 +88,19 @@ public class PaymentService {
         // 해당 달의 일수 계산
         int daysInMonth = paymentApprovedDate.lengthOfMonth();
 
-        // 1일 이용금액 계산 (소수점 이하 절삭)
-        double rawDayPrice = (double) netPaymentAmount / daysInMonth;
-        int oneDayPrice = (int) Math.floor(rawDayPrice);
+        // 1일 이용금액 계산 (소수점 첫 번째 자리까지)
+        double oneDayPrice = Math.floor((netPaymentAmount / daysInMonth) * 10) / 10.0;
 
         // 사용된 일수 계산
         long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
 
-        // 사용된 금액 계산 (소수점 이하 절삭)
-        double rawAmountUsed = oneDayPrice * daysUsed + FEE;
-        int amountUsed = (int) Math.floor(rawAmountUsed); // 소수점 이하 절삭
+        // 사용된 금액 계산 (소수점 첫 번째 자리까지)
+        double amountUsed = Math.floor((oneDayPrice * daysUsed + FEE) * 10) / 10.0;
 
-        // 환불 금액 계산 (음수가 되지 않도록 함)
-        int refundAmount = Math.max(0, paymentAmount - amountUsed);
+        // 환불 금액 계산 (소수점 이하 절삭)
+        int refundAmount = (int) Math.floor(paymentAmount - amountUsed);
 
-        return new PaymentRefundDTO(paymentAmount, refundAmount, oneDayPrice, paymentApprovedDate, currentDate, daysUsed, FEE, amountUsed);
+        return new PaymentRefundDTO(paymentAmount, refundAmount, oneDayPrice, paymentApprovedDate, currentDate, daysUsed, FEE, (int) amountUsed);
     }
 
     /**
