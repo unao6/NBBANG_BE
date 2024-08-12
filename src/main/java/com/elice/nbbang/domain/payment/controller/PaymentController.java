@@ -7,11 +7,16 @@ import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.payment.dto.KakaoPayCancelRequest;
 import com.elice.nbbang.domain.payment.dto.PaymentDto;
 import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
+import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
+import com.elice.nbbang.domain.payment.repository.CardRepository;
+import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
 import com.elice.nbbang.global.exception.CustomException;
 import com.elice.nbbang.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
+@Slf4j
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
 @RestController
@@ -34,7 +40,9 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final PartyRepository partyRepository;
+    private final BootPayService bootPayService;
     private final UserUtil userUtil;
+    private final CardRepository cardRepository;
 
     /**
      * 모든 Payments 조회 (페이지네이션 적용)
@@ -86,16 +94,6 @@ public class PaymentController {
         return ResponseEntity.ok(payments);
     }
 
-    /**
-     * PaymentId로 결제 취소 요청
-     * todo: 미사용중 아직 체크중
-     */
-    @PostMapping("/{paymentId}/refund")
-    public ResponseEntity<Void> requestRefund(
-        @PathVariable Long paymentId,
-        @RequestBody KakaoPayCancelRequest request) {
-        return ResponseEntity.ok().build();
-    }
 
     /**
      * 환불 정보 조회
@@ -131,8 +129,15 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Long userId = paymentService.getAuthenticatedUserId();
+        log.info("userId = {}", userId);
+        Card card = cardRepository.findByUserId(userId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
+        log.info("card = {}", card);
 
-        paymentService.getRefundAmount(userId, ottId);
+        if(card.getPaymentType() == PaymentType.CARD){
+            bootPayService.refundPayment(userId, ottId);
+        } else
+            paymentService.getRefundAmount(userId, ottId);
         return ResponseEntity.ok().build();
     }
 }

@@ -1,5 +1,7 @@
 package com.elice.nbbang.domain.payment.service;
 
+import static com.elice.nbbang.domain.payment.service.PaymentService.FEE;
+
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
@@ -11,6 +13,7 @@ import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateResponse;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionResponse;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
@@ -55,6 +58,7 @@ public class KakaoPayService {
     private final ObjectMapper objectMapper;
     private final OttRepository ottRepository;
     private final EncryptUtils encryptUtils;
+    private final PaymentService paymentService;
 
     /**
      * 1.결제준비 (카드 등록을 위한)
@@ -202,25 +206,34 @@ public class KakaoPayService {
      */
     public void cancelPayment(KakaoPayCancelRequest request) throws Exception {
         String tid = request.getTid();
-        Integer cancelAmount = request.getCancelAmount();
-        Integer cancelTaxFreeAmount = request.getCancelTaxFreeAmount();
-        Integer cancelVatAmount = request.getCancelVatAmount();
-        Integer cancelAvailableAmount = request.getCancelAvailableAmount();
-        String payload = request.getPayload();
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(kakaoPayProperties.getCancelUrl());
 
-            Optional<Payment> paymentTid = paymentRepository.findByTid(tid);
-            if (paymentTid.isEmpty()) {
+            Optional<Payment> paymentOptional = paymentRepository.findByTid(tid);
+            if (paymentOptional.isEmpty()) {
                 throw new EntityNotFoundException("결제 정보를 찾을 수 없습니다.");
             }
-            Payment payment = paymentTid.get();
+            Payment payment = paymentOptional.get();
 
-            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.fromProperties(kakaoPayProperties, payment, cancelAmount, cancelTaxFreeAmount, cancelVatAmount, cancelAvailableAmount, payload);
+            // 환불 금액 계산
+            PaymentRefundDTO refundDTO = paymentService.calculateRefund(payment);
+            int refundAmount = refundDTO.getRefundAmount();
 
+            // 요청값을 사용하여 KakaoPayCancelRequest 생성
+            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.builder()
+                .tid(tid)
+                .cancelAmount(refundAmount) // 환불 금액 사용
+                .cancelTaxFreeAmount(request.getCancelTaxFreeAmount())
+                .cancelVatAmount(request.getCancelVatAmount())
+                .cancelAvailableAmount(refundAmount)
+                .payload(request.getPayload())
+                .build();
+
+            // HTTP 헤더 설정
             setHeaders(httpPost, kakaoPayProperties.getSecretKey());
 
+            // JSON 직렬화 및 요청 실행
             String json = objectMapper.writeValueAsString(cancelRequest);
             log.info("취소요청 정보  KakaoPay: {}", json);
 
@@ -235,77 +248,17 @@ public class KakaoPayService {
                     throw new RuntimeException("카카오페이 취소 요청 실패: " + responseString);
                 }
 
+                // 응답 처리
                 KakaoPayCancelResponse cancelResponse = objectMapper.readValue(responseString, KakaoPayCancelResponse.class);
                 log.info("결제 취소 정보 저장 전.");
 
-                //todo: 취소관련 정보 확인 해야함.
-                payment.updateApprovePayment(PaymentStatus.CANCELED, payment.getSid(), cancelResponse.getCanceledAt());
+                // 결제 상태 업데이트 및 저장
+                payment.updateApprovePayment(PaymentStatus.REFUNDED_COMPLETED, payment.getSid(), cancelResponse.getCanceledAt());
                 paymentRepository.save(payment);
                 log.info("결제 취소 정보 저장 후.");
             }
         }
     }
-
-    /**
-     *  3-1. 결제취소 내부 자동취소 로직 -> 3번 메소드 사용
-     */
-    public void autoCancelPayment(Long userId, Long ottId) throws Exception {
-        List<Payment> paymentList = paymentRepository.findByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
-
-        log.info("결제 내역 조회 userId: {}, ottId: {}", userId, ottId);
-        if (!paymentList.isEmpty()) {
-            Payment latestPayment = paymentList.get(0);
-
-            String tid = latestPayment.getTid();
-            LocalDateTime paymentApprovedDateTime = latestPayment.getPaymentApprovedAt();
-            LocalDateTime currentDateTime = LocalDateTime.now();
-
-            //Integer ottMonthlyAmount = ottService.getOttMonthlyAmount(ottId);
-            Integer ottMonthlyAmount = 5000;
-
-            Integer totalCancelAmount = calculateTotalCancelAmount(paymentApprovedDateTime, currentDateTime, ottMonthlyAmount);
-
-            Integer cancelTaxFreeAmount = 0; // 세금 비과세 금액
-            Integer cancelVatAmount = 0; // 부가세 금액
-            Integer cancelAvailableAmount = totalCancelAmount - cancelTaxFreeAmount - cancelVatAmount;
-            String payload = "";
-
-            log.info("자동 취소 금액: {}", totalCancelAmount);
-            log.info("자동 취소 가능 금액: {}", cancelAvailableAmount);
-            log.info("자동 취소 세금 비과세 금액: {}", cancelTaxFreeAmount);
-            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.builder()
-                .tid(tid)
-                .cancelAmount(3000)
-                .cancelTaxFreeAmount(0)
-                .cancelVatAmount(0)
-                .cancelAvailableAmount(0)
-                .payload(payload)
-                .build();
-
-            cancelPayment(cancelRequest);
-
-        } else {
-            System.out.println("결제 내역이 없습니다. userId: " + userId + ", ottId: " + ottId);
-        }
-    }
-
-    /**
-     * 3-2. 결제취소 내부 자동취소 로직
-     */
-    public Integer calculateTotalCancelAmount(LocalDateTime paymentApprovedDateTime, LocalDateTime currentDateTime, Integer ottMonthlyAmount) {
-        long daysBetween = ChronoUnit.DAYS.between(paymentApprovedDateTime.toLocalDate(), currentDateTime.toLocalDate());
-        // 하루가 지났으면 1일로 간주하고, 지나지 않았으면 0일로 간주
-        long extraDay = paymentApprovedDateTime.toLocalTime().isBefore(currentDateTime.toLocalTime()) ? 1 : 0;
-        long totalDays = daysBetween + extraDay;
-
-        // 정기 결제일을 30일로 고정
-        long daysInMonth = 30;
-        Integer dailyAmount = ottMonthlyAmount / (int) daysInMonth;
-
-        Integer cancelAmount = dailyAmount * (int) totalDays;
-        return cancelAmount;
-    }
-
 
 
     /**
@@ -324,7 +277,7 @@ public class KakaoPayService {
         }
         Ott ott = ottOptional.get();
         //가격 분할
-        int price = ott.getPrice()/ott.getCapacity();
+        int price = ott.getPrice()/ott.getCapacity() + FEE;
 
         //Card 정보 가져와서 sid 세팅
         Optional<Card> cardOptional = cardRepository.findByUserId(userId);

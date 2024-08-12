@@ -1,33 +1,41 @@
 package com.elice.nbbang.domain.auth.controller;
 
 import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
+import com.elice.nbbang.domain.auth.dto.request.AddPhoneNumberRequest;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.service.MessageService;
+import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.JWTUtil;
+import com.elice.nbbang.global.util.UserUtil;
+import com.elice.nbbang.domain.auth.repository.RefreshRepository;
+import com.elice.nbbang.domain.auth.entity.RefreshEntity;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.struts.chain.commands.UnauthorizedActionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", allowCredentials = "true")
 public class AuthController {
 
     private final JWTUtil jwtUtil;
+    private final UserService userService;
+    private final UserUtil userUtil;
+    private final RefreshRepository refreshRepository;
+    private final MessageService messageService;
+
+    private static final long ACCESS_TOKEN_EXPIRATION_MS = 3600000L; // 1 hour
+    private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
 
     @GetMapping("/google/success")
     public void googleLoginSuccess(HttpServletResponse response, Authentication authentication) throws IOException {
@@ -36,38 +44,78 @@ public class AuthController {
             return;
         }
 
-        // 사용자 정보 추출
         CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication.getPrincipal();
         String email = customOAuth2User.getEmail();
 
-        // JWT 토큰 생성
-        String jwtToken = jwtUtil.createJwt("access", email, "ROLE_USER", 3600000L);
+        String accessToken = jwtUtil.createJwt("access", email, "ROLE_USER", ACCESS_TOKEN_EXPIRATION_MS);
+        String refreshToken = jwtUtil.createJwt("refresh", email, "ROLE_USER", REFRESH_TOKEN_EXPIRATION_MS);
+        addRefreshEntity(email, refreshToken, REFRESH_TOKEN_EXPIRATION_MS);
 
-        // 쿠키에 토큰 추가
-        Cookie jwtCookie = new Cookie("access_token", jwtToken);
-        jwtCookie.setHttpOnly(true); // HttpOnly 쿠키 설정
-        jwtCookie.setSecure(false); // 개발 중이라면 false, 배포 시 true
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(3600); // 쿠키 만료 시간 설정
-        response.addCookie(jwtCookie);
+        Cookie accessCookie = new Cookie("access", accessToken);
+        accessCookie.setHttpOnly(true);
+        accessCookie.setSecure(false);
+        accessCookie.setPath("/");
+        accessCookie.setMaxAge((int) (ACCESS_TOKEN_EXPIRATION_MS / 1000));
+        response.addCookie(accessCookie);
 
-        // 클라이언트로 리다이렉트
+        Cookie refreshCookie = new Cookie("refresh", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge((int) (REFRESH_TOKEN_EXPIRATION_MS / 1000));
+        response.addCookie(refreshCookie);
+
         response.sendRedirect("http://localhost:3000/redirect");
     }
 
     @GetMapping("/token")
-    public ResponseEntity<String> getAccessToken(@CookieValue(name = "access_token", required = false) String accessToken) {
+    public ResponseEntity<String> getAccessToken(@CookieValue(name = "access", required = false) String accessToken, HttpServletResponse response) {
         log.info("넘어온 토큰: {}", accessToken);
 
         if (accessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No token found");
         }
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("access", accessToken);
 
-        // 로그에 토큰 출력
+        Cookie deleteAccessCookie = new Cookie("access", null);
+        deleteAccessCookie.setMaxAge(0);
+        deleteAccessCookie.setPath("/");
+        response.addCookie(deleteAccessCookie);
+
         log.info("넘어온 토큰22222: {}", accessToken);
         return ResponseEntity.ok().headers(headers).body("Token sent in headers");
     }
 
+    @PostMapping("/add-phone-number")
+    public ResponseEntity<String> addPhoneNumber(@RequestBody AddPhoneNumberRequest request) {
+        String email = userUtil.getAuthenticatedUserEmail();
+
+        // 인증번호 검증
+        String verificationResult = messageService.verifySms(new PhoneCheckRequestDto(request.getPhoneNumber(), request.getRandomNumber()));
+        if (!"인증 완료되었습니다.".equals(verificationResult)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("휴대폰 인증에 실패했습니다.");
+        }
+
+        // 휴대폰 번호 추가
+        boolean isAdded = userService.addPhoneNumberAfterSocialLogin(email, request.getPhoneNumber());
+        if (isAdded) {
+            return ResponseEntity.ok("휴대폰 번호가 성공적으로 추가되었습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("휴대폰 번호 추가에 실패했습니다.");
+        }
+    }
+
+    private void addRefreshEntity(String email, String refresh, Long expiredMs) {
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
+
+        RefreshEntity refreshEntity = RefreshEntity.builder()
+                .email(email)
+                .refresh(refresh)
+                .expiration(date.toString())
+                .build();
+
+        refreshRepository.save(refreshEntity);
+    }
 }
