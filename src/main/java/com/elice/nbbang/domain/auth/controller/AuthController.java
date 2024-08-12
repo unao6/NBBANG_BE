@@ -92,12 +92,6 @@ public class AuthController {
     public ResponseEntity<String> addPhoneNumber(@RequestBody AddPhoneNumberRequest request) {
         String email = userUtil.getAuthenticatedUserEmail();
 
-        // 인증번호 검증
-        String verificationResult = messageService.verifySms(new PhoneCheckRequestDto(request.getPhoneNumber(), request.getRandomNumber()));
-        if (!"인증 완료되었습니다.".equals(verificationResult)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("휴대폰 인증에 실패했습니다.");
-        }
-
         // 휴대폰 번호 추가
         boolean isAdded = userService.addPhoneNumberAfterSocialLogin(email, request.getPhoneNumber());
         if (isAdded) {
