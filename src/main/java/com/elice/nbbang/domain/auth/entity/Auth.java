@@ -26,9 +26,8 @@ public class Auth extends BaseTimeEntity {
     private String providerId;
 
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
     // Enum type for provider
