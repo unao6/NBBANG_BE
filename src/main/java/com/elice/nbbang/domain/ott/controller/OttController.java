@@ -1,17 +1,14 @@
 package com.elice.nbbang.domain.ott.controller;
 
-import com.elice.nbbang.domain.ott.dto.OttCreateRequest;
-import com.elice.nbbang.domain.ott.dto.OttResponse;
-import com.elice.nbbang.domain.ott.dto.OttUpdateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttCreateRequest;
+import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
+import com.elice.nbbang.domain.ott.controller.dto.OttUpdateRequest;
 import com.elice.nbbang.domain.ott.service.OttService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,7 +24,7 @@ public class OttController {
     @PostMapping("/admin/ott")
     public ResponseEntity<Long> createOtt(@RequestBody final OttCreateRequest ottCreateRequest) {
 
-        Long ottId = ottService.createOtt(ottCreateRequest);
+        Long ottId = ottService.createOtt(ottCreateRequest.toServiceRequest());
 
         return ResponseEntity.ok(ottId);
     }
@@ -44,9 +41,9 @@ public class OttController {
         return ResponseEntity.ok(ottService.getOttById(ottId));
     }
 
-    @PutMapping("/admin/ott")
-    public ResponseEntity<Void> updateOtt(@RequestBody final OttUpdateRequest ottUpdateRequest) {
-        ottService.updateOtt(ottUpdateRequest);
+    @PutMapping("/admin/ott/{ottId}")
+    public ResponseEntity<Void> updateOtt(@PathVariable Long ottId, @RequestBody final OttUpdateRequest ottUpdateRequest) {
+        ottService.updateOtt(ottId, ottUpdateRequest.toServiceRequest());
         return ResponseEntity.noContent().build();
     }
 

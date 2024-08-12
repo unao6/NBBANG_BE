@@ -1,9 +1,9 @@
 package com.elice.nbbang.domain.party.entity;
 
 import com.elice.nbbang.domain.ott.entity.Ott;
+import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -51,6 +52,8 @@ public class Party extends BaseTimeEntity {
     @OneToMany(mappedBy = "party")
     private List<PartyMember> partyMembers = new ArrayList<>();
 
+    private LocalDateTime settlementDate;
+
     @Builder
     public Party(Ott ott, String ottAccountId,
                  String ottAccountPassword, PartyStatus partyStatus, User leader) {
@@ -59,12 +62,22 @@ public class Party extends BaseTimeEntity {
         this.ottAccountPassword = ottAccountPassword;
         this.partyStatus = partyStatus;
         this.leader = leader;
+        this.settlementDate = LocalDateTime.now().plusMonths(1);
+    }
+
+    public void updatePartyOttAccount(PartyUpdateServiceRequest request) {
+        ottAccountId = request.ottAccountId();
+        ottAccountPassword = request.ottAccountPassword();
     }
 
     public void changeStatus(int capacity) {
-        if (capacity == partyMembers.size()) {
+        if (capacity == partyMembers.size() - 1) {
             this.partyStatus = PartyStatus.FULL;
         }
+    }
+
+    public void plusSettlement() {
+        settlementDate = getSettlementDate().plusMonths(1);
     }
 
 }

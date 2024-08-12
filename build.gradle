@@ -1,83 +1,95 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.3.2'
-	id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.elice'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	// Spring Boot
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
 
-	// Oauth2.0
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // OAuth2.0
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // 이 부분이 필요합니다.
 
-	// Security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	testImplementation 'org.springframework.security:spring-security-test'
+    // Security
+    testImplementation 'org.springframework.security:spring-security-test'
 
-	// Jasypt
-	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+    // Jasypt
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
-	// BootPay
-	implementation 'io.github.bootpay:backend:+'
+    // BootPay
+    implementation 'io.github.bootpay:backend:+'
 
-	// Websocket
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // Websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-	// Jackson
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    // Jackson
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 
-	// jwt
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	//mail
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // SMS
+    implementation 'net.nurigo:javaSDK:2.2'
+    implementation 'net.nurigo:sdk:4.3.0'
 
-	// h2
-	runtimeOnly 'com.h2database:h2'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// MySql
-	runtimeOnly 'com.mysql:mysql-connector-j'
+    // H2
+    runtimeOnly 'com.h2database:h2'
 
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
-	// httpClient
-	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// test
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // HttpClient
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
-	//validation
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Servlet API
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+
+    // OAuth2 JOSE
+    implementation 'org.springframework.security:spring-security-oauth2-jose:5.5.1'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

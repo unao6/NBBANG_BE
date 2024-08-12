@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "chat")
 public class Chat {
     @Id
     @Column(name="chat_id")
@@ -25,10 +26,9 @@ public class Chat {
     private User user;
 
     @Convert(converter = MessageConverter.class)
-    @Column(nullable = false, columnDefinition = "json")
+    @Column(columnDefinition = "json")
     private List<Message> messages = new ArrayList<>();
 
-    @Column(nullable = false)
     private LocalDateTime lastRepliedAt;
 
     private LocalDateTime endedAt;

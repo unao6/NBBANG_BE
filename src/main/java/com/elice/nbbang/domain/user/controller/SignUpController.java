@@ -1,10 +1,12 @@
 package com.elice.nbbang.domain.user.controller;
 
-import com.elice.nbbang.domain.user.dto.CheckCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.EmailCertificationRequestDto;
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
+import com.elice.nbbang.domain.user.dto.*;
+import com.elice.nbbang.domain.auth.dto.request.CheckCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.EmailCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCertificationRequestDto;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.service.MessageService;
 import com.elice.nbbang.domain.user.service.SignUpService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SignUpController {
 
     private final SignUpService signUpService;
+    private final MessageService messageService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<String> signUpProcess(@RequestBody UserSignUpDto userSignUpDto) {
@@ -31,6 +34,28 @@ public class SignUpController {
         }
     }
 
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(@RequestBody UserSignUpDto userSignUpDto) {
+        boolean isAvailable = signUpService.isEmailAvailable(userSignUpDto.getEmail());
+
+        if (isAvailable) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(false);
+        }
+    }
+
+    @PostMapping("/check-nickname")
+    public ResponseEntity<Boolean> checkNickname(@RequestBody UserSignUpDto userSignUpDto) {
+        boolean isAvailable = signUpService.isNicknameAvailable(userSignUpDto.getNickname());
+
+        if (isAvailable) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(false);
+        }
+    }
+
     @PostMapping("/email-certification")
     public ResponseEntity<?> emailCertification(@RequestBody EmailCertificationRequestDto emailCertificationRequestDto) {
         boolean isCertified = signUpService.emailCertification(emailCertificationRequestDto);
@@ -40,5 +65,31 @@ public class SignUpController {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Failed to send the email.");
         }
+    }
+
+    @PostMapping("/check-certification")
+    public ResponseEntity<?> checkCertification(@RequestBody CheckCertificationRequestDto checkCertificationRequestDto) {
+        boolean isChecked = signUpService.checkCertification(checkCertificationRequestDto);
+
+        if (isChecked) {
+            return ResponseEntity.status(HttpStatus.OK).body("Email verification was successful.");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email verification failed.");
+        }
+    }
+
+    @PostMapping("/phone-certification")
+    public ResponseEntity<String> phoneCertification(@RequestBody PhoneCertificationRequestDto requestDto) {
+        String response = messageService.sendSMS(requestDto);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // SMS 인증번호 검증
+    @PostMapping("/phone-check")
+    public ResponseEntity<String> phoneCheck(@RequestBody PhoneCheckRequestDto requestDto) {
+        String response = messageService.verifySms(requestDto);
+
+        return ResponseEntity.ok(response);
     }
 }

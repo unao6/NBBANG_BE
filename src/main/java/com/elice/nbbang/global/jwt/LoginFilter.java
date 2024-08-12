@@ -8,8 +8,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,6 +23,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 600000L; // 10 minutes
@@ -67,6 +70,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
+        System.out.println(role);
 
         //토큰 생성
         String access = jwtUtil.createJwt("access", email, role, ACCESS_TOKEN_EXPIRATION_MS);
@@ -92,9 +96,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     //로그인 실패시 실행하는 메소드
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/plain;charset=UTF-8");  // Content-Type을 text/plain으로 설정
 
-        response.setStatus(401);
+        String errorMessage;
+        if (failed instanceof DisabledException) {
+            errorMessage = "이미 탈퇴된 계정입니다.";
+        } else {
+            errorMessage = "아이디나 비밀번호를 다시 확인하세요.";
+        }
+
+        // 텍스트 형식으로 메시지 전송
+        response.getWriter().write(errorMessage);
     }
 
     private void addRefreshEntity(String email, String refresh, Long expiredMs) {
