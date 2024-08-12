@@ -42,34 +42,36 @@
 //    @Override
 //    public void run(String... args) throws Exception {
 //        // 초기 OTT 데이터 설정
-//        Ott disneyPlus = ottRepository.save(Ott.of("디즈니플러스", 9900, 4));
-//        Ott chatGpt = ottRepository.save(Ott.of("ChatGpT", 29900, 4));
-//        Ott tving = ottRepository.save(Ott.of("TVING", 9900, 4));
+////        Ott disneyPlus = ottRepository.save(Ott.of("Disney+", 9900, 4));
+////        Ott chatGpt = ottRepository.save(Ott.of("ChatGPT", 29900, 4));
+////        Ott tving = ottRepository.save(Ott.of("TVING", 9900, 4));
+////        Ott watcha = ottRepository.save(Ott.of("Watcha", 9900, 4));
+////        Ott wavve = ottRepository.save(Ott.of("Wavve", 9900, 4));
 //
 //        // 초기 사용자 데이터 설정
-//        User user1 = userRepository.save(User.builder()
-//            .nickname("JohnDoe")
-//            .email("khp@naver.com")
-//            .password(passwordEncoder.encode("1234"))
-//            .phoneNumber("010-1234-5678")
-//            .role(UserRole.ROLE_USER)
-//            .build());
-//
-//        User user2 = userRepository.save(User.builder()
-//            .nickname("JaneDoe")
-//            .email("test2doe@example.com")
-//            .password(passwordEncoder.encode("test2"))
-//            .phoneNumber("010-2345-6789")
-//            .role(UserRole.ROLE_USER)
-//            .build());
-//
-//        User adminUser = userRepository.save(User.builder()
-//            .nickname("AdminUser")
-//            .email("admin@example.com")
-//            .password(passwordEncoder.encode("admin"))
-//            .phoneNumber("010-3456-7890")
-//            .role(UserRole.ROLE_ADMIN)
-//            .build());
+////        User user1 = userRepository.save(User.builder()
+////            .nickname("JohnDoe")
+////            .email("khp@naver.com")
+////            .password(passwordEncoder.encode("1234"))
+////            .phoneNumber("010-1234-5678")
+////            .role(UserRole.ROLE_USER)
+////            .build());
+////
+////        User user2 = userRepository.save(User.builder()
+////            .nickname("JaneDoe")
+////            .email("test2doe@example.com")
+////            .password(passwordEncoder.encode("test2"))
+////            .phoneNumber("010-2345-6789")
+////            .role(UserRole.ROLE_USER)
+////            .build());
+////
+////        User adminUser = userRepository.save(User.builder()
+////            .nickname("AdminUser")
+////            .email("admin@example.com")
+////            .password(passwordEncoder.encode("admin"))
+////            .phoneNumber("010-3456-7890")
+////            .role(UserRole.ROLE_ADMIN)
+////            .build());
 //
 //        // 초기 파티 데이터 설정
 ////        Party party1 = partyRepository.save(Party.builder()

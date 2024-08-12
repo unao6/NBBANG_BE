@@ -54,15 +54,17 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 기존에 휴대폰 번호가 있는지 확인 후 업데이트
-        if (user.getPhoneNumber() != null) {
+        if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
+        // 새로운 휴대폰 번호를 설정하고 저장
         user.setPhoneNumber(newPhoneNumber);
         userRepository.save(user);
 
         return true;
     }
+
 
     // 회원 탈퇴
     public void deleteUser(String email) {

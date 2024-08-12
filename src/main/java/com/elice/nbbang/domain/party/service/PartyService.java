@@ -183,15 +183,6 @@ public class PartyService {
                 .findFirst()
                 .orElseThrow(() -> new PartyMemberNotFoundException(ErrorCode.NOT_FOUND_PARTY_MEMBER));
 
-        if (card.getPaymentType().equals(KAKAOPAY)) {
-            log.info("카카오 페이 환불 시작");
-            paymentService.getRefundAmount(user.getId(), partyMember.getOtt().getId());
-            log.info("카카오 페이 환불 성공");
-        } else {
-            log.info("부트 페이 환불 시작");
-            bootPayService.refundPayment(user.getId(), partyMember.getOtt().getId());
-            log.info("부트 페이 환불 성공");
-        }
 
         partyMemberRepository.delete(partyMember);
         log.info("party 탈퇴 성공");
