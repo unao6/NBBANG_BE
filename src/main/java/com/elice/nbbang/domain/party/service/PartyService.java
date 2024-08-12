@@ -179,7 +179,7 @@ public class PartyService {
         List<PartyMember> partyMemberByPartyId = partyMemberRepository.findPartyMemberByPartyId(partyId);
 
         PartyMember partyMember = partyMemberByPartyId.stream()
-                .filter(pm -> pm.getId().equals(user.getId()))
+                .filter(pm -> pm.getUser().getId().equals(user.getId()))
                 .findFirst()
                 .orElseThrow(() -> new PartyMemberNotFoundException(ErrorCode.NOT_FOUND_PARTY_MEMBER));
 
