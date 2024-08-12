@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -55,6 +57,23 @@ public class UserService {
         return true;
     }
 
+    // 휴대폰 번호 추가
+    public boolean addPhoneNumberAfterSocialLogin(String email, String newPhoneNumber) {
+        // Optional을 사용하여 User 객체를 안전하게 가져옴
+        User user = Optional.ofNullable(userRepository.findByEmail(email))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // 기존에 휴대폰 번호가 있는지 확인 후 업데이트
+        if (user.getPhoneNumber() != null) {
+            throw new IllegalArgumentException("Phone number already exists");
+        }
+
+        user.setPhoneNumber(newPhoneNumber);
+        userRepository.save(user);
+
+        return true;
+    }
+
     // 회원 탈퇴
     public void deleteUser(String email) {
         User user = userRepository.findByEmail(email);
@@ -62,7 +81,6 @@ public class UserService {
         user.setDeleted(true);
         userRepository.save(user);
     }
-
 
     public User findOrCreateUser(OAuth2Response oAuth2Response) {
         User user = userRepository.findByEmail(oAuth2Response.getEmail());

@@ -25,11 +25,7 @@ public class Auth extends BaseTimeEntity {
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
-    @Column(name = "password", length = 255)
-    private String password;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
