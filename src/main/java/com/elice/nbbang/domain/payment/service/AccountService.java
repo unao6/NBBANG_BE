@@ -130,7 +130,7 @@ public class AccountService {
         long totalSettlement = ChronoUnit.DAYS.between(party.getSettlementDate().minusMonths(1), party.getSettlementDate());
 
         double ratio = (double) daysUntilSettlement / totalSettlement;
-        long partialAmount = (long) Math.max((amount * ratio) - PaymentService.SETTLEMENT_FEE, 0);
+        long partialAmount = (long) Math.max((amount * ratio), 0);
 
         Account serviceAccount = accountRepository.findByAccountType(AccountType.SERVICE_ACCOUNT)
             .orElseThrow(() -> new IllegalArgumentException("서비스 계좌가 존재하지 않습니다."));

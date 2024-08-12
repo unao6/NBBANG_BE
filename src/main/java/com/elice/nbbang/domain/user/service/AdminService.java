@@ -4,6 +4,9 @@ import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,15 +36,14 @@ public class AdminService {
         return user != null && user.getRole().equals(UserRole.ROLE_ADMIN);
     }
 
-    // 탈퇴 안한 회원만 조회
-    public List<User> getAllActiveUsers() {
-        return userRepository.findAllByDeletedFalse();
+    // 탈퇴 안한 회원만 조회 (페이지네이션 적용)
+    public Page<User> getAllActiveUsers(Pageable pageable) {
+        return userRepository.findAllByDeletedFalse(pageable);
     }
 
-    public List<User> getAllInactiveUsers() {
-        return userRepository.findAll().stream()
-                .filter(User::isDeleted)
-                .collect(Collectors.toList());
+    // 탈퇴한 회원만 조회
+    public Page<User> getAllInactiveUsers(Pageable pageable) {
+        return  userRepository.findAllByDeletedTrue(pageable);
     }
 
     // 탈퇴한 회원 복구

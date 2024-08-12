@@ -78,15 +78,21 @@ public class PaymentService {
     /**
      * 환불 정보 반환 메소드
      */
-    private PaymentRefundDTO calculateRefund(Payment payment) {
+    protected PaymentRefundDTO calculateRefund(Payment payment) {
         int paymentAmount = payment.getAmount();
-        double rawDayPrice = (double) paymentAmount / 30; // 일일 가격 계산 (소수점 포함)
-
-        // 1일 이용금액 계산 (소수점 이하 절삭)
-        int oneDayPrice = (int) Math.floor(rawDayPrice);
+        int netPaymentAmount = paymentAmount - FEE; // 수수료를 뺀 실제 OTT 이용 요금
 
         LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
-        LocalDate currentDate = LocalDate.of(2024, 8, 30); // <<테스트날짜임
+        LocalDate currentDate = LocalDate.of(2024, 8, 30); // 테스트 날짜
+
+        // 해당 달의 일수 계산
+        int daysInMonth = paymentApprovedDate.lengthOfMonth();
+
+        // 1일 이용금액 계산 (소수점 이하 절삭)
+        double rawDayPrice = (double) netPaymentAmount / daysInMonth;
+        int oneDayPrice = (int) Math.floor(rawDayPrice);
+
+        // 사용된 일수 계산
         long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
 
         // 사용된 금액 계산 (소수점 이하 절삭)
@@ -174,6 +180,7 @@ public class PaymentService {
             .amount(amount)
             .ottId(reserve.getOtt().getId())
             .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
+            .paymentApprovedAt(LocalDateTime.now())
             .paymentType(PaymentType.CARD)
             .status(PaymentStatus.RESERVE_COMPLETED)
             .reserveId(reserveId)
