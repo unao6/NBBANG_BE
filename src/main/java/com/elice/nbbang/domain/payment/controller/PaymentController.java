@@ -86,16 +86,6 @@ public class PaymentController {
         return ResponseEntity.ok(payments);
     }
 
-    /**
-     * PaymentId로 결제 취소 요청
-     * todo: 미사용중 아직 체크중
-     */
-    @PostMapping("/{paymentId}/refund")
-    public ResponseEntity<Void> requestRefund(
-        @PathVariable Long paymentId,
-        @RequestBody KakaoPayCancelRequest request) {
-        return ResponseEntity.ok().build();
-    }
 
     /**
      * 환불 정보 조회

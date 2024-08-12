@@ -88,9 +88,4 @@ public class KakaoPayController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/subscription/cancel")
-    public ResponseEntity<Void> cancelSubscription() throws Exception {
-        kakaoPayService.autoCancelPayment(1L,1L);
-        return ResponseEntity.ok().build();
-    }
 }
