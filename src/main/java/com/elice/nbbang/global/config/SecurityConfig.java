@@ -1,6 +1,7 @@
 package com.elice.nbbang.global.config;
 
 import com.elice.nbbang.domain.auth.repository.RefreshRepository;
+import com.elice.nbbang.domain.user.service.UserService;
 import com.elice.nbbang.global.jwt.CustomLogoutFilter;
 import com.elice.nbbang.global.jwt.JWTFilter;
 import com.elice.nbbang.global.jwt.JWTUtil;
@@ -35,6 +36,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final UserService userService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -66,7 +68,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository, userService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

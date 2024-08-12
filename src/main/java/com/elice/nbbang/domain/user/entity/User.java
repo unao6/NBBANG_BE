@@ -36,7 +36,4 @@ public class User extends BaseTimeEntity {
     @Column(name = "deleted")
     private boolean deleted = false;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Auth auth;
-
 }
