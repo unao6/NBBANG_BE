@@ -180,6 +180,7 @@ public class PaymentService {
             .amount(amount)
             .ottId(reserve.getOtt().getId())
             .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
+            .paymentApprovedAt(LocalDateTime.now())
             .paymentType(PaymentType.CARD)
             .status(PaymentStatus.RESERVE_COMPLETED)
             .reserveId(reserveId)
