@@ -205,7 +205,9 @@ public class KakaoPayService {
      * 3.결제취소 API 사용
      */
     public void cancelPayment(KakaoPayCancelRequest request) throws Exception {
+        log.info("3.결제 취소 요청 시작. tid: {}", request.getTid());
         String tid = request.getTid();
+
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(kakaoPayProperties.getCancelUrl());
@@ -216,19 +218,14 @@ public class KakaoPayService {
             }
             Payment payment = paymentOptional.get();
 
-            // 환불 금액 계산
-            PaymentRefundDTO refundDTO = paymentService.calculateRefund(payment);
-            int refundAmount = refundDTO.getRefundAmount();
-
             // 요청값을 사용하여 KakaoPayCancelRequest 생성
-            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.builder()
-                .tid(tid)
-                .cancelAmount(refundAmount) // 환불 금액 사용
-                .cancelTaxFreeAmount(request.getCancelTaxFreeAmount())
-                .cancelVatAmount(request.getCancelVatAmount())
-                .cancelAvailableAmount(refundAmount)
-                .payload(request.getPayload())
-                .build();
+            KakaoPayCancelRequest cancelRequest = KakaoPayCancelRequest.fromProperties(
+                kakaoPayProperties,
+                payment,
+                request.getCancelAmount(), // 환불 금액 사용
+                request.getCancelTaxFreeAmount(),
+                request.getPayload()
+            );
 
             // HTTP 헤더 설정
             setHeaders(httpPost, kakaoPayProperties.getSecretKey());
