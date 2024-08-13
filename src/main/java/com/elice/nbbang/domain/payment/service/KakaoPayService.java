@@ -13,25 +13,21 @@ import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionCreateResponse;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionRequest;
 import com.elice.nbbang.domain.payment.dto.KakaoPaySubscriptionResponse;
-import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.entity.Card;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
+import com.elice.nbbang.domain.payment.paymentEmailProvider.PaymentEmailProvider;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.repository.UserRepository;
 import com.elice.nbbang.global.config.EncryptUtils;
+import com.elice.nbbang.global.util.UserUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +54,7 @@ public class KakaoPayService {
     private final ObjectMapper objectMapper;
     private final OttRepository ottRepository;
     private final EncryptUtils encryptUtils;
-    private final PaymentService paymentService;
+    private final PaymentEmailProvider paymentEmailProvider;
 
     /**
      * 1.결제준비 (카드 등록을 위한)
@@ -253,8 +249,21 @@ public class KakaoPayService {
                 payment.updateApprovePayment(PaymentStatus.REFUNDED_COMPLETED, payment.getSid(), cancelResponse.getCanceledAt());
                 paymentRepository.save(payment);
                 log.info("결제 취소 정보 저장 후.");
+
+                // 취소 이메일 전송
+                String userEmail = payment.getUser().getEmail();
+                String userNickName = payment.getUser().getNickname();
+                int cancelAmount = request.getCancelAmount();
+
+                boolean emailSent = paymentEmailProvider.sendCancelPaymentEmail(userEmail, userNickName, cancelAmount);
+                if (emailSent) {
+                    log.info("결제 취소 알림 이메일 전송 완료.");
+                } else {
+                    log.warn("결제 취소 알림 이메일 전송 실패.");
+                }
             }
         }
+
     }
 
 
@@ -366,6 +375,10 @@ public class KakaoPayService {
                 log.info("4-4. 정기결제 정보 저장 후.");
             }
         }
+        // 알람 이메일 전송
+        String userEmail = user.getEmail();
+        String userNickName = user.getNickname();
+        paymentEmailProvider.sendCompletePaymentEmail(userEmail, userNickName, price);
     }
 
 

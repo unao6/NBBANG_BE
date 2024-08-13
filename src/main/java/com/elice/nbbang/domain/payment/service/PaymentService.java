@@ -37,7 +37,6 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final UserUtil userUtil;
     private final UserRepository userRepository;
-    private final UserUtilService userUtilService;
     private final CardRepository cardRepository;
 
     public static final int FEE = 500;
