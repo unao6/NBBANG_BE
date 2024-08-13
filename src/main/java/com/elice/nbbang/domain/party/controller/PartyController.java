@@ -1,5 +1,7 @@
 package com.elice.nbbang.domain.party.controller;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 import com.elice.nbbang.domain.ott.controller.dto.OttResponse;
 import com.elice.nbbang.domain.party.controller.dto.*;
 import com.elice.nbbang.domain.party.service.PartyMatchService;
@@ -44,6 +46,11 @@ public class PartyController {
     @GetMapping("/my-party")
     public ResponseEntity<List<MyPartyResponse>> getMyParty() {
         return ResponseEntity.ok().body(partyService.getMyParty());
+    }
+
+    @GetMapping("/my-party-member")
+    public ResponseEntity<List<MyPartyResponse>> getMyPartyInMember() {
+        return ResponseEntity.ok().body(partyService.getMyPartyInMember());
     }
 
     @GetMapping("/admin/party")

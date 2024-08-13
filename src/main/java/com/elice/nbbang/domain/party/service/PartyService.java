@@ -123,6 +123,25 @@ public class PartyService {
     }
 
     @Transactional(readOnly = true)
+    public List<MyPartyResponse> getMyPartyInMember() {
+        String email = userUtil.getAuthenticatedUserEmail();
+        final User user = userRepository.findByEmail(email);
+
+        List<Party> partiesWhereUserIsMember = partyRepository.findPartiesByPartyMembersUserId(user.getId());
+
+        return partiesWhereUserIsMember.stream()
+            .map(party -> {
+                Ott ott = party.getOtt();
+                return new MyPartyResponse(
+                    party.getId(),
+                    ott.getId(),
+                    ott.getName()
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<PartyAdminResponse> getAllPartyByAdmin(Pageable pageable) {
 
         Page<Party> subscribedOttByUserId = partyRepository.findAllPartyByAdmin(pageable);

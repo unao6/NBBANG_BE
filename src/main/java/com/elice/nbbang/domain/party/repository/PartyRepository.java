@@ -62,6 +62,12 @@ public interface PartyRepository extends JpaRepository<Party, Long> {
             " where p.id = :partyId")
     Party findPartyAndPartyMemberByPartyId(@Param("partyId") Long partyId);
 
+    @Query("SELECT p " +
+        "FROM Party p " +
+        "JOIN p.partyMembers pm " +
+        "WHERE pm.user.id = :userId")
+    List<Party> findPartiesByPartyMembersUserId(@Param("userId") Long userId);
+
     //settlementDate가 현재 시간보다 이전인 Party 리스트 반환
     List<Party> findBySettlementDateBefore(LocalDateTime date);
 }
