@@ -7,6 +7,7 @@ import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.jwt.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -31,6 +32,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
+        // 탈퇴된 계정인지 확인
+        User existingUser = userRepository.findByEmail(email);
+        if (existingUser != null && existingUser.isDeleted()) {
+            throw new DisabledException("이미 탈퇴된 계정입니다.");
+        }
+
         // Auth 정보 저장 또는 업데이트
         Auth auth = authRepository.findByProviderAndProviderId(Auth.Provider.GOOGLE, email)
                 .orElseGet(() -> Auth.builder()
@@ -44,7 +51,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user = User.builder()
                     .email(email)
                     .nickname(name)
-                    .role(UserRole.ROLE_USER)
                     .password("")  // 비밀번호는 필요 없음
                     .phoneNumber("") // 필요한 경우 설정
                     .role(UserRole.ROLE_USER) // 여기서 ROLE_USER를 설정

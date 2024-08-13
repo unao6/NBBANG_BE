@@ -5,6 +5,7 @@ import com.elice.nbbang.domain.auth.dto.OAuth2Response;
 import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
 import com.elice.nbbang.domain.auth.service.MessageService;
 import com.elice.nbbang.domain.user.dto.reponse.UserResponse;
+import com.elice.nbbang.domain.user.dto.request.PhoneNumberChangeRequestDto;
 import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.exception.UserNotFoundException;
@@ -32,29 +33,18 @@ public class UserService {
     }
 
     // 휴대폰 번호 변경
-    public boolean changePhoneNumber(String email, String newPhoneNumber, String randomNumber) {
-        // 인증 코드 확인
-        PhoneCheckRequestDto phoneCheckRequestDto = new PhoneCheckRequestDto(newPhoneNumber, randomNumber);
-        String verificationResult = messageService.verifySms(phoneCheckRequestDto);
-
-        // verificationResult를 확인하여 인증 성공 여부 결정
-        boolean isVerified = "success".equalsIgnoreCase(verificationResult); // "success"가 반환되는 경우 인증 성공으로 간주
-
-        if (!isVerified) {
-            throw new IllegalArgumentException("휴대폰 인증이 완료되지 않았습니다.");
-        }
-
+    public void changePhoneNumber(String email, PhoneNumberChangeRequestDto requestDto) {
         // 유저 정보 가져오기
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
+        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
+
+        if (!optionalUser.isPresent()) {
             throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 휴대폰 번호 변경
-        user.setPhoneNumber(newPhoneNumber);
-        userRepository.save(user);
+        User user = optionalUser.get();
 
-        return true;
+        user.setPhoneNumber(requestDto.getNewPhoneNumber());
+        userRepository.save(user);
     }
 
     // 휴대폰 번호 추가
