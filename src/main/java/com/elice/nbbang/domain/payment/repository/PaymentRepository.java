@@ -53,7 +53,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByReserveId(String id);
 
-    Optional<Payment> findByReceiptId(String id);
+    Optional<Payment> findTopByReceiptIdOrderByPaymentApprovedAtDesc(String id);
 
     List<Payment> findAllByStatus(PaymentStatus status);
 

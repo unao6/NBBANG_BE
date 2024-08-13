@@ -176,6 +176,7 @@ public class PaymentService {
             .cardCompany(card.getCardCompany())
             .billingKey(reserve.getBillingKey())
             .amount(amount)
+            .receiptId(reserve.getReceiptId())
             .ottId(reserve.getOtt().getId())
             .paymentSubscribedAt(reserve.getPaymentSubscribedAt())
             .paymentApprovedAt(LocalDateTime.now())
@@ -200,7 +201,7 @@ public class PaymentService {
     //payment 상태변경(결제 취소)
     @Transactional(readOnly = false)
     public void cancelPayment(String id, Double cancelAmount) {
-        Payment payment = paymentRepository.findByReceiptId(id).orElse(null);
+        Payment payment = paymentRepository.findTopByReceiptIdOrderByPaymentApprovedAtDesc(id).orElse(null);
         Payment updatedPayment = payment.toBuilder()
             .status(PaymentStatus.REFUNDED_COMPLETED)
             .refundAmount(cancelAmount.intValue())

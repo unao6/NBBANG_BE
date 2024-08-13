@@ -6,6 +6,7 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
+import com.elice.nbbang.domain.payment.dto.PaymentRefundDTO;
 import com.elice.nbbang.domain.payment.dto.PaymentReserve;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import kr.co.bootpay.Bootpay;
 import kr.co.bootpay.model.request.Cancel;
 import kr.co.bootpay.model.request.SubscribePayload;
+import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -196,7 +198,7 @@ public class BootPayService {
     }
 
     //예약완료된 payment를 주기마다 조회
-    //@Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000)
     @Transactional(readOnly = false)
     public void scheduledLookupReservation() {
         List<String> reserveIds = getAllReservedPayment();
@@ -233,6 +235,7 @@ public class BootPayService {
                         .user(payment.getUser())
                         .ott(ott)
                         .paymentSubscribedAt(newPaymentTime)
+                        .receiptId(encryptedReceiptId)
                         .build();
 
                     reservePayment(reserve);
@@ -254,40 +257,32 @@ public class BootPayService {
     @Transactional(readOnly = false)
     public void refundPayment(Long userId, Long ottId) {
         Optional<Payment> paymentOptional = paymentRepository.findTopByUserIdAndOttIdOrderByPaymentApprovedAtDesc(userId, ottId);
-        log.info("환불 시작합니다~~~");
+        log.info("부트페이 환불 시작합니다~~~");
         log.info("userId: " + userId + ", ottId: " + ottId);
 
         if (paymentOptional.isPresent()) {
             Payment payment = paymentOptional.get();
-
-            // 결제 금액 가져오기
-            int paymentAmount = payment.getAmount();
-            double dayPrice = (double) paymentAmount / 30; // 일일 가격 계산
-
-            // 결제 승인일로부터 환불 신청일까지의 일수 계산
-            LocalDate paymentApprovedDate = payment.getPaymentApprovedAt().toLocalDate();
-            LocalDate currentDate = LocalDate.now(); // <<테스트날짜임 //현재 날짜를 환불 신청일로 간주
-            long daysUsed = ChronoUnit.DAYS.between(paymentApprovedDate, currentDate);
-
-            // 사용한 일수만큼의 금액을 계산하여 환불금액 계산 수수료도 더해서 차감
-            double amountUsed = dayPrice * daysUsed + PaymentService.FEE;
-            int refundAmount = (int) Math.max(0, paymentAmount - amountUsed); // 환불 금액이 음수가 되지 않도록 함.
+            PaymentRefundDTO refundDTO = paymentService.calculateRefund(payment);
 
             // Payment 객체의 상태 업데이트
-            payment.updateRefundPayment(PaymentStatus.REFUND_REQUESTED, refundAmount, LocalDateTime.now());
+            payment.updateRefundPayment(PaymentStatus.REFUNDED_COMPLETED, refundDTO.getRefundAmount(), LocalDateTime.now());
+            log.info("부트페이 환불 금액: " + refundDTO.getRefundAmount());
+            // 변경사항을 데이터베이스에 저장
+            paymentRepository.saveAndFlush(payment);
 
+            log.info("부트페이 환불 디비 저장완료");
             //부트페이 로직 호출
             try {
-                cancelPayment(payment.getReceiptId(), (double) refundAmount);
+                log.info("부트페이 취소 진입");
+                cancelPayment(payment.getReceiptId(), (double) refundDTO.getRefundAmount());
+                log.info("부트페이 취소 나옴");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            // 변경사항을 데이터베이스에 저장
-            paymentRepository.save(payment);
         } else {
             throw new CustomException(PAYMENT_NOT_FOUND);
         }
+        log.info("부트페이 환불 완료");
     }
 
     //완료된 결제 취소

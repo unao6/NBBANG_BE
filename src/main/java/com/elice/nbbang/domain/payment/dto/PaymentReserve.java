@@ -20,5 +20,7 @@ public class PaymentReserve {
 
     private Ott ott;
 
+    private String receiptId;
+
     private LocalDateTime paymentSubscribedAt;
 }

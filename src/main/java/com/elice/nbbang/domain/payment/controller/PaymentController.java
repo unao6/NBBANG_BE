@@ -130,14 +130,7 @@ public class PaymentController {
         }
         Long userId = paymentService.getAuthenticatedUserId();
         log.info("userId = {}", userId);
-        Card card = cardRepository.findByUserId(userId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 유저의 카드 정보가 없습니다."));
-        log.info("card = {}", card);
 
-        if(card.getPaymentType() == PaymentType.CARD){
-            bootPayService.refundPayment(userId, ottId);
-        } else
-            paymentService.getRefundAmount(userId, ottId);
         return ResponseEntity.ok().build();
     }
 }

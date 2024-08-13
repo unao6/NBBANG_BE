@@ -20,6 +20,7 @@ import com.elice.nbbang.domain.party.repository.PartyRepository;
 import com.elice.nbbang.domain.party.service.dto.PartyCreateServiceRequest;
 import com.elice.nbbang.domain.party.service.dto.PartyUpdateServiceRequest;
 import com.elice.nbbang.domain.payment.entity.Card;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.CardRepository;
 import com.elice.nbbang.domain.payment.service.BootPayService;
 import com.elice.nbbang.domain.payment.service.PaymentService;
@@ -168,6 +169,7 @@ public class PartyService {
 
     }
 
+    @Transactional
     public void withdrawParty(final Long partyId) {
         log.info("party 탈퇴 시도");
         String email = userUtil.getAuthenticatedUserEmail();
@@ -183,6 +185,18 @@ public class PartyService {
                 .findFirst()
                 .orElseThrow(() -> new PartyMemberNotFoundException(ErrorCode.NOT_FOUND_PARTY_MEMBER));
 
+
+        //결제를 위한 로직
+        Party party = partyRepository.findById(partyId)
+            .orElseThrow(() -> new NoSuchElementException("해당 파티를 찾을 수 없습니다."));
+
+        log.info("card = {}", card);
+        if(card.getPaymentType() == PaymentType.CARD){
+            bootPayService.refundPayment(user.getId(), party.getOtt().getId());
+        }else{
+            log.info("카카오페이 환불");
+            paymentService.getRefundAmount(user.getId(), party.getOtt().getId());
+        }
 
         partyMemberRepository.delete(partyMember);
         log.info("party 탈퇴 성공");
