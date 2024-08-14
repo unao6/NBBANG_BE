@@ -5,7 +5,7 @@
 ### 기술 스택
 
 ### Front-end
-<img src="/uploads/e3659fa1820f9133784757d46a5c4088/스크린샷_2024-08-14_오후_2.01.20.png" alt="front-end" width="400">
+<img src="/uploads/27f32fefed2a5d1df1325033a6181ced/스크린샷_2024-08-14_오후_2.06.25.png" alt="front-end" width="400">
 
 ### Back-end
 <img src="/uploads/18460a1fb631a0b831b7d00943aca090/스크린샷_2024-08-14_오후_1.29.17.png" alt="Back-end" width="400">
