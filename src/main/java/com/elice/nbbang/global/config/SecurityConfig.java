@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN")
                         .requestMatchers("/reissue").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/hc").permitAll() //서버체크용
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
