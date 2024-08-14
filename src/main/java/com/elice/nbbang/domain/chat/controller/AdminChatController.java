@@ -1,5 +1,7 @@
 package com.elice.nbbang.domain.chat.controller;
 
+import com.elice.nbbang.domain.chat.dto.ArchivedChatDto;
+import com.elice.nbbang.domain.chat.dto.ArchivedChatListDto;
 import com.elice.nbbang.domain.chat.dto.ChatListResponse;
 import com.elice.nbbang.domain.chat.dto.Message;
 import com.elice.nbbang.domain.chat.entity.ArchivedChats;
@@ -80,16 +82,16 @@ public class AdminChatController {
 
     // 아카이브된 채팅 목록 조회
     @GetMapping("/archived")
-    public ResponseEntity<List<ArchivedChats>> getArchivedChats() {
-        List<ArchivedChats> archivedChats = chatService.getArchivedChats();
-        return ResponseEntity.ok(archivedChats);
+    public ResponseEntity<List<ArchivedChatListDto>> getArchivedChats() {
+        List<ArchivedChatListDto> archivedChatListDto = chatService.getArchivedChats();
+        return ResponseEntity.ok(archivedChatListDto);
     }
 
     // 특정 사용자의 아카이브된 채팅 조회
     @GetMapping("/archived/{archivedId}")
-    public ResponseEntity<ArchivedChats> getArchivedChat(@PathVariable Long archivedId) {
-        ArchivedChats archivedChat = chatService.getArchivedChat(archivedId);
-        return ResponseEntity.ok(archivedChat);
+    public ResponseEntity<ArchivedChatDto> getArchivedChat(@PathVariable Long archivedId) {
+        ArchivedChatDto archivedChatDto = chatService.getArchivedChat(archivedId);
+        return ResponseEntity.ok(archivedChatDto);
     }
 
 }

@@ -3,6 +3,8 @@ package com.elice.nbbang.domain.payment.service;
 import static com.elice.nbbang.global.exception.ErrorCode.PAYMENT_NOT_FOUND;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
+import com.elice.nbbang.domain.notification.dto.SmsRequest;
+import com.elice.nbbang.domain.notification.provider.NotificationSmsProvider;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.exception.OttNotFoundException;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
@@ -46,15 +48,17 @@ public class BootPayService {
     private final PaymentRepository paymentRepository;
     private final OttRepository ottRepository;
     private final EncryptUtils encryptUtils;
+    private final NotificationSmsProvider notificationSmsProvider;
 
     public BootPayService(@Value("${bootpay.applicationId}") String applicationId,
         @Value("${bootpay.privateKey}") String privateKey, PaymentService paymentService, PaymentRepository paymentRepository,
-        OttRepository ottRepository, EncryptUtils encryptUtils) {
+        OttRepository ottRepository, EncryptUtils encryptUtils, NotificationSmsProvider notificationSmsProvider) {
         this.bootpay = new Bootpay(applicationId, privateKey);
         this.paymentService = paymentService;
         this.paymentRepository = paymentRepository;
         this.ottRepository = ottRepository;
         this.encryptUtils = encryptUtils;
+        this.notificationSmsProvider = notificationSmsProvider;
     }
 
     //빌링키 조회
@@ -239,6 +243,20 @@ public class BootPayService {
                         .build();
 
                     reservePayment(reserve);
+
+                    // 결제 완료 SMS 전송
+                    String ottName = ott.getName();
+                    int price = payment.getAmount();
+                    String phoneNumber = payment.getUser().getPhoneNumber();
+
+                    String smsMessage = String.format(
+                            "[N/BBANG]\n" +
+                                    "%s 다음달 결제 완료: %s원",
+                            ottName, price
+                    );
+                    SmsRequest smsRequest = new SmsRequest(phoneNumber, smsMessage);
+                    notificationSmsProvider.sendSms(smsRequest);
+
                 } else {
                     //receiptId가 반환되지 않을 시 = 결제 실패 시 payment 상태 업데이트
                     payment.updateFailurePayment(PaymentStatus.FAILED);

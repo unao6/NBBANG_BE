@@ -2,6 +2,8 @@ package com.elice.nbbang.domain.payment.service;
 
 import static com.elice.nbbang.domain.payment.service.PaymentService.FEE;
 
+import com.elice.nbbang.domain.notification.dto.SmsRequest;
+import com.elice.nbbang.domain.notification.provider.NotificationSmsProvider;
 import com.elice.nbbang.domain.ott.entity.Ott;
 import com.elice.nbbang.domain.ott.repository.OttRepository;
 import com.elice.nbbang.domain.payment.config.KakaoPayProperties;
@@ -55,6 +57,7 @@ public class KakaoPayService {
     private final OttRepository ottRepository;
     private final EncryptUtils encryptUtils;
     private final PaymentEmailProvider paymentEmailProvider;
+    private final NotificationSmsProvider notificationSmsProvider;
 
     /**
      * 1.결제준비 (카드 등록을 위한)
@@ -379,6 +382,16 @@ public class KakaoPayService {
         String userEmail = user.getEmail();
         String userNickName = user.getNickname();
         paymentEmailProvider.sendCompletePaymentEmail(userEmail, userNickName, price);
+
+        // 알람 SMS 전송
+        String ottName = ott.getName();
+        String smsMessage = String.format(
+                "[N/BBANG]\n" +
+                "%s 다음달 결제 완료: %s원",
+                ottName, price
+        );
+        SmsRequest smsRequest = new SmsRequest(user.getPhoneNumber(), smsMessage);
+        notificationSmsProvider.sendSms(smsRequest);
     }
 
 

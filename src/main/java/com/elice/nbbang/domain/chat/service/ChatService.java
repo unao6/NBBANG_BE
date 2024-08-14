@@ -1,6 +1,8 @@
 package com.elice.nbbang.domain.chat.service;
 
 import com.elice.nbbang.domain.chat.controller.WebSocketController;
+import com.elice.nbbang.domain.chat.dto.ArchivedChatDto;
+import com.elice.nbbang.domain.chat.dto.ArchivedChatListDto;
 import com.elice.nbbang.domain.chat.dto.Message;
 import com.elice.nbbang.domain.chat.entity.ArchivedChats;
 import com.elice.nbbang.domain.chat.entity.Chat;
@@ -147,14 +149,25 @@ public class ChatService {
     }
 
     // 아카이브된 상담 조회
-    public List<ArchivedChats> getArchivedChats() {
-        return archivedChatRepository.findAll();
+    public List<ArchivedChatListDto> getArchivedChats() {
+        return archivedChatRepository.findAll().stream()
+                .map(chat -> new ArchivedChatListDto(
+                        chat.getId(),
+                        chat.getMemo(),
+                        chat.getMessages(),
+                        chat.getEndedAt(),
+                        chat.getSavedAt()))
+                .collect(Collectors.toList());
+
     }
 
-
     // 특정 아카이브된 상담 조회
-    public ArchivedChats getArchivedChat(Long archivedId) {
-        return archivedChatRepository.findById(archivedId).orElseThrow(ChatNotFoundException::new);
+    public ArchivedChatDto getArchivedChat(Long archivedId) {
+        ArchivedChats archivedChats = archivedChatRepository.findById(archivedId).orElseThrow(ChatNotFoundException::new);
+        return new ArchivedChatDto(
+                archivedChats.getId(),
+                archivedChats.getMessages()
+        );
     }
 
     // 내용이 없는 채팅 삭제
