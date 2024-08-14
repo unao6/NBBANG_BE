@@ -83,6 +83,9 @@ dependencies {
     // Servlet API
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
     // OAuth2 JOSE
     implementation 'org.springframework.security:spring-security-oauth2-jose:5.5.1'
 

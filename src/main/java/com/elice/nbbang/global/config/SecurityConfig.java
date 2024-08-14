@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
                         .requestMatchers("/api/users/sign-up", "/login", "/",
                                 "/api/users/check-email", "/api/users/check-nickname",
                                 "/api/users/email-certification", "/api/users/check-certification",
