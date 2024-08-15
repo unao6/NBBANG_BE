@@ -20,3 +20,8 @@ COPY --from=builder /app/build/libs/nbbang-0.0.1-SNAPSHOT.jar app.jar
 COPY .env ./
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# docker build -t kimhyeonpil/springboot-image .
+# docker push kimhyeonpil/springboot-image
+# docker pull kimhyeonpil/springboot-image
+# docker run -d -p 8080:8080 --name springboot-server kimhyeonpil/springboot-image
