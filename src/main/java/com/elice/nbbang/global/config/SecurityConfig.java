@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
-//                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers("/api/oauth2/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/api/users/sign-up", "/api/login", "/",
@@ -82,10 +82,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .oauth2Login(oauth2 -> oauth2
+                    .authorizationEndpoint(authorization -> authorization
+                        .baseUri("/api/oauth2/authorization/google")  // 커스텀 엔드포인트
+                    )
+                    .redirectionEndpoint(redirection -> redirection
+                        .baseUri("/api/login/oauth2/code/google") // 리디렉션 URI 패턴을 변경
+                    )
                     .userInfoEndpoint(userInfo -> userInfo
                         .userService(customOAuth2UserService)
                     )
-                    .defaultSuccessUrl("https://nbbang.store/redirect", true)
+                    .defaultSuccessUrl("/api/auth/google/success", true)
                 );
 
         return http.build();
