@@ -10,6 +10,7 @@ import com.elice.nbbang.domain.auth.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,13 +53,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors().configurationSource(corsConfigurationSource()).and()
-                .csrf().disable()
-                .formLogin().disable()
-                .httpBasic().disable()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // CORS 설정 적용
+                .csrf(csrf -> csrf.disable())  // CSRF 비활성화
+                .formLogin(formLogin -> formLogin.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+//                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/api/users/sign-up", "/login", "/",
                                 "/api/users/check-email", "/api/users/check-nickname",
                                 "/api/users/email-certification", "/api/users/check-certification",
@@ -89,9 +94,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedOrigins(Collections.singletonList("http://3.39.127.36:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("access", "Cache-Control", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("access", "Cache-Control", "Content-Type", "Authorization"));
         configuration.setExposedHeaders(List.of("access"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

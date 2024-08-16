@@ -15,7 +15,7 @@ public class HealthCheckController {
     @GetMapping("/hc")
     public ResponseEntity<?> healthCheck() {
         Map<String, String> responseData = new TreeMap<>();
-        responseData.put("status", "UP124");
+        responseData.put("status", "시큐리티 컨피그 수정");
 
         return ResponseEntity.ok(responseData);
     }
