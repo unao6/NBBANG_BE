@@ -94,7 +94,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://3.39.127.36:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://3.39.127.36:3000", "http://3.39.127.36",
+            "http://ec2-3-39-127-36.ap-northeast-2.compute.amazonaws.com:3000", "http://ec2-3-39-127-36.ap-northeast-2.compute.amazonaws.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("access", "Cache-Control", "Content-Type", "Authorization"));
         configuration.setExposedHeaders(List.of("access"));

@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://3.39.127.36:3000", allowedHeaders = "*", allowCredentials = "true")
+@CrossOrigin(origins = {"http://3.39.127.36:3000", "http://3.39.127.36",
+    "http://ec2-3-39-127-36.ap-northeast-2.compute.amazonaws.com:3000",
+    "http://ec2-3-39-127-36.ap-northeast-2.compute.amazonaws.com"}, allowedHeaders = "*", allowCredentials = "true")
 public class AuthController {
 
     private final JWTUtil jwtUtil;
