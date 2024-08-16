@@ -12,7 +12,7 @@ public class WebSocketStompConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("*")
+        registry.addEndpoint("/ws").setAllowedOrigins("https://nbbang.store", "https://nbbang.store:3000", "https://nbbang.store:443")
                 .withSockJS();
     }
 
