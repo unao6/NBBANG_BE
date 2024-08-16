@@ -65,7 +65,7 @@ public class AuthController {
         refreshCookie.setMaxAge((int) (REFRESH_TOKEN_EXPIRATION_MS / 1000));
         response.addCookie(refreshCookie);
 
-        response.sendRedirect("http://3.39.127.36:3000/redirect");
+        response.sendRedirect("https://nbbang.store:3000/redirect");
     }
 
     @GetMapping("/token")

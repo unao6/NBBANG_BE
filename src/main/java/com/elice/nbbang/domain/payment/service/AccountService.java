@@ -8,6 +8,7 @@ import com.elice.nbbang.domain.payment.entity.Account;
 import com.elice.nbbang.domain.payment.entity.Payment;
 import com.elice.nbbang.domain.payment.entity.enums.AccountType;
 import com.elice.nbbang.domain.payment.entity.enums.PaymentStatus;
+import com.elice.nbbang.domain.payment.entity.enums.PaymentType;
 import com.elice.nbbang.domain.payment.repository.AccountRepository;
 import com.elice.nbbang.domain.payment.repository.PaymentRepository;
 import com.elice.nbbang.domain.user.entity.User;
@@ -118,6 +119,7 @@ public class AccountService {
             .ottId(party.getOtt().getId())
             .user(party.getLeader())
             .bankName(userAccount.getBankName())
+            .paymentType(PaymentType.SETTLEMENT)
             .status(PaymentStatus.SETTLE_COMPLETED)
             .build();
         paymentRepository.save(payment);
@@ -149,6 +151,7 @@ public class AccountService {
             .ottId(party.getOtt().getId())
             .user(party.getLeader())
             .bankName(userAccount.getBankName())
+            .paymentType(PaymentType.SETTLEMENT)
             .status(PaymentStatus.PARTIAL_SETTLEMENT_COMPLETED)
             .build();
         paymentRepository.save(payment);
