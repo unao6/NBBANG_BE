@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +85,7 @@ public class AccountService {
     }
 
     //파티를 주기마다 조회
-    //@Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000)
     @Transactional(readOnly = false)
     public void scheduledLookupParty() {
         List<Party> partyList = partyRepository.findBySettlementDateBefore(LocalDateTime.now());
