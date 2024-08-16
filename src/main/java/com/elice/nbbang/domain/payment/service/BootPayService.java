@@ -115,7 +115,7 @@ public class BootPayService {
         payload.price = amount;
         payload.orderId = "" + (System.currentTimeMillis() / 1000);
 
-        Date date = Date.from(reserve.getPaymentSubscribedAt().atZone(ZoneId.of("UTC")).minusHours(9).plusMinutes(1).toInstant());
+        Date date = Date.from(reserve.getPaymentSubscribedAt().atZone(ZoneId.of("UTC")).plusMinutes(1).toInstant());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));

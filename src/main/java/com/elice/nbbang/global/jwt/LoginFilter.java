@@ -24,9 +24,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
-@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 600000L; // 10 minutes
     private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
@@ -35,6 +35,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
     private final UserService userService;
+    private static final String LOGIN_URL = "/api/login";
+
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository, UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.refreshRepository = refreshRepository;
+        this.userService = userService;
+        // URL 매핑 설정
+        this.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(LOGIN_URL, "POST"));
+    }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
