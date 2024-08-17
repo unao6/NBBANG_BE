@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"https://nbbang.store", "https://nbbang.store:3000", "https://nbbang.store:443"}, allowedHeaders = "*", allowCredentials = "true")
+@CrossOrigin(origins = "https://nbbang.store", allowedHeaders = "*", allowCredentials = "true")
 public class AuthController {
 
     private final JWTUtil jwtUtil;
@@ -65,7 +65,7 @@ public class AuthController {
         refreshCookie.setMaxAge((int) (REFRESH_TOKEN_EXPIRATION_MS / 1000));
         response.addCookie(refreshCookie);
 
-        response.sendRedirect("https://nbbang.store:3000/redirect");
+        response.sendRedirect("https://nbbang.store/redirect");
     }
 
     @GetMapping("/token")
