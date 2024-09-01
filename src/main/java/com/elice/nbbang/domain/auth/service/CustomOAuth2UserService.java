@@ -1,64 +1,72 @@
 package com.elice.nbbang.domain.auth.service;
-
-import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
-import com.elice.nbbang.domain.auth.dto.GoogleResponse;
-import com.elice.nbbang.domain.auth.dto.OAuth2Response;
-import com.elice.nbbang.domain.user.dto.UserSignUpDto;
-import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.auth.entity.Auth;
+import com.elice.nbbang.domain.auth.repository.AuthRepository;
 import com.elice.nbbang.domain.user.entity.UserRole;
 import com.elice.nbbang.domain.user.repository.UserRepository;
+import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
+import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.global.jwt.JWTUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+    private final AuthRepository authRepository;
     private final UserRepository userRepository;
+    private final JWTUtil jwtUtil;
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+        OAuth2User oauth2User = super.loadUser(userRequest);
 
-        OAuth2User oAuth2User = super.loadUser(userRequest);
-        System.out.println(oAuth2User);
+        // 구글에서 사용자 정보 가져오기
+        Map<String, Object> attributes = oauth2User.getAttributes();
+        String email = (String) attributes.get("email");
+        String name = (String) attributes.get("name");
 
-        String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        OAuth2Response oAuth2Response = null;
-
-        if (registrationId.equals("google")) {
-            oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-        } else {
-            return null;
+        // 탈퇴된 계정인지 확인
+        User existingUser = userRepository.findByEmail(email);
+        if (existingUser != null && existingUser.isDeleted()) {
+            throw new DisabledException("이미 탈퇴된 계정입니다.");
         }
 
-        UserSignUpDto userSignUpDto = new UserSignUpDto(
-                oAuth2Response.getEmail(),
-                "", // 비밀번호는 OAuth2 인증 시에는 제공되지 않으므로 빈 문자열로 설정합니다.
-                oAuth2Response.getName(),
-                null // 전화번호는 OAuth2 인증 시에는 제공되지 않으므로 빈 문자열로 설정합니다.
-        );
+        // Auth 정보 저장 또는 업데이트
+        Auth auth = authRepository.findByProviderAndProviderId(Auth.Provider.GOOGLE, email)
+                .orElseGet(() -> Auth.builder()
+                        .provider(Auth.Provider.GOOGLE)
+                        .providerId(email)
+                        .build());
 
-        User existingUser = userRepository.findByEmail(userSignUpDto.getEmail());
-
-        if (existingUser == null) {
-            User newUser = User.builder()
-                    .email(userSignUpDto.getEmail())
-                    .nickname(userSignUpDto.getNickname())
-                    .password(userSignUpDto.getPassword())
-//                    .phoneNumber(userSignUpDto.getPhoneNumber())
-                    .role(UserRole.ROLE_USER) // 기본 역할 설정
+        // User 정보 저장 또는 업데이트
+        User user = auth.getUser();
+        if (user == null) {
+            user = User.builder()
+                    .email(email)
+                    .nickname(name)
+                    .password("")  // 비밀번호는 필요 없음
+                    .phoneNumber("") // 필요한 경우 설정
+                    .role(UserRole.ROLE_USER) // 여기서 ROLE_USER를 설정
                     .build();
-
-            userRepository.save(newUser);
         } else {
-            existingUser.setNickname(userSignUpDto.getNickname());
-            userRepository.save(existingUser);
+            user.setNickname(name);
+            // 다른 필요한 정보 업데이트 가능
         }
+        userRepository.save(user);
 
-        return new CustomOAuth2User(userSignUpDto);
-    }
-}
+        // Auth와 User의 연관관계 설정 및 저장
+        auth.setUser(user);
+        authRepository.save(auth);
+
+        // JWT 토큰 생성
+        String jwtToken = jwtUtil.createJwt("access", email, "ROLE_USER", 3600000L);
+
+        return new CustomOAuth2User(oauth2User, jwtToken);
+    }}

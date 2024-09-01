@@ -5,8 +5,6 @@ import com.elice.nbbang.domain.user.entity.User;
 import com.elice.nbbang.global.util.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -44,6 +42,8 @@ public class PartyMember extends BaseTimeEntity {
 
     private LocalDateTime expirationDate;
 
+    private LocalDateTime breakUpDate;
+
     public static PartyMember of(User user, Party party, Ott ott, LocalDateTime joinDate) {
 
         PartyMember partyMember = new PartyMember();
@@ -62,12 +62,19 @@ public class PartyMember extends BaseTimeEntity {
             party.getPartyMembers().add(this);
         }
     }
+    public void addBreakUpDate(LocalDateTime breakUpDate) {
+        this.breakUpDate = breakUpDate;
+    }
 
-    public void removeParty() {
+    public void withdrawParty() {
         if (this.party != null) {
             this.party.getPartyMembers().remove(this);
             this.party = null;
         }
+    }
+
+    public void plusExpiration() {
+        this.expirationDate = LocalDateTime.now().plusMonths(1);
     }
 
 

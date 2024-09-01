@@ -26,40 +26,42 @@ public class PartyMatchingScheduler {
     private final RedisTemplate<String, String> redisTemplate;
 
 
-//    @Scheduled(fixedRate = 5000)
-    public void schedulePartyMatching() {
+    @Scheduled(fixedRate = 5000)
+    public void schedulePartyMatching() throws Exception {
         List<Ott> otts = ottRepository.findAll();
         for (Ott ott : otts) {
             if (taskManager.addTask(ott.getId())) {
                 try {
                     List<String> waitingUsers = redisTemplate.opsForList().range("waiting:" + ott.getId(), 0, -1);
-                    if (waitingUsers == null) {
-                        waitingUsers = new ArrayList<>();
-                    }
-                    for (String userRequest : waitingUsers) {
-                        PartyMatchServiceRequest request = deserializeRequest(userRequest);
-                        CompletableFuture<Boolean> matchingResult = partyMatchService.partyMatch(request.userId(), request.type(), ott.getId());
-                        try {
-                            if (matchingResult.get()) {
-                                redisTemplate.opsForList().remove("waiting:" + ott.getId(), 1, userRequest);
+
+                    // waitingUsers가 null이 아니고 비어있지 않을 때만 매칭 로직을 실행
+                    if (waitingUsers != null && !waitingUsers.isEmpty()) {
+                        log.info("waitingUsers null 아님");
+                        for (String userRequest : waitingUsers) {
+                            String[] parts = userRequest.split(",");
+                            Long userId = Long.parseLong(parts[0]);
+                            MatchingType type = MatchingType.valueOf(parts[1]);
+
+                            CompletableFuture<Boolean> matchingResult = partyMatchService.partyMatch(userId, type, ott.getId());
+                            try {
+                                if (matchingResult.get()) {
+                                    log.info("매칭 성공");
+                                    redisTemplate.opsForList().remove("waiting:" + ott.getId(), 1, userRequest);
+                                    String duplicateValue = userId + "," + ott.getId();
+                                    redisTemplate.opsForSet().remove("waiting_set:" + ott.getId(), duplicateValue);
+                                }
+                            } catch (Exception e) {
+                                log.error("파티 매칭 비동기 메서드 호출시 에러", e);
                             }
-                        } catch (Exception e) {
-                            log.error("파티 매칭 비동기 메서드 호출시 에러", e);
                         }
+                    } else {
+                        log.info("매칭 대기 중인 유저가 없습니다.");
                     }
                 } finally {
                     taskManager.removeTask(ott.getId());
-
                 }
             }
         }
     }
 
-    private PartyMatchServiceRequest deserializeRequest(String requestString) {
-        String[] parts = requestString.split(",");
-        Long userId = Long.parseLong(parts[0]);
-        MatchingType type = MatchingType.valueOf(parts[1]);
-        Long ottId = Long.parseLong(parts[2]);
-        return new PartyMatchServiceRequest(userId, type, ottId);
-    }
 }

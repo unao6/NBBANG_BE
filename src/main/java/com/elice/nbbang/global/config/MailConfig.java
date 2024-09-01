@@ -23,6 +23,12 @@ public class MailConfig {
         return createMailSender();
     }
 
+    @Bean
+    @ConfigurationProperties(prefix="mail.payment")
+    public JavaMailSender paymentMailSender() {
+        return createMailSender();
+    }
+
     public JavaMailSender createMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         Properties props = mailSender.getJavaMailProperties();

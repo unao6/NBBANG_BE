@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "coolsms")
 public class MessageProperties {
+
     private String apikey;
     private String apisecret;
     private String fromnumber;
+
 }

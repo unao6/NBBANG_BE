@@ -2,6 +2,8 @@ package com.elice.nbbang.global.jwt;
 
 import com.elice.nbbang.domain.auth.entity.RefreshEntity;
 import com.elice.nbbang.domain.auth.repository.RefreshRepository;
+import com.elice.nbbang.domain.user.entity.User;
+import com.elice.nbbang.domain.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
@@ -22,9 +24,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
-@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 600000L; // 10 minutes
     private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
@@ -32,6 +34,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final UserService userService;
+    private static final String LOGIN_URL = "/api/login";
+
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository, UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.refreshRepository = refreshRepository;
+        this.userService = userService;
+        // URL 매핑 설정
+        this.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(LOGIN_URL, "POST"));
+    }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -50,6 +63,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         if (email == null || password == null) {
             throw new RuntimeException("Email or Password not provided");
+        }
+
+        // 사용자 상태 확인 (예: 탈퇴된 계정 여부 확인)
+        User user = userService.findByEmail(email); // userService는 User를 관리하는 서비스 클래스
+        if (user == null || user.isDeleted()) {
+            throw new DisabledException("이미 탈퇴된 계정입니다.");
         }
 
         //스프링 시큐리티에서 email과 password를 검증하기 위해서는 token에 담아야 함

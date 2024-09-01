@@ -1,84 +1,115 @@
 package com.elice.nbbang.domain.auth.controller;
 
-import com.elice.nbbang.domain.auth.dto.AuthResponse;
-import com.elice.nbbang.domain.auth.service.OAuthService;
+import com.elice.nbbang.domain.auth.dto.CustomOAuth2User;
+import com.elice.nbbang.domain.auth.dto.request.AddPhoneNumberRequest;
+import com.elice.nbbang.domain.auth.dto.request.PhoneCheckRequestDto;
+import com.elice.nbbang.domain.auth.service.MessageService;
+import com.elice.nbbang.domain.user.service.UserService;
+import com.elice.nbbang.global.jwt.JWTUtil;
+import com.elice.nbbang.global.util.UserUtil;
+import com.elice.nbbang.domain.auth.repository.RefreshRepository;
+import com.elice.nbbang.domain.auth.entity.RefreshEntity;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hibernate.query.sqm.tree.SqmNode.log;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://nbbang.store", allowedHeaders = "*", allowCredentials = "true")
 public class AuthController {
 
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final DefaultOAuth2UserService defaultOAuth2UserService;
-    private final OAuthService oAuthService;
+    private final JWTUtil jwtUtil;
+    private final UserService userService;
+    private final UserUtil userUtil;
+    private final RefreshRepository refreshRepository;
+    private final MessageService messageService;
 
-    @GetMapping("/google")
-    public ResponseEntity<Void> googleLogin() {
-        String googleLoginUrl = "https://accounts.google.com/o/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost:8080/api/auth/google/callback&response_type=code&scope=email%20profile";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(googleLoginUrl));
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+    private static final long ACCESS_TOKEN_EXPIRATION_MS = 3600000L; // 1 hour
+    private static final long REFRESH_TOKEN_EXPIRATION_MS = 86400000L; // 24 hours
+
+    @GetMapping("/google/success")
+    public void googleLoginSuccess(HttpServletResponse response, Authentication authentication) throws IOException {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            return;
+        }
+
+        CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication.getPrincipal();
+        String email = customOAuth2User.getEmail();
+
+        String accessToken = jwtUtil.createJwt("access", email, "ROLE_USER", ACCESS_TOKEN_EXPIRATION_MS);
+        String refreshToken = jwtUtil.createJwt("refresh", email, "ROLE_USER", REFRESH_TOKEN_EXPIRATION_MS);
+        addRefreshEntity(email, refreshToken, REFRESH_TOKEN_EXPIRATION_MS);
+
+        Cookie accessCookie = new Cookie("access", accessToken);
+        accessCookie.setHttpOnly(true);
+        accessCookie.setSecure(false);
+        accessCookie.setPath("/");
+        accessCookie.setMaxAge((int) (ACCESS_TOKEN_EXPIRATION_MS / 1000));
+        response.addCookie(accessCookie);
+
+        Cookie refreshCookie = new Cookie("refresh", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge((int) (REFRESH_TOKEN_EXPIRATION_MS / 1000));
+        response.addCookie(refreshCookie);
+
+        response.sendRedirect("https://nbbang.store/redirect");
     }
 
-    @GetMapping("/google/callback")
-    public ResponseEntity<?> googleCallback(@RequestParam("code") String code) {
-        try {
-            OAuth2AccessTokenResponse accessTokenResponse = requestAccessToken(code);
+    @GetMapping("/token")
+    public ResponseEntity<String> getAccessToken(@CookieValue(name = "access", required = false) String accessToken, HttpServletResponse response) {
+        log.info("넘어온 토큰: {}", accessToken);
 
-            ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId("google");
-            OAuth2UserRequest userRequest = new OAuth2UserRequest(clientRegistration, accessTokenResponse.getAccessToken());
-            OAuth2User oAuth2User = defaultOAuth2UserService.loadUser(userRequest);
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No token found");
+        }
 
-            AuthResponse authResponse = oAuthService.handleGoogleLogin(oAuth2User);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("access", accessToken);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + authResponse.getAccessToken());
-            headers.set("Refresh-Token", authResponse.getRefreshToken());
-            headers.setLocation(URI.create("http://localhost:3000"));
+        Cookie deleteAccessCookie = new Cookie("access", null);
+        deleteAccessCookie.setMaxAge(0);
+        deleteAccessCookie.setPath("/");
+        response.addCookie(deleteAccessCookie);
 
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
-        } catch (Exception e) {
-            log.error("구글 인증 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("구글 인증 실패");
+        log.info("넘어온 토큰22222: {}", accessToken);
+        return ResponseEntity.ok().headers(headers).body("Token sent in headers");
+    }
+
+    @PostMapping("/add-phone-number")
+    public ResponseEntity<String> addPhoneNumber(@RequestBody AddPhoneNumberRequest request) {
+        String email = userUtil.getAuthenticatedUserEmail();
+
+        // 휴대폰 번호 추가
+        boolean isAdded = userService.addPhoneNumberAfterSocialLogin(email, request.getPhoneNumber());
+        if (isAdded) {
+            return ResponseEntity.ok("휴대폰 번호가 성공적으로 추가되었습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("휴대폰 번호 추가에 실패했습니다.");
         }
     }
 
-    private OAuth2AccessTokenResponse requestAccessToken(String code) {
-        ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId("google");
-        String tokenUri = clientRegistration.getProviderDetails().getTokenUri();
+    private void addRefreshEntity(String email, String refresh, Long expiredMs) {
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
 
-        RestTemplate restTemplate = new RestTemplate();
-        Map<String, String> params = new HashMap<>();
-        params.put("code", code);
-        params.put("client_id", clientRegistration.getClientId());
-        params.put("client_secret", clientRegistration.getClientSecret());
-        params.put("redirect_uri", clientRegistration.getRedirectUri());
-        params.put("grant_type", "authorization_code");
+        RefreshEntity refreshEntity = RefreshEntity.builder()
+                .email(email)
+                .refresh(refresh)
+                .expiration(date.toString())
+                .build();
 
-        return restTemplate.postForObject(tokenUri, params, OAuth2AccessTokenResponse.class);
+        refreshRepository.save(refreshEntity);
     }
 }

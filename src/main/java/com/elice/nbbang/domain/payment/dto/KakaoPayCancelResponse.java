@@ -61,6 +61,8 @@ public class KakaoPayCancelResponse {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Amount {
         private Long total;
         @JsonProperty("tax_free")
@@ -74,6 +76,8 @@ public class KakaoPayCancelResponse {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ApprovedCancelAmount {
         private Long total;
         @JsonProperty("tax_free")
@@ -87,6 +91,8 @@ public class KakaoPayCancelResponse {
 
     @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CanceledAmount {
         private Long total;
         @JsonProperty("tax_free")
@@ -100,6 +106,8 @@ public class KakaoPayCancelResponse {
 
     @Getter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CancelAvailableAmount {
         private Long total;
         @JsonProperty("tax_free")

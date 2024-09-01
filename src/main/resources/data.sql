@@ -1,27 +1,98 @@
--- OTT
-INSERT INTO ott (name, price, capacity, created_at, modified_at)
-VALUES ('디즈니플러스', 9900, 4, NOW(), NOW());
+-- 유저 데이터 삽입
+-- INSERT INTO user (user_id, nickname, email, password, phone_number, role, deleted, created_at, modified_at)
+-- VALUES
+--     (1, '치킨사랑', 'user1@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-03-10 12:23:45', '2023-07-14 10:18:22'),
+--     (2, '라면요정', 'user2@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-02-18 14:52:33', '2023-06-11 09:34:15'),
+--     (3, '밤샘왕', 'user3@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2022-11-03 11:43:27', '2023-03-22 16:09:58'),
+--     (4, '잠이모자라', 'user4@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-01-15 13:37:42', '2023-06-08 12:47:39'),
+--     (5, '엉망진창', 'user5@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2022-09-21 09:25:14', '2023-05-01 15:23:31'),
+--     (6, '게임광', 'user6@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2022-10-04 17:39:18', '2023-03-10 14:11:05'),
+--     (7, '웃음폭발', 'user7@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-04-23 18:25:44', '2023-06-15 20:14:29'),
+--     (8, '커피중독', 'user8@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2022-12-14 11:47:03', '2023-05-19 21:37:58'),
+--     (9, '알람킬러', 'user9@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-03-07 14:12:56', '2023-07-02 16:22:33'),
+--     (10, '아무거나', 'user10@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-01-11 09:33:48', '2023-06-18 11:55:41'),
+--     (11, '먹보', 'user11@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2022-12-22 13:45:32', '2023-07-10 15:48:11'),
+--     (12, '늘졸려', 'user12@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-02-09 15:29:14', '2023-06-29 19:30:12'),
+--     (13, '배고파', 'user13@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-04-01 17:14:49', '2023-07-25 14:22:05'),
+--     (14, '멍때리기', 'user14@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-05-15 11:37:21', '2023-07-28 12:59:13'),
+--     (15, '배부르다', 'user15@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2022-11-28 20:45:10', '2023-06-05 08:17:44'),
+--     (16, '퇴근좀', 'user16@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2022-10-17 09:28:55', '2023-05-21 13:43:32'),
+--     (17, '주말만기다려', 'user17@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-01-05 08:12:38', '2023-06-30 16:39:11'),
+--     (18, '계산기키드', 'user18@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2022-12-13 14:25:19', '2023-07-05 10:53:45'),
+--     (19, '문자폭탄', 'user19@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01012345678', 'ROLE_USER', false, '2023-02-21 19:32:26', '2023-08-01 11:22:33'),
+--     (20, '어디야', 'user20@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '01087654321', 'ROLE_USER', false, '2023-03-30 21:45:50', '2023-08-02 18:33:14'),
+--     (21, '관리자1', 'admin1@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '0100000000', 'ROLE_ADMIN', false, '2022-10-01 13:23:15', '2023-06-15 14:22:19'),
+--     (22, '관리자2', 'admin2@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '0100000001', 'ROLE_ADMIN', false, '2022-11-12 17:48:23', '2023-07-22 15:09:44'),
+--     (23, '관리자3', 'admin3@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '0100000002', 'ROLE_ADMIN', false, '2023-01-07 08:37:02', '2023-07-11 10:30:39'),
+--     (24, '관리자4', 'admin4@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '0100000003', 'ROLE_ADMIN', false, '2022-12-09 10:12:48', '2023-08-08 12:59:51'),
+--     (25, '관리자5', 'admin5@a.com', '$2a$10$KJKrxz3GsgCt0cAiSpz/dOENvDhPp76uN4j4s6YF6Lq92yma9JplS', '0100000004', 'ROLE_ADMIN', false, '2022-11-22 09:17:29', '2023-07-29 14:33:08');
+--
 
-INSERT INTO ott (name, price, capacity, created_at, modified_at)
-VALUES ('ChatGPT', 29900, 4, NOW(), NOW());
+-- 초기 OTT 데이터 설정
+-- INSERT INTO ott (ott_id, name, price, capacity) VALUES
+-- (1, 'Disney+', 13900, 4),
+-- (2, 'ChatGPT', 29900, 4),
+-- (3, 'TVING', 17000, 4),
+-- (4, 'Watcha', 12900, 4),
+-- (5, 'Wavve', 13900, 4);
+--
+--
+-- -- 초기 파티 데이터 설정
+-- INSERT INTO party (created_at, leader_id, modified_at, ott_id, settlement_date, ott_account_id, ott_account_password, party_status)
+-- VALUES
+--     ('2023-03-12 14:15:00', 1, '2023-03-14 16:20:00', 1, '2023-03-18 12:00:00', 'account1', 'password1', 'AVAILABLE'),
+--     ('2023-03-15 10:45:00', 2, '2023-03-18 14:10:00', 2, '2023-03-20 12:00:00', 'account2', 'password2', 'FULL'),
+--     ('2023-03-20 08:35:00', 3, '2023-03-22 09:40:00', 3, '2023-03-25 12:00:00', 'account3', 'password3', 'AVAILABLE'),
+--     ('2023-03-25 16:55:00', 4, '2023-03-27 17:00:00', 4, '2023-03-30 12:00:00', 'account4', 'password4', 'FULL'),
+--     ('2023-03-30 12:25:00', 5, '2023-04-01 13:30:00', 5, '2023-04-05 12:00:00', 'account5', 'password5', 'AVAILABLE'),
+--     ('2023-04-05 09:15:00', 6, '2023-04-07 10:20:00', 1, '2023-04-10 12:00:00', 'account6', 'password6', 'FULL'),
+--     ('2023-04-10 18:45:00', 7, '2023-04-12 19:50:00', 2, '2023-04-15 12:00:00', 'account7', 'password7', 'AVAILABLE'),
+--     ('2023-04-15 14:35:00', 8, '2023-04-17 15:40:00', 3, '2023-04-20 12:00:00', 'account8', 'password8', 'FULL'),
+--     ('2023-04-20 16:25:00', 9, '2023-04-22 17:30:00', 4, '2023-04-25 12:00:00', 'account9', 'password9', 'AVAILABLE'),
+--     ('2023-04-25 11:15:00', 10, '2023-04-27 12:20:00', 5, '2023-04-30 12:00:00', 'account10', 'password10', 'FULL'),
+--     ('2023-04-30 08:35:00', 11, '2023-05-02 09:40:00', 1, '2023-05-05 12:00:00', 'account11', 'password11', 'AVAILABLE'),
+--     ('2023-05-05 17:45:00', 12, '2023-05-07 18:50:00', 2, '2023-05-10 12:00:00', 'account12', 'password12', 'FULL');
 
-INSERT INTO ott (name, price, capacity, created_at, modified_at)
-VALUES ('티빙', 9900, 4, NOW(), NOW());
-
-# INSERT INTO ott (name, price, capacity, created_at, modified_at)
-# VALUES ('Amazon Prime', 12000, 6, NOW(), NOW());
-
-# INSERT INTO ott (name, price, capacity, created_at, modified_at)
-# VALUES ('Hulu', 8000, 5, NOW(), NOW());
-#
-# INSERT INTO ott (name, price, capacity, created_at, modified_at)
-# VALUES ('Apple TV+', 6500, 6, NOW(), NOW());
-
-INSERT INTO user (nickname, email, password, phone_number, role, created_at, modified_at)
-VALUES ('user1', 'user1@example.com', 'password1', '010-1111-1111', 'ROLE_USER', NOW(), NOW());
-
-INSERT INTO user (nickname, email, password, phone_number, role, created_at, modified_at)
-VALUES ('user2', 'user2@example.com', 'password2', '010-2222-2222', 'ROLE_ADMIN', NOW(), NOW());
-
-INSERT INTO user (nickname, email, password, phone_number, role, created_at, modified_at)
-VALUES ('user3', 'user3@example.com', 'password3', '010-3333-3333', 'ROLE_USER', NOW(), NOW());
+--
+-- -- 초기 파티 멤버 데이터 설정
+-- INSERT INTO party_member (created_at, expiration_date, join_date, modified_at, ott_id, party_id, user_id)
+-- VALUES
+-- -- Party 1 (Disney+, AVAILABLE) - 2 members, 한달 차이
+-- ('2023-03-12 14:20:00', '2023-04-12 14:20:00', '2023-03-12 14:20:00', '2023-03-14 16:25:00', 1, 1, 1),  -- 치킨사랑
+-- ('2023-03-13 10:00:00', '2023-04-13 10:00:00', '2023-03-13 10:00:00', '2023-03-15 09:50:00', 1, 1, 3),  -- 밤샘왕
+--
+-- -- Party 2 (ChatGPT, FULL) - 4 members, 한달 차이
+-- ('2023-03-15 10:50:00', '2023-04-15 10:50:00', '2023-03-15 10:50:00', '2023-03-18 14:30:00', 2, 2, 2),  -- 라면요정
+-- ('2023-03-16 11:10:00', '2023-04-16 11:10:00', '2023-03-16 11:10:00', '2023-03-19 15:00:00', 2, 2, 4),  -- 잠이모자라
+-- ('2023-05-05 17:55:00', '2023-06-05 17:55:00', '2023-05-05 17:55:00', '2023-05-07 19:00:00', 2, 2, 6),  -- 게임광
+-- ('2023-05-06 18:35:00', '2023-06-06 18:35:00', '2023-05-06 18:35:00', '2023-05-08 20:00:00', 2, 2, 8),  -- 커피중독
+--
+-- -- Party 3 (TVING, AVAILABLE) - 2 members, 한달 이상 차이
+-- ('2023-03-20 08:45:00', '2023-05-25 12:00:00', '2023-03-20 08:45:00', '2023-03-22 09:55:00', 3, 3, 5),  -- 엉망진창
+-- ('2023-03-21 09:15:00', '2023-05-30 09:15:00', '2023-03-21 09:15:00', '2023-03-23 10:30:00', 3, 3, 7),  -- 웃음폭발
+--
+-- -- Party 4 (Watcha, FULL) - 4 members, 한달 차이
+-- ('2023-03-25 17:05:00', '2023-04-25 17:05:00', '2023-03-25 17:05:00', '2023-03-27 17:15:00', 4, 4, 9),  -- 알람킬러
+-- ('2023-03-26 18:25:00', '2023-04-26 18:25:00', '2023-03-26 18:25:00', '2023-03-28 18:45:00', 4, 4, 10), -- 아무거나
+-- ('2023-04-20 16:35:00', '2023-05-20 16:35:00', '2023-04-20 16:35:00', '2023-04-22 17:45:00', 4, 4, 11), -- 먹보
+-- ('2023-04-21 17:05:00', '2023-05-21 17:05:00', '2023-04-21 17:05:00', '2023-04-23 18:00:00', 4, 4, 12), -- 늘졸려
+--
+-- -- Party 5 (Wavve, AVAILABLE) - 2 members, 한달 차이
+-- ('2023-03-30 12:35:00', '2023-04-30 12:35:00', '2023-03-30 12:35:00', '2023-04-01 13:45:00', 5, 5, 13), -- 배고파
+-- ('2023-03-31 13:05:00', '2023-04-30 13:05:00', '2023-03-31 13:05:00', '2023-04-02 14:00:00', 5, 5, 14), -- 멍때리기
+--
+-- -- Party 6 (Disney+, FULL) - 4 members, 한달 이상 차이
+-- ('2023-04-05 09:25:00', '2023-06-10 12:00:00', '2023-04-05 09:25:00', '2023-04-07 10:30:00', 1, 6, 15), -- 배부르다
+-- ('2023-04-06 10:15:00', '2023-06-12 12:00:00', '2023-04-06 10:15:00', '2023-04-08 11:00:00', 1, 6, 16), -- 퇴근좀
+-- ('2023-04-30 08:45:00', '2023-06-15 12:00:00', '2023-04-30 08:45:00', '2023-05-02 09:50:00', 1, 6, 17), -- 주말만기다려
+-- ('2023-05-01 09:15:00', '2023-07-01 12:00:00', '2023-05-01 09:15:00', '2023-05-03 10:00:00', 1, 6, 18), -- 계산기키드
+--
+-- -- Party 7 (ChatGPT, AVAILABLE) - 2 members, 한달 차이
+-- ('2023-04-10 18:55:00', '2023-05-10 18:55:00', '2023-04-10 18:55:00', '2023-04-12 20:00:00', 2, 7, 19), -- 문자폭탄
+-- ('2023-04-11 19:35:00', '2023-05-11 19:35:00', '2023-04-11 19:35:00', '2023-04-13 21:00:00', 2, 7, 20), -- 어디야
+--
+-- -- Party 8 (TVING, FULL) - 4 members, 한달 차이
+-- ('2023-04-15 14:45:00', '2023-05-15 14:45:00', '2023-04-15 14:45:00', '2023-04-17 15:50:00', 3, 8, 1),  -- 치킨사랑
+-- ('2023-04-16 15:25:00', '2023-05-16 15:25:00', '2023-04-16 15:25:00', '2023-04-18 16:00:00', 3, 8, 3),  -- 밤샘왕
+-- ('2023-04-17 16:35:00', '2023-05-17 16:35:00', '2023-04-17 16:35:00', '2023-04-19 17:45:00', 3, 8, 5),  -- 엉망진창
+-- ('2023-04-18 17:05:00', '2023-05-18 17:05:00', '2023-04-18 17:05:00', '2023-04-20 18:00:00', 3, 8, 7);  -- 웃음폭발
